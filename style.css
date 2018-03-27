@@ -3,6 +3,7 @@ body {
     font-family: 'Open Sans', sans-serif;
     overflow-x: hidden;
     color: #fff;
+    background-color: #000 !important;
 }
 canvas {
     position: relative;
@@ -13,6 +14,7 @@ section > div.intro {
     left: 50%;
     transform: translateX(-50%) translateY(-50%);
     text-transform: uppercase;
+    color: #fff
 }
 section > div.intro > h1 {
     padding: 0 10px;
@@ -20,8 +22,7 @@ section > div.intro > h1 {
     font-size: 64px;
 }
 section > div.about {
-    width: 80%;
-    background: #000;
+    background: #111;
     text-align: center;
 }
 section > div.about > h3 {
@@ -31,9 +32,7 @@ section > div.about > p {
     padding: 1em;
 }
 section.technologies > div {
-    width: 80%;
-    float: right;
-    background: #000;
+    background: #111;
     text-align: center;
 }
 .wrapper {
@@ -41,4 +40,49 @@ section.technologies > div {
     grid-template-columns: auto auto auto;
     grid-gap: 1em;
     color: #444;
+}
+
+#navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+footer {
+    background: #111;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-gap: 1em;
+}
+
+.icons {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    margin: auto;
+}
+
+.contact {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    margin: auto;
+}
+
+footer > div.container > div.logo {
+    margin: auto;
+}
+
+footer > div.container > div.icons > i {
+    padding: 10px;
+}
+
+footer > div.container > div.contact {
+    margin: auto;
+}
+
+footer > div.container > div.contact > p > i {
+    padding: 10px;
 }
