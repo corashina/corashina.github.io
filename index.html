@@ -5,41 +5,26 @@
 	<title>Portfolio</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<link href="https://fonts.googleapis.com/css?family=Open+Sans:400" rel="stylesheet">
 	<link href="style.css" type="text/css" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link href="mdb/css/bootstrap.min.css" rel="stylesheet">
-	<link href="mdb/css/mdb.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
 </head>
 
-<script src="js/build/three.js"></script>
+<script src="js/three.min.js"></script>
 <script src="js/Projector.js"></script>
 <script src="js/CanvasRenderer.js"></script>
 <script src="js/OrbitControls.js"></script>
 
 <body>
 
-	<section id="navbar" class="border-bottom border-dark">
-		<nav class="navbar navbar-expand-lg navbar-dark black-color">
-			<a class="navbar-brand" href="#">Tomasz Zielinski</a>
-			<div class="collapse navbar-collapse">
-				<ul class="navbar-nav mr-auto">
-					<li class="nav-item active">
-						<a class="nav-link" href="#"><i class="fa fa-home" aria-hidden="true"></i>Home<span class="sr-only">(current)</span></a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#"><i class="fa fa-user" aria-hidden="true"></i>About</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#"><i class="fa fa-address-card" aria-hidden="true"></i>Projects</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="#"><i class="fa fa-phone" aria-hidden="true"></i>Contact</a>
-					</li>
-				</ul>
-			</div>
-		</nav>
-	</section>
+
+	<nav class="navbar" id="myTopnav">
+		  <a href="#home" class="active">Home</a>
+		  <a href="#news">News</a>
+		  <a href="#contact">Contact</a>
+		  <a href="#about">About</a>
+		  <a href="javascript:void(0);" style="font-size:15px;" class="icon" onclick="myFunction()">&#9776;</a>
+	</nav>
 
 	<section>
 		<div class="intro">
@@ -49,131 +34,69 @@
 
 	<section>
 		<div class="about">
-			<h1>Who am i ?</h1>
-			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi similique culpa est accusamus adipisci error, cumque, suscipit repudiandae deleniti perferendis. Ipsam obcaecati autem saepe in qui, inventore corporis earum animi cum, ducimus cumque rem dolor, quas iure, quos eum odit! Cumque soluta nobis adipisci earum dolorum inventore, atque amet tempora aliquid! At ab consequatur minima sunt cupiditate eaque facilis cum.</p>
+			<h2>Who am i ?</h2>
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi similique culpa est accusamus adipisci error,
+				 cumque, suscipit repudiandae deleniti perferendis. Ipsam obcaecati autem saepe in qui, inventore corporis earum
+				  animi cum, ducimus cumque rem dolor, quas iure, quos eum odit! Cumque soluta nobis adipisci earum dolorum inventore,
+				   atque amet tempora aliquid! At ab consequatur minima sunt cupiditate eaque facilis cum.</p>
 		</div>
 	</section>
 
 	<section class="technologies">
 		<div>
-			<h3>Technologies I use</h3>
+			<h2>Technologies I use</h2>
 			<div class="wrapper">
-				<div class="image"><img src="images/html5.png"></div>
-				<div class="image"><img src="images/css3.png"></div>
-				<div class="image"><img src="images/javascript.png"></div>
-				<div class="image"><img src="images/node.png"></div>
-				<div class="image"><img src="images/socket.png"></div>
-				<div class="image"><img src="images/vue.png"></div>
+				<div class="image"><img src="images/html5.png"></div><p>HTML</p>
+				<div class="image"><img src="images/css3.png"></div><p>CSS</p>
+				<div class="image"><img src="images/javascript.png"></div><p>Javascript</p>
+				<div class="image"><img src="images/node.png"></div><p>Node.js</p>
+				<div class="image"><img src="images/socket.png"></div><p>Socket.io</p>
+				<div class="image"><img src="images/vue.png"></div><p>Vue.js</p>
+				<div class="image"><img src="images/git.png"></div><p>Git</p>
 			</div>
 		</div>
 	</section>
 
 	<section class="projects">
-		<iframe src="http://127.0.0.1:3000/"></iframe>
+		<div>
+			<h2>Projects</h2>
+			<div>
+				<div><a href="https://github.com/Tomasz-Zielinski/Chat"><img class="preview" src="images/1.png"></a></div>
+				<div><a href="https://github.com/Tomasz-Zielinski/Digital-Doily"><img class="preview" src="images/2.png"></a></div>
+				<div><a href="https://github.com/Tomasz-Zielinski/Agar.io"><img class="preview" src="images/3.png"></a></div>
+				<div><a href="https://github.com/Tomasz-Zielinski/Portfolio"><img class="preview" src="images/4.png"></a></div>
+			</div>
+		</div>
 	</section>
 
 	<footer>
-		<div class="container">
+		<div class="wrapp">
 			<div class="logo">tomasz-zielinski.com</div>
 			<div class="icons">
-				<i class="fa fa-linkedin fa-2x" aria-hidden="true"></i>
-				<i class="fa fa-github fa-2x" aria-hidden="true"></i>
-				<i class="fa fa-stack-overflow fa-2x" aria-hidden="true"></i>
+				<a><i class="fa fa-linkedin fa-2x" aria-hidden="true"></i></a>
+				<a href="https://github.com/Tomasz-Zielinski"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a>
+				<a href="https://stackoverflow.com/users/7306664/tomasz-zieli%C5%84ski"><i class="fa fa-stack-overflow fa-2x" aria-hidden="true"></i></a>
 			</div>
 			<div class="contact">
-				<p><i class="fa fa-phone fa-2x" aria-hidden="true"></i>07519554924</p>
-				<p><i class="fa fa-envelope fa-2x" aria-hidden="true"></i>contact@tomasz-zielinski.com</p>
+                <div><i class="fa fa-phone" aria-hidden="true"></i><span>07519554924</span></div>
+				<div><i class="fa fa-envelope" aria-hidden="true"></i><span>contact@tomasz-zielinski.com</span></div>
 			</div>
+
 		</div>
 	</footer>
 
 </body>
+
+<script type="text/javascript" src="js/waves.js"></script>
 <script>
-	var controls;
-	var SEPARATION = 100,
-		AMOUNTX = 50,
-		AMOUNTY = 50;
-	var container, stats;
-	var camera, scene, renderer;
-	var particles, particle, count = 0;
-	var windowHalfX = window.innerWidth / 2;
-	var windowHalfY = window.innerHeight / 2;
-
-	function init() {
-		container = document.createElement('div');
-		document.body.prepend(container);
-		camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 2500);
-		camera.position.x = 1000;
-		camera.position.y = 300;
-		camera.position.z = 1000;
-		scene = new THREE.Scene();
-		particles = new Array();
-		var PI2 = Math.PI * 2;
-		var material = new THREE.SpriteCanvasMaterial({
-			color: 0x555,
-			program: function(context) {
-				context.beginPath();
-				context.arc(0, 0, 0.5, 0, PI2, true);
-				context.fill();
-			}
-		});
-		var i = 0;
-		for (var ix = 0; ix < AMOUNTX; ix++) {
-			for (var iy = 0; iy < AMOUNTY; iy++) {
-				particle = particles[i++] = new THREE.Sprite(material);
-				particle.position.x = ix * SEPARATION - ((AMOUNTX * SEPARATION) / 2);
-				particle.position.z = iy * SEPARATION - ((AMOUNTY * SEPARATION) / 2);
-				scene.add(particle);
-			}
-		}
-		renderer = new THREE.CanvasRenderer();
-		renderer.setPixelRatio(window.devicePixelRatio);
-		renderer.setSize(window.innerWidth, window.innerHeight);
-		container.appendChild(renderer.domElement);
-
-		controls = new THREE.OrbitControls(camera);
-		controls.enabled = false;
-		controls.autoRotate = true;
-
-
-		window.addEventListener('resize', onWindowResize, false);
-	}
-
-	function onWindowResize() {
-		windowHalfX = window.innerWidth / 2;
-		windowHalfY = window.innerHeight / 2;
-		camera.aspect = window.innerWidth / window.innerHeight;
-		camera.updateProjectionMatrix();
-		renderer.setSize(window.innerWidth, window.innerHeight);
-	}
-
-	function animate() {
-		requestAnimationFrame(animate);
-		controls.update();
-		render();
-	}
-
-	function render() {
-		camera.lookAt(scene.position);
-		var i = 0;
-		for (var ix = 0; ix < AMOUNTX; ix++) {
-			for (var iy = 0; iy < AMOUNTY; iy++) {
-				particle = particles[i++];
-				particle.position.y = (Math.sin((ix + count) * 0.3) * 70) +
-					(Math.sin((iy + count) * 0.5) * 70);
-				particle.scale.x = particle.scale.y = (Math.sin((ix + count) * 0.3) + 1) * 4 +
-					(Math.sin((iy + count) * 0.5) + 1) * 4;
-			}
-		}
-		renderer.render(scene, camera);
-		count += 0.1;
-	}
-	init();
-	animate();
+function myFunction() {
+    var x = document.getElementById("myTopnav");
+    if (x.className === "navbar") {
+        x.className += " responsive";
+    } else {
+        x.className = "navbar";
+    }
+}
 </script>
-<script type="text/javascript" src="mdb/js/jquery-3.2.1.min.js"></script>
-<script type="text/javascript" src="mdb/js/popper.min.js"></script>
-<script type="text/javascript" src="mdb/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="mdb/js/mdb.min.js"></script>
 
 </html>
