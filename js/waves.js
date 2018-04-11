@@ -39,7 +39,7 @@ function init() {
     renderer = new THREE.CanvasRenderer();
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColorHex( 0x000, 1 );
+    renderer.setClearColor( 0x000000, 1 );
     container.appendChild(renderer.domElement);
 
     controls = new THREE.OrbitControls(camera);

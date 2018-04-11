@@ -7,38 +7,48 @@
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<link href="style.css" type="text/css" rel="stylesheet">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
-</head>
 
-<script src="js/three.min.js"></script>
-<script src="js/Projector.js"></script>
-<script src="js/CanvasRenderer.js"></script>
-<script src="js/OrbitControls.js"></script>
+	<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117328709-1"></script> -->
+	<!-- <script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'UA-117328709-1');
+	</script> -->
+
+
+</head>
 
 <body>
 
-
 	<nav class="navbar" id="myTopnav">
-		  <a href="#home" class="active">Home</a>
-		  <a href="#news">News</a>
-		  <a href="#contact">Contact</a>
-		  <a href="#about">About</a>
-		  <a href="javascript:void(0);" style="font-size:15px;" class="icon" onclick="myFunction()">&#9776;</a>
+		<a id="homebtn">Tomasz Zielinski</a>
+		<a id="aboutbtn"><i class="fa fa-user"></i>About</a>
+		<a id="projectsbtn"><i class="fa fa-book"></i>Projects</a>
+		<a id="contactbtn"><i class="fa fa-phone"></i>Contact</a>
+		<a class="icon" onclick="myFunction()">&#9776;</a>
 	</nav>
 
 	<section>
 		<div class="intro">
-			<h1>Hi there</h1>
+			<h1>Hello I am Tomasz. I'm<br><span class="typeout">a student</span></h1>
 		</div>
+		<div class="arrows">
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+		<div class="borders"></div>
+		<div class="borders"></div>
+		<div class="borders"></div>
 	</section>
 
-	<section>
-		<div class="about">
+	<section class="about">
+		<div>
 			<h2>Who am i ?</h2>
-			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi similique culpa est accusamus adipisci error,
-				 cumque, suscipit repudiandae deleniti perferendis. Ipsam obcaecati autem saepe in qui, inventore corporis earum
-				  animi cum, ducimus cumque rem dolor, quas iure, quos eum odit! Cumque soluta nobis adipisci earum dolorum inventore,
-				   atque amet tempora aliquid! At ab consequatur minima sunt cupiditate eaque facilis cum.</p>
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi similique culpa est accusamus adipisci error, cumque, suscipit repudiandae deleniti perferendis. Ipsam obcaecati autem saepe in qui, inventore corporis earum animi cum, ducimus cumque rem
+				dolor, quas iure, quos eum odit! Cumque soluta nobis adipisci earum dolorum inventore, atque amet tempora aliquid! At ab consequatur minima sunt cupiditate eaque facilis cum.</p>
 		</div>
 	</section>
 
@@ -46,13 +56,20 @@
 		<div>
 			<h2>Technologies I use</h2>
 			<div class="wrapper">
-				<div class="image"><img src="images/html5.png"></div><p>HTML</p>
-				<div class="image"><img src="images/css3.png"></div><p>CSS</p>
-				<div class="image"><img src="images/javascript.png"></div><p>Javascript</p>
-				<div class="image"><img src="images/node.png"></div><p>Node.js</p>
-				<div class="image"><img src="images/socket.png"></div><p>Socket.io</p>
-				<div class="image"><img src="images/vue.png"></div><p>Vue.js</p>
-				<div class="image"><img src="images/git.png"></div><p>Git</p>
+				<div class="image"><img src="images/html5.png"></div>
+				<p>HTML</p>
+				<div class="image"><img src="images/css3.png"></div>
+				<p>CSS</p>
+				<div class="image"><img src="images/javascript.png"></div>
+				<p>Javascript</p>
+				<div class="image"><img src="images/node.png"></div>
+				<p>Node.js</p>
+				<div class="image"><img src="images/socket.png"></div>
+				<p>Socket.io</p>
+				<div class="image"><img src="images/vue.png"></div>
+				<p>Vue.js</p>
+				<div class="image"><img src="images/git.png"></div>
+				<p>Git</p>
 			</div>
 		</div>
 	</section>
@@ -78,7 +95,7 @@
 				<a href="https://stackoverflow.com/users/7306664/tomasz-zieli%C5%84ski"><i class="fa fa-stack-overflow fa-2x" aria-hidden="true"></i></a>
 			</div>
 			<div class="contact">
-                <div><i class="fa fa-phone" aria-hidden="true"></i><span>07519554924</span></div>
+				<div><i class="fa fa-phone" aria-hidden="true"></i><span>07519554924</span></div>
 				<div><i class="fa fa-envelope" aria-hidden="true"></i><span>contact@tomasz-zielinski.com</span></div>
 			</div>
 
@@ -86,17 +103,43 @@
 	</footer>
 
 </body>
-
+<script type="text/javascript" src="js/typeout.min.js"></script>
+<script type="text/javascript" src="js/three.min.js"></script>
+<script type="text/javascript" src="js/Projector.js"></script>
+<script type="text/javascript" src="js/CanvasRenderer.js"></script>
+<script type="text/javascript" src="js/OrbitControls.js"></script>
 <script type="text/javascript" src="js/waves.js"></script>
 <script>
-function myFunction() {
-    var x = document.getElementById("myTopnav");
-    if (x.className === "navbar") {
-        x.className += " responsive";
-    } else {
-        x.className = "navbar";
-    }
-}
+	document.getElementById('homebtn').addEventListener("click", function(e) {
+		document.querySelector('nav').scrollIntoView({behavior:"smooth", inline:"nearest"})
+	})
+	document.getElementById('aboutbtn').addEventListener("click", function(e) {
+		document.getElementsByClassName('about')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
+	})
+	document.getElementsByClassName('arrows')[0].addEventListener("click", function(e) {
+		document.getElementsByClassName('about')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
+	})
+	document.getElementById('projectsbtn').addEventListener("click", function(e) {
+		document.getElementsByClassName('projects')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
+	})
+	document.getElementById('contactbtn').addEventListener("click", function(e) {
+		document.querySelector('footer').scrollIntoView({behavior:"smooth", inline:"nearest"})
+	})
+	function myFunction() {
+		var x = document.getElementById("myTopnav");
+		if (x.className === "navbar") {
+			x.className += " responsive";
+		} else {
+			x.className = "navbar";
+		}
+	}
+	typeout('.typeout', ['a computer-scientist', 'a bigboy', 'a programmer', 'a gay'], {
+	  numLoops: 3,
+	  callback: function(el) {
+	    console.log('calling the callback baby');
+	    el.innerHTML += ".";
+	  }
+	});
 </script>
 
 </html>
