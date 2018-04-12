@@ -5,30 +5,26 @@
 	<title>Portfolio</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<link href="style.css" type="text/css" rel="stylesheet">
+	<link href="css/style.css" type="text/css" rel="stylesheet">
+	<script type="text/javascript" src="js/typeout.min.js"></script>
+	<script type="text/javascript" src="js/three.min.js"></script>
+	<script type="text/javascript" src="js/Projector.js"></script>
+	<script type="text/javascript" src="js/CanvasRenderer.js"></script>
+	<script type="text/javascript" src="js/OrbitControls.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-
-	<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117328709-1"></script> -->
-	<!-- <script>
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-117328709-1"></script>
+	<script>
 	  window.dataLayer = window.dataLayer || [];
 	  function gtag(){dataLayer.push(arguments);}
 	  gtag('js', new Date());
 
 	  gtag('config', 'UA-117328709-1');
-	</script> -->
+	</script>
 
 
 </head>
 
 <body>
-
-	<nav class="navbar" id="myTopnav">
-		<a id="homebtn">Tomasz Zielinski</a>
-		<a id="aboutbtn"><i class="fa fa-user"></i>About</a>
-		<a id="projectsbtn"><i class="fa fa-book"></i>Projects</a>
-		<a id="contactbtn"><i class="fa fa-phone"></i>Contact</a>
-		<a class="icon" onclick="myFunction()">&#9776;</a>
-	</nav>
 
 	<section>
 		<div class="intro">
@@ -42,6 +38,7 @@
 		<div class="borders"></div>
 		<div class="borders"></div>
 		<div class="borders"></div>
+		<div class="borders"></div>
 	</section>
 
 	<section class="about">
@@ -49,6 +46,11 @@
 			<h2>Who am i ?</h2>
 			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Modi similique culpa est accusamus adipisci error, cumque, suscipit repudiandae deleniti perferendis. Ipsam obcaecati autem saepe in qui, inventore corporis earum animi cum, ducimus cumque rem
 				dolor, quas iure, quos eum odit! Cumque soluta nobis adipisci earum dolorum inventore, atque amet tempora aliquid! At ab consequatur minima sunt cupiditate eaque facilis cum.</p>
+			<div class="card-holder">
+				<div class="card"><i class="fa fa-laptop fa-3x" aria-hidden="true"></i><h3>Freelancer</h3><p>Siema</p></div>
+				<div class="card"><i class="fa fa-code fa-3x" aria-hidden="true"></i><h3>Developer</h3><p>Siema</p></div>
+				<div class="card"><i class="fa fa-pencil fa-3x" aria-hidden="true"></i><h3>Designer</h3><p>Siema</p></div>
+			</div>
 		</div>
 	</section>
 
@@ -70,6 +72,8 @@
 				<p>Vue.js</p>
 				<div class="image"><img src="images/git.png"></div>
 				<p>Git</p>
+				<div class="image"><img src="images/github.png"></div>
+				<p>Github</p>
 			</div>
 		</div>
 	</section>
@@ -90,7 +94,7 @@
 		<div class="wrapp">
 			<div class="logo">tomasz-zielinski.com</div>
 			<div class="icons">
-				<a><i class="fa fa-linkedin fa-2x" aria-hidden="true"></i></a>
+				<a href="https://www.linkedin.com/in/tomasz-zielinski-a97999161/"><i class="fa fa-linkedin fa-2x" aria-hidden="true"></i></a>
 				<a href="https://github.com/Tomasz-Zielinski"><i class="fa fa-github fa-2x" aria-hidden="true"></i></a>
 				<a href="https://stackoverflow.com/users/7306664/tomasz-zieli%C5%84ski"><i class="fa fa-stack-overflow fa-2x" aria-hidden="true"></i></a>
 			</div>
@@ -103,37 +107,9 @@
 	</footer>
 
 </body>
-<script type="text/javascript" src="js/typeout.min.js"></script>
-<script type="text/javascript" src="js/three.min.js"></script>
-<script type="text/javascript" src="js/Projector.js"></script>
-<script type="text/javascript" src="js/CanvasRenderer.js"></script>
-<script type="text/javascript" src="js/OrbitControls.js"></script>
 <script type="text/javascript" src="js/waves.js"></script>
 <script>
-	document.getElementById('homebtn').addEventListener("click", function(e) {
-		document.querySelector('nav').scrollIntoView({behavior:"smooth", inline:"nearest"})
-	})
-	document.getElementById('aboutbtn').addEventListener("click", function(e) {
-		document.getElementsByClassName('about')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
-	})
-	document.getElementsByClassName('arrows')[0].addEventListener("click", function(e) {
-		document.getElementsByClassName('about')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
-	})
-	document.getElementById('projectsbtn').addEventListener("click", function(e) {
-		document.getElementsByClassName('projects')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"})
-	})
-	document.getElementById('contactbtn').addEventListener("click", function(e) {
-		document.querySelector('footer').scrollIntoView({behavior:"smooth", inline:"nearest"})
-	})
-	function myFunction() {
-		var x = document.getElementById("myTopnav");
-		if (x.className === "navbar") {
-			x.className += " responsive";
-		} else {
-			x.className = "navbar";
-		}
-	}
-	typeout('.typeout', ['a computer-scientist', 'a bigboy', 'a programmer', 'a gay'], {
+	typeout('.typeout', ['a computer-scientist', 'a bigboy', 'a programmer', 'gay'], {
 	  numLoops: 3,
 	  callback: function(el) {
 	    console.log('calling the callback baby');
