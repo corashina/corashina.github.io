@@ -7,6 +7,8 @@ body {
     font-family: 'Roboto-Light', sans-serif;
     color: #eee;
     background-color: #fff;
+    opacity: 0;
+    transition: opacity 0.8s ease;
 }
 
 canvas {
@@ -137,7 +139,7 @@ canvas {
 .borders:nth-last-of-type(5) {
     top: 1%;
     right: 1%;
-    transform: translateX(10%) translateY(20%);
+    transform: translateX(-10%) translateY(20%);
     border-right: 1px solid #fff;
     border-top: 1px solid #fff;
 }
@@ -185,9 +187,9 @@ canvas {
     color: #111;
 }
 
-.about>div>p {
+.about div p {
     margin: auto;
-    text-align: justify;
+    text-align: center;
     padding: 3%;
     width: 70%
 }
@@ -214,7 +216,6 @@ canvas {
     width: 100%;
     height: 100%;
     transition: opacity 0.4s ease;
-    border: 1px solid #000;
 }
 
 .preview:hover {
@@ -236,6 +237,8 @@ canvas {
     width: 100%;
     height: auto;
     border-radius: 0.25rem;
+    text-align: center;
+    margin: 5%;
     -webkit-box-shadow: 0px 0px 15px 5px rgba(204,204,204,1);
     -moz-box-shadow: 0px 0px 15px 5px rgba(204,204,204,1);
     box-shadow: 0px 0px 15px 5px rgba(204,204,204,1);
@@ -249,6 +252,11 @@ canvas {
     margin: 0;
 }
 
+.card > p {
+    padding: 100px;
+    margin: 100px;
+}
+
 .technologies>div>h2 {
     color: #111;
     padding: 0 5% 5% 5%;
@@ -260,14 +268,19 @@ canvas {
     background-color: #f3f3f5;
 }
 
-.technologies>div>div.wrapper {
+.wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-gap: 1em;
     color: #444;
 }
 
-.technologies>div>div.wrapper>div.image>img {
+.image>img {
+    width: 50%;
+    height: 50%;
+}
+
+.image > svg {
     width: 50%;
     height: 50%;
 }
@@ -278,6 +291,7 @@ canvas {
 
 .wrapper>p {
     margin: auto;
+    text-align: center;
 }
 
 .wrapp {
@@ -333,7 +347,12 @@ footer>div.wrapp>div.icons {
 }
 
 @media screen and (max-width: 600px) {
-
+    .wrapper {
+        grid-template-columns: 1fr;
+    }
+    .card-holder {
+        grid-template-columns: 1fr;
+    }
     .wrapp {
         grid-template-columns: 1fr;
     }
@@ -344,4 +363,32 @@ footer>div.wrapp>div.icons {
 
 .fa.fa-2x {
     color: #fff;
+}
+
+.hoverable {
+    position: relative;
+}
+
+.hoverable > div {
+    position: absolute;
+    background-color: #333;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.hoverable > div > svg {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.hoverable > div:hover {
+    opacity: 0.9;
+    cursor: pointer;
 }
