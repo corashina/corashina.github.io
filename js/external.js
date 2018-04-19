@@ -8,6 +8,7 @@ typeout('.typeout', ['a programmer', 'a computer-scientist', 'a designer', 'a de
     el.innerHTML += ".";
   }
 });
+document.getElementById('copyright').textContent = `Copyright © ${new Date().getFullYear()} Tomasz Zielinski`
 window.sr = ScrollReveal();
 sr.reveal('.about');
 sr.reveal('.technologies');
