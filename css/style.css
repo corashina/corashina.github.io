@@ -519,6 +519,7 @@ h2 span {
   display: inline-block;
   background: #333;
   padding: 0.5%;
+  margin: 0.5%;
 }
 
 @media (max-width: 1025px) {
@@ -528,6 +529,19 @@ h2 span {
 }
 
 @media screen and (max-width: 600px) {
+  .desc {
+    visibility: hidden;
+    position: absolute;
+  }
+  .even {
+    grid-column: 1;
+    text-align: left;
+  }
+  
+  .odd {
+    grid-column: 1;
+    text-align: right;
+  }
   .card {
     width: 100%;
   }
