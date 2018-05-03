@@ -407,7 +407,7 @@ footer > div.wrapp > div.icons {
 }
 
 .projects-wrapper h3 {
-  color: #4285F4;
+  color: #4285f4;
   font-size: 1.5rem;
   margin: 0;
 }
@@ -509,11 +509,11 @@ h2 span {
   content: "";
   width: 50%;
   bottom: 0;
-  border: 1px solid #4285F4;
+  border: 1px solid #4285f4;
 }
 
 .stack > div {
-  border: 2px solid #4285F4;
+  border: 2px solid #4285f4;
   box-sizing: border-box;
   width: auto;
   display: inline-block;
@@ -526,6 +526,19 @@ h2 span {
   .projects-wrapper {
     grid-template-columns: 1fr;
   }
+  .desc {
+    visibility: hidden;
+    position: absolute;
+  }
+  .even {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .odd {
+    grid-column: 1;
+    text-align: right;
+  }
 }
 
 @media screen and (max-width: 600px) {
@@ -537,7 +550,7 @@ h2 span {
     grid-column: 1;
     text-align: left;
   }
-  
+
   .odd {
     grid-column: 1;
     text-align: right;
