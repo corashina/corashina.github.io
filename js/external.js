@@ -1,20 +1,24 @@
-document.getElementsByClassName('arrows')[0].addEventListener('click', function(e) {
-    document.getElementsByClassName('about')[0].scrollIntoView({behavior:"smooth", block:"start", inline:"nearest"});
-})
+document
+  .getElementsByClassName("arrows")[0]
+  .addEventListener("click", function(e) {
+    document.getElementsByClassName("about")[0].scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest"
+    });
+  });
 
-typeout('.typeout', ['a programmer', 'a computer-scientist', 'a designer', 'a developer'], {
-  numLoops: 3,
-  callback: function(el) {
-    el.innerHTML += ".";
+typeout(
+  ".typeout",
+  ["a programmer", "a computer-scientist", "a designer", "a developer"],
+  {
+    numLoops: 3,
+    callback: function(el) {
+      el.innerHTML += ".";
+    }
   }
-});
-document.getElementById('copyright').textContent = `Copyright © ${new Date().getFullYear()} Tomasz Zielinski`
-window.sr = ScrollReveal();
-sr.reveal('.about');
-sr.reveal('.technologies');
-sr.reveal('.image');
-sr.reveal('.projects');
-sr.reveal('.hoverable');
-sr.reveal('.wrapp');
-
+);
+document.getElementById(
+  "copyright-date"
+).textContent = new Date().getFullYear();
 document.body.style.opacity = 1;
