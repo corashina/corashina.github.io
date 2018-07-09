@@ -1,51 +1,24 @@
-<<<<<<< HEAD
 document
-  .getElementsByClassName("arrows")[0]
-  .addEventListener("click", function(e) {
-    document.getElementsByClassName("about")[0].scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest"
+    .getElementsByClassName("arrows")[0]
+    .addEventListener("click", function(e) {
+        document.getElementsByClassName("about")[0].scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest"
+        });
     });
-  });
 
 typeout(
-  ".typeout",
-  ["a programmer", "a computer-scientist", "a designer", "a developer"],
-  {
-    numLoops: 3,
-    callback: function(el) {
-      el.innerHTML += ".";
+    ".typeout",
+    ["a programmer", "a computer-scientist", "a designer", "a developer"],
+    {
+        numLoops: 3,
+        callback: function(el) {
+            el.innerHTML += ".";
+        }
     }
-  }
 );
 document.getElementById(
-  "copyright-date"
+    "copyright-date"
 ).textContent = new Date().getFullYear();
 document.body.style.opacity = 1;
-=======
-document
-  .getElementsByClassName("arrows")[0]
-  .addEventListener("click", function(e) {
-    document.getElementsByClassName("about")[0].scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-      inline: "nearest"
-    });
-  });
-
-typeout(
-  ".typeout",
-  ["a programmer", "a computer-scientist", "a designer", "a developer"],
-  {
-    numLoops: 3,
-    callback: function(el) {
-      el.innerHTML += ".";
-    }
-  }
-);
-document.getElementById(
-  "copyright-date"
-).textContent = new Date().getFullYear();
-document.body.style.opacity = 1;
->>>>>>> bc7b505ce52fe4bd66ea1e66ffc65b2d6ac81103
