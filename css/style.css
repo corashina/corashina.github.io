@@ -417,7 +417,8 @@ a {
     top: 45%;
     left: 50%;
     text-transform: uppercase;
-    z-index: 0
+    z-index: 0;
+    letter-spacing: 3rem;
 }
 
 .projects-grid {
@@ -538,7 +539,11 @@ a {
     z-index: 1
 }
 
-.stack>div {
+.stack>ul {
+    padding: 0;
+}
+
+.stack>ul>li {
     border: 2px solid var(--blueish);
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
