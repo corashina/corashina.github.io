@@ -361,13 +361,6 @@ a {
     height: 50%
 }
 
-.image svg {
-    width: 50%;
-    height: 50%;
-    position: relative;
-    z-index: -2
-}
-
 .image {
     text-align: right;
     position: relative
@@ -514,9 +507,11 @@ a {
     transition: opacity .5s ease-in-out
 }
 
-.info svg {
-    width: 100%;
-    height: 100%
+.info img {
+    width: auto;
+    height: 100%;
+    display: block;
+    margin: auto;
 }
 
 .info:hover {
