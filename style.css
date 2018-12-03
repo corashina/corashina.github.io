@@ -18,7 +18,15 @@ body {
 
 canvas {
     position: relative;
-    max-width: 100%
+    max-width: 100%;
+    background-color: var(--background);
+    margin: 0px;
+    overflow: hidden;
+    background-image: -webkit-gradient(var(--background), #080808, var(--background));
+    background-image: -webkit-linear-gradient(var(--background), #080808, var(--background));
+    background-image: -moz-linear-gradient(var(--background), #080808, var(--background));
+    background-image: -o-linear-gradient(var(--background), #080808, var(--background));
+    background-image: linear-gradient(var(--background), #080808, var(--background));
 }
 
 a {
@@ -336,7 +344,7 @@ a {
 }
 
 .skills {
-    padding: 10% 0;
+    padding: 30% 0;
     position: relative;
     z-index: 2;
     padding-top: 6em;
@@ -573,22 +581,22 @@ a {
 .socials {
     position: fixed;
     top: 50%;
-    left: 2rem;
+    left: 1em;
     z-index: 9;
     -webkit-transform: translate(-50%, -50%);
     -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%)
+    transform: translate(-50%, -50%), rotate(90deg);
 }
 
-.socials ul {
+.socials>ul {
     -webkit-transform: rotate(90deg);
     -ms-transform: rotate(90deg);
     transform: rotate(90deg);
     list-style: none;
-    font: inherit
+    width: 500px;
 }
 
-.socials ul li {
+.socials>ul>li {
     padding: 0 1rem;
     font: 150% "Product Sans", sans-serif;
     background: 0 0;

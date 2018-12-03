@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117328709-1"></script>
+    <script type="text/javascript" src="js/rellax.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
 
@@ -68,9 +70,7 @@
                     <span>?</span>
                 </h2>
                 <p>My name is Tomasz, I'm an aspiring web engineer. I started to pursue the career of a web developer 3 years ago. Last year, I moved to UK to study computer science and develop my passions on the
-                    <a href="https://www.southampton.ac.uk/">University of Southampton.</a> My goal is to become a full-stack web developer and deliver the best I can to my clients. I'm a movie enthusiast and I love to manage my time carefully,
-                    so
-                    as not to waste it.
+                    <a href="https://www.southampton.ac.uk/">University of Southampton</a>. My goal is to become a full-stack web developer and deliver the best experience to the user. In my free time I enjoy watching movies and reading. I hate coffee.
                 </p>
             </div>
             <div class="about-info" data-aos="fade-left">
@@ -82,23 +82,22 @@
                     <div class="offer-item">
                         <h3>Design</h3>
                         <i class="fa fa-magic fa-3x"></i>
-                        <p>I can design website layouts from scratch. My attention to details which helps me deliver the best experience to the user.</p>
+                        <p>I can design website layouts from scratch. My attention to details helps me deliver the best experience to the user.</p>
                     </div>
                     <div class="offer-item">
                         <h3>Develop</h3>
                         <i class="fa fa-code fa-3x"></i>
-                        <p>I can create both static single page websites and complex online platforms. I'm able to write clean and efficient code.</p>
+                        <p>I can develop both static single page websites and complex online platforms. I am able to write clean and efficient code.</p>
                     </div>
                     <div class="offer-item">
-                        <h3>Model</h3>
+                        <h3>Create</h3>
                         <i class="fa fa-cubes fa-3x"></i>
-                        <p>In order to deliver good experience I am eager to create 3D animations as well as interactive scenes running in the browser.</p>
+                        <p>I can create 3D experiences as well as interactive scenes running in the browser using WebGL.</p>
                     </div>
                 </div>
             </div>
         </div>
-        <svg id="bigTriangleColor" xmlns="http://www.w3.org/2000/svg" version="1.1" style="position:absolute; padding-bottom:o; background: #1c1c1c; left: 0;fill: #1a1a1a; stroke: #1a1a1a; bottom:0px;" width="100%" height="100" viewBox="0 0 100 102"
-            preserveAspectRatio="none">
+        <svg id="bigTriangleColor" xmlns="http://www.w3.org/2000/svg" version="1.1" style="position:absolute; padding-bottom:o; background: #1c1c1c; left: 0;fill: #1a1a1a; stroke: #1a1a1a; bottom:0px;" width="100%" height="100" viewBox="0 0 100 102" preserveAspectRatio="none">
             <path d="M0 0 L50 100 L100 0 Z"></path>
         </svg>
     </section>
@@ -136,6 +135,11 @@
             </div>
 
             <div class="image" data-aos="zoom-out-up" data-aos-delay="100">
+                <img src="img/redux.png" />
+                <div>Redux</div>
+            </div>
+
+            <div class="image" data-aos="zoom-out-up" data-aos-delay="100">
                 <img src="img/mongodb.png" />
                 <div>MongoDB</div>
             </div>
@@ -160,18 +164,12 @@
                 <div>Linux</div>
             </div>
 
-            <div class="image" data-aos="zoom-out-up" data-aos-delay="100">
-                <img src="img/three.png" />
-                <div>Three.js</div>
-            </div>
-
             <div class="image" data-aos="zoom-out-up" data-aos-delay="150">
                 <img src="img/vscode.png" />
                 <div>VSCode</div>
             </div>
         </div>
-        <svg id="bigTriangleColor" xmlns="http://www.w3.org/2000/svg" version="1.1" style="position:absolute; padding-bottom:o; background: #1a1a1a; left: 0;margin-bottom:0;fill: #1c1c1c; stroke: #1c1c1c; bottom:0px;" width="100%" height="100"
-            viewBox="0 0 100 102" preserveAspectRatio="none">
+        <svg id="bigTriangleColor" xmlns="http://www.w3.org/2000/svg" version="1.1" style="position:absolute; padding-bottom:o; background: #1a1a1a; left: 0;margin-bottom:0;fill: #1c1c1c; stroke: #1c1c1c; bottom:0px;" width="100%" height="100" viewBox="0 0 100 102" preserveAspectRatio="none">
             <path d="M0 0 L50 100 L100 0 Z"></path>
         </svg>
     </section>
@@ -284,7 +282,9 @@
                 </div>
             </a>
             <div class="description even" data-aos="fade-right">
-                <h3>Night City</h3>
+                <h3>
+                    <a href="https://tomasz-zielinski.github.io/Endless-City/"> Endless City</a>
+                </h3>
                 <p>Interactive 3D city scene</p>
                 <div class='stack'>
                     <ul>
@@ -344,10 +344,18 @@
     </footer>
 
 </body>
-<script type="text/javascript" src="js/rellax.min.js"></script>
-<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
 <script type="text/javascript" src="js/bundle.js"></script>
 <script type="text/javascript" src="js/external.js"></script>
-<script type="text/javascript" src="js/waves.js"></script>
+
+<script type="text/javascript" src="js/CopyShader.js" src="CopyShader.js"></script>
+<script type="text/javascript" src="js/HorizontalBlurShader.js" src="HorizontalBlurShader.js"></script>
+<script type="text/javascript" src="js/VerticalBlurShader.js" src="VerticalBlurShader.js"></script>
+<script type="text/javascript" src="js/VignetteShader.js" src="VignetteShader.js"></script>
+
+<script type="text/javascript" src="js/EffectComposer.js" src="EffectComposer.js"></script>
+<script type="text/javascript" src="js/RenderPass.js" src="RenderPass.js"></script>
+<script type="text/javascript" src="js/ShaderPass.js" src="ShaderPass.js"></script>
+<script type="text/javascript" src="js/MaskPass.js" src="MaskPass.js"></script> -->
+<script type="text/javascript" src="js/shader.js"></script>
 
 </html>
