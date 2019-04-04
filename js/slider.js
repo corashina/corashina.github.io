@@ -5,7 +5,7 @@ const height = 50;
 const _width = height * 1.4;
 const sliderWidth = 600;
 const sliderHeight = 150;
-const labels = ['Agar.io', 'Astro', 'Civio', 'Endless-City', 'Fitmed', 'Flappy-Pixie', 'Kiteprint', 'WebGL-Minecraft'];
+const labels = ['Agar.io', 'Particle-Engine', 'Civio', 'Endless-City', 'Fitmed', 'Flappy-Pixie', 'Kiteprint', 'WebGL-Minecraft'];
 var slides = [];
 var images = [];
 var sliderOn = false;
@@ -36,14 +36,22 @@ function init() {
             let slide = new THREE.Group();
 
             let material = new THREE.MeshBasicMaterial({ map: textureloader.load(`img/${label}.png`), userData: label });
-            let img = new THREE.Mesh(new THREE.PlaneGeometry(_width, height, 1), material);
+            let geometry = new THREE.PlaneGeometry(_width, height, 1);
+            let img = new THREE.Mesh(geometry, material);
 
             slide.position.set(noOverlapX(slides), noOverlapY(slides), -Math.random() * 10);
             slide.add(img);
 
-            var matLite = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xefefef), side: THREE.FrontSide });
+            let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.FrontSide });
+            let outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
+            outlineMesh.position.copy(img.position);
+            outlineMesh.scale.multiplyScalar(1.03);
+            outlineMesh.position.z -= 0.1;
+            slide.add(outlineMesh);
 
-            var geometry = new THREE.ShapeBufferGeometry(font.generateShapes(label, 100));
+            let matLite = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xefefef), side: THREE.FrontSide });
+
+            geometry = new THREE.ShapeBufferGeometry(font.generateShapes(label, 100));
 
             geometry.computeBoundingBox();
             geometry.translate(- 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x), 0, 0);
@@ -80,12 +88,8 @@ function render() {
 
     sliderVelocity *= .94;
 
-    if (mouseEvent[1]) _camera.fov += (1 / (_camera.fov - 88));
-    else if (_camera.fov > 90) _camera.fov -= (_camera.fov - 88) / 100;
-    _camera.updateProjectionMatrix();
-
-    _camera.position.x += (-mouse.x - _camera.position.x) * 1.1;
-    _camera.position.y += (-mouse.y - _camera.position.y) * 1.1;
+    _camera.position.x += (-mouse.x - _camera.position.x) * 1.4;
+    _camera.position.y += (-mouse.y - _camera.position.y) * 1.4;
     _camera.lookAt(_scene.position);
 
     _renderer.render(_scene, _camera);
@@ -136,7 +140,7 @@ function onMouseMove(event) {
 
     if (intersects.length > 0) {
         intersected = intersects[0].object;
-        TweenMax.to(intersected.parent.position, 0.6, { z: 10, ease: Power2.easeOut });
+        TweenMax.to(intersected.parent.position, 0.6, { z: 10 + Math.random() * 5, ease: Power2.easeOut });
     } else {
         if (intersected) TweenMax.to(intersected.parent.position, 0.6, { z: 0 + Math.random() * 5, ease: Power2.easeOut });
         intersected = null;
