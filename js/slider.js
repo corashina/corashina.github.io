@@ -1,13 +1,14 @@
-var _scene, _camera, _renderer, mouse, raycaster, mouseEvent, sliderVelocity = 0;
-var intersected = null;
+var _scene, _camera, _renderer, _mouse, raycaster;
+var mouse_event = {}, slider_velocity = 0, intersected = null;
 
 const height = 50;
 const _width = height * 1.4;
-const sliderWidth = 600;
-const sliderHeight = 150;
+const slider_width = 600;
+const slider_height = 150;
 const labels = ['Agar.io', 'Particle-Engine', 'Civio', 'Endless-City', 'Fitmed', 'Flappy-Pixie', 'Kiteprint', 'WebGL-Minecraft'];
 var slides = [];
 var images = [];
+
 var sliderOn = false;
 var clickOn = null;
 var switching = false;
@@ -18,10 +19,8 @@ function init() {
     _camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
     _camera.position.z += 125;
     _camera.position.y += 25;
-    mouse = new THREE.Vector2();
+    _mouse = new THREE.Vector2();
     raycaster = new THREE.Raycaster();
-    mouseEvent = {};
-    sliderVelocity = 0;
 
     _renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#slider'), alpha: true, antialias: true });
     _renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,7 +57,7 @@ function init() {
 
             var text = new THREE.Mesh(geometry, matLite);
             text.scale.set(0.04, 0.04, 0.04);
-            text.position.y += (height / 2 * 1.1);
+            text.position.z -= 1;
             slide.add(text)
 
             slides.push(slide);
@@ -68,7 +67,7 @@ function init() {
 
         images = slides.map(slide => slide.children[0]);
 
-        if (window.location.pathname != '/work.html') slides.forEach((e) => e.position.x += sliderWidth);
+        if (window.location.pathname != '/work.html') slides.forEach((e) => e.position.x += slider_width);
 
         render();
 
@@ -81,92 +80,62 @@ function render() {
 
     if (sliderOn) {
         for (let i = 0; i < slides.length; i++) {
-            slides[i].position.x += sliderVelocity;
-            if (slides[i].position.x < -sliderWidth / 2 || slides[i].position.x > sliderWidth / 2) slides[i].position.x = -slides[i].position.x;
+            slides[i].position.x += slider_velocity;
+            if (slides[i].position.x < -slider_width / 2 || slides[i].position.x > slider_width / 2) slides[i].position.x = -slides[i].position.x;
         }
     }
 
-    sliderVelocity *= .94;
+    slider_velocity *= .94;
 
-    _camera.position.x += (-mouse.x - _camera.position.x) * 1.4;
-    _camera.position.y += (-mouse.y - _camera.position.y) * 1.4;
+    _camera.position.x += (-_mouse.x - _camera.position.x) * 1.4;
+    _camera.position.y += (-_mouse.y - _camera.position.y) * 1.4;
     _camera.lookAt(_scene.position);
 
     _renderer.render(_scene, _camera);
 };
 
-function noOverlapX(slides) {
-
-    if (slides.length == 0) return (Math.random() - 0.5) * sliderWidth;
-
-    let randomX = null, overlap = true;
-
-    while (overlap) {
-        randomX = (Math.random() - 0.5) * sliderWidth;
-        for (let s of slides) {
-            overlap = (randomX > s.position.x - _width / 1.5 && randomX < s.position.x + _width / 1.5);
-            if (overlap) break;
-        }
-    }
-
-    return randomX;
-
-}
-
-
-function noOverlapY(slides) {
-
-    if (slides.length == 0) return (Math.random() - 0.5) * sliderHeight;
-
-    let randomY = null, overlap = true;
-
-    while (overlap) {
-        randomY = (Math.random() - 0.5) * sliderHeight;
-        for (let s of slides) {
-            overlap = (randomY > s.position.y + height / 2.5 && randomY < s.position.y - height / 2.5);
-            if (overlap) break;
-        }
-    }
-
-    return randomY;
-
-}
-
 function onMouseMove(event) {
 
-    raycaster.setFromCamera(mouse, _camera);
+    raycaster.setFromCamera(_mouse, _camera);
 
-    var intersects = raycaster.intersectObjects(images);
+    let intersects = raycaster.intersectObjects(images);
 
-    if (intersects.length > 0) {
-        intersected = intersects[0].object;
-        TweenMax.to(intersected.parent.position, 0.6, { z: 10 + Math.random() * 5, ease: Power2.easeOut });
-    } else {
-        if (intersected) TweenMax.to(intersected.parent.position, 0.6, { z: 0 + Math.random() * 5, ease: Power2.easeOut });
-        intersected = null;
-    }
+    if (intersects.length > 0) raycastOn(intersects);
+    else if (intersected) raycastOff();
 
     let new_x = (event.clientX / window.innerWidth) * 2 - 1;
-    let new_y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-    if (mouseEvent[1]) sliderVelocity += (new_x - mouse.x) * 10;
+    slider_velocity += mouse_event[1] ? (new_x - _mouse.x) * 10 : 0;
 
-    mouse.x = new_x;
-    mouse.y = new_y;
+    _mouse.x = new_x;
+    _mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
 function onMouseDown(event) {
-    mouseEvent[event.which] = true;
+    mouse_event[event.which] = true;
     clickOn = intersected;
 }
 
 function onMouseUp(event) {
-    mouseEvent[event.which] = false;
+    mouse_event[event.which] = false;
     if (intersected && clickOn == intersected) window.open(`https://github.com/Tomasz-Zielinski/${intersected.material.userData}`, '_blank');
 }
 
 function onScroll(event) {
-    sliderVelocity += (event.deltaY / 100);
+    slider_velocity += (event.deltaY / 100);
+}
+
+function raycastOn(intersects) {
+    if (intersected && intersected != intersects[0].object) raycastOff();
+    intersected = intersects[0].object;
+    TweenMax.to(intersected.parent.position, 0.6, { z: 10 + Math.random() * 5, ease: Power2.easeOut });
+    TweenMax.to(intersected.parent.children[2].position, 0.4, { y: intersected.parent.children[0].position.y + (height / 2) * 1.1, ease: Power2.easeOut });
+}
+
+function raycastOff() {
+    TweenMax.to(intersected.parent.position, 0.6, { z: 0 + Math.random() * 5, ease: Power2.easeOut });
+    TweenMax.to(intersected.parent.children[2].position, 0.4, { y: intersected.parent.children[0].position.y, ease: Power2.easeOut });
+    intersected = null;
 }
 
 function onKeyDown(event) {
@@ -185,6 +154,32 @@ function changePage(direction) {
             break;
         }
     }
+}
+
+function noOverlapX(slides) {
+    if (slides.length == 0) return (Math.random() - 0.5) * slider_width;
+    let randomX = null, overlap = true;
+    while (overlap) {
+        randomX = (Math.random() - 0.5) * slider_width;
+        for (let s of slides) {
+            overlap = (randomX > s.position.x - _width / 1.5 && randomX < s.position.x + _width / 1.5);
+            if (overlap) break;
+        }
+    }
+    return randomX;
+}
+
+function noOverlapY(slides) {
+    if (slides.length == 0) return (Math.random() - 0.5) * slider_height;
+    let randomY = null, overlap = true;
+    while (overlap) {
+        randomY = (Math.random() - 0.5) * slider_height;
+        for (let s of slides) {
+            overlap = (randomY > s.position.y + height / 2.5 && randomY < s.position.y - height / 2.5);
+            if (overlap) break;
+        }
+    }
+    return randomY;
 }
 
 window.addEventListener('mousemove', (event) => onMouseMove(event), false);
