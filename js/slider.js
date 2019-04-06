@@ -9,9 +9,9 @@ const labels = ['Agar.io', 'Particle-Engine', 'Civio', 'Endless-City', 'Fitmed',
 var slides = [];
 var images = [];
 
-var sliderOn = false;
 var clickOn = null;
 var switching = false;
+var slider_pos = 0;
 
 function init() {
 
@@ -38,7 +38,8 @@ function init() {
             let geometry = new THREE.PlaneGeometry(_width, height, 1);
             let img = new THREE.Mesh(geometry, material);
 
-            slide.position.set(noOverlapX(slides), noOverlapY(slides), -Math.random() * 10);
+            let coords = noOverlap(slides);
+            slide.position.set(coords.x, coords.y, -Math.random() * 10);
             slide.add(img);
 
             let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.FrontSide });
@@ -67,7 +68,16 @@ function init() {
 
         images = slides.map(slide => slide.children[0]);
 
-        if (window.location.pathname != '/work.html') slides.forEach((e) => e.position.x += slider_width);
+        if (window.location.pathname == '/index.html' ||
+            window.location.pathname == '/about.html') {
+            slider_pos = -1;
+            slides.forEach((e) => e.position.x -= slider_width);
+        }
+        else if (window.location.pathname == '/skills.html' ||
+            window.location.pathname == '/contact.html') {
+            slider_pos = 1;
+            slides.forEach((e) => e.position.x += slider_width);
+        }
 
         render();
 
@@ -78,7 +88,7 @@ function init() {
 function render() {
     requestAnimationFrame(render);
 
-    if (sliderOn) {
+    if (!slider_pos) {
         for (let i = 0; i < slides.length; i++) {
             slides[i].position.x += slider_velocity;
             if (slides[i].position.x < -slider_width / 2 || slides[i].position.x > slider_width / 2) slides[i].position.x = -slides[i].position.x;
@@ -146,7 +156,7 @@ function onKeyDown(event) {
 }
 
 function changePage(direction) {
-    let arr = document.querySelectorAll('.socials ul li a')
+    let arr = document.querySelectorAll('.socials ul li a');
     for (let i = 0; i < arr.length; i++) {
         if (arr[i].classList.contains('current')) {
             if ((i == 0 && direction == -1) || (i == 4 && direction == 1) || switching) return;
@@ -156,30 +166,30 @@ function changePage(direction) {
     }
 }
 
-function noOverlapX(slides) {
-    if (slides.length == 0) return (Math.random() - 0.5) * slider_width;
-    let randomX = null, overlap = true;
-    while (overlap) {
-        randomX = (Math.random() - 0.5) * slider_width;
-        for (let s of slides) {
-            overlap = (randomX > s.position.x - _width / 1.5 && randomX < s.position.x + _width / 1.5);
-            if (overlap) break;
-        }
-    }
-    return randomX;
-}
+function noOverlap(slides) {
 
-function noOverlapY(slides) {
-    if (slides.length == 0) return (Math.random() - 0.5) * slider_height;
-    let randomY = null, overlap = true;
+    if (slides.length == 0) return { x: (Math.random() - 0.5) * slider_width, y: (Math.random() - 0.5) * slider_height };
+
+    let x, y, overlap = true;
+
     while (overlap) {
-        randomY = (Math.random() - 0.5) * slider_height;
+        x = (Math.random() - 0.5) * slider_width;
         for (let s of slides) {
-            overlap = (randomY > s.position.y + height / 2.5 && randomY < s.position.y - height / 2.5);
+            overlap = (x > s.position.x - _width / 1.5 && x < s.position.x + _width / 1.5);
             if (overlap) break;
         }
     }
-    return randomY;
+    overlap = true;
+    while (overlap) {
+        y = (Math.random() - 0.5) * slider_height;
+        for (let s of slides) {
+            overlap = (y > s.position.y + height / 2.5 && y < s.position.y - height / 2.5);
+            if (overlap) break;
+        }
+    }
+
+    return { x, y };
+
 }
 
 window.addEventListener('mousemove', (event) => onMouseMove(event), false);

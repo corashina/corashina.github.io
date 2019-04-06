@@ -42,15 +42,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (pages.indexOf(this.getPrevPageFile()) > pages.indexOf(this.getNewPageFile())) goingForward = false;
 
+            let move = goingForward ? -1 : 1;
+
             if (this.getPrevPageFile() == 'work.html') {
-                if (goingForward) slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x - + slider_width, ease: Power2.easeOut }))
-                else slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + slider_width, ease: Power2.easeOut }));
-                sliderOn = !sliderOn;
-            }
-            if (this.getNewPageFile() == 'work.html') {
-                if (goingForward) slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x - slider_width, ease: Power2.easeOut }));
-                else slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + slider_width, ease: Power2.easeOut }));
-                sliderOn = !sliderOn;
+                slider_pos = move;
+                slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + move * slider_width, ease: Power2.easeOut }));
+            } else if (this.getNewPageFile() == 'work.html') {
+                slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + (-slider_pos) * slider_width, ease: Power2.easeOut }));
+                slider_pos = 0;
             }
 
             if (this.getNewPageFile() == 'index.html') {
