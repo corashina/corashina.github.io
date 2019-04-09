@@ -48,6 +48,7 @@ h2 > span {
 }
 
 hr {
+    margin: 0;
     opacity: 0.2;
 }
 
@@ -63,43 +64,32 @@ ul {
 
 #slider {
     background: transparent;
-    width: 100px;
-    height: 100px;
 }
 
 /* Navigation */
 
-.socials {
+nav {
     position: fixed;
+    width: 100%;
     top: 0;
     left: 50%;
-    width: 100%;
     z-index: 1;
-}
-
-.socials>ul {
-    list-style: none;
-    position: absolute;
     transform: translate(-50%, 0);
+    margin: 1rem 0;
+    text-align: center;
 }
 
-.socials>ul>li {
-    padding: 0 1rem;
+nav>a {
+    margin: 0 1rem;
     font: 150% "Product Sans", sans-serif;
-    background: 0 0;
-    display: inline-block;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
-}
-
-.socials a {
     position: relative;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    cursor:pointer;
 }
 
-.socials a::before {
+nav>a::before {
     content: "";
     position: absolute;
     width: 100%;
@@ -119,14 +109,14 @@ ul {
     transition: transform .3s ease-out, -webkit-transform .3s ease-out
 }
 
-.socials a:hover::before {
+nav>a:hover::before {
     visibility: visible;
     -webkit-transform: scaleX(1);
     -ms-transform: scaleX(1);
     transform: scaleX(1);
 }
 
-.current {
+.nav-current {
     pointer-events: none;
     opacity: 0.6;
 }
@@ -315,8 +305,12 @@ ul {
     margin: auto;
 }
 
-.copyright-sign,
-.email {
+.contact> a {
+    display: block;
+    margin: 1rem 0;
+}
+
+.copyright-sign {
     color: var(--pinky);
     font-weight: bold;
 }
@@ -361,19 +355,37 @@ ul {
       }
 }
 
-@media all and (max-width: 768px) {
-
-    .offer-grid,
-    .skills-grid {
-        -ms-grid-columns: (1fr)(1);
-        grid-template-columns: repeat(1, 1fr);
-    }
+.burger-menu {
+    display: none;
+    z-index: 2;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: transparent;
+    color: var(--whitey);
+    border: none;
+    font-size: 3rem;
 }
 
-@media all and (min-width: 768px) and (max-width:1024px) {
+@media all and (max-width: 768px) {
 
+    nav>a {
+        margin: 0 0.5rem;
+    }
+
+    .skills, .about, .contact {
+        box-sizing: border-box;
+        padding: 5rem 3rem;
+    }
+
+    .offer-grid, .skills-grid {
+        -ms-grid-columns: (1fr)(3);
+        grid-template-columns: repeat(3, 1fr);
+    }
     .skills-grid {
-        -ms-grid-columns: (1fr)(2);
-        grid-template-columns: repeat(2, 1fr);
+        font-size: 50%;
+    }
+    .contact-text,  .offer-item>p {
+        display: none;
     }
 }

@@ -13,6 +13,9 @@ var clickOn = null;
 var switching = false;
 var slider_pos = 0;
 
+var xDown = null;
+var yDown = null;
+
 function init() {
 
     _scene = new THREE.Scene();
@@ -156,11 +159,11 @@ function onKeyDown(event) {
 }
 
 function changePage(direction) {
-    let arr = document.querySelectorAll('.socials ul li a');
+    let arr = document.querySelectorAll('nav a');
     for (let i = 0; i < arr.length; i++) {
-        if (arr[i].classList.contains('current')) {
+        if (arr[i].classList.contains('nav-current')) {
             if ((i == 0 && direction == -1) || (i == 4 && direction == 1) || switching) return;
-            document.querySelectorAll('.socials ul li a')[i + direction].click();
+            document.querySelectorAll('nav a')[i + direction].click();
             break;
         }
     }
@@ -192,10 +195,50 @@ function noOverlap(slides) {
 
 }
 
-window.addEventListener('mousemove', (event) => onMouseMove(event), false);
-window.addEventListener('mousedown', (event) => onMouseDown(event), false);
-window.addEventListener('mouseup', (event) => onMouseUp(event), false);
-window.addEventListener('wheel', (event) => onScroll(event), false);
-window.addEventListener('keydown', (event) => onKeyDown(event), false);
+function onTouchMove(event) {
+
+
+    let new_y = (event.touches[0].clientY / window.innerHeight) * 2 - 1;
+
+    slider_velocity -= Math.abs(new_y - _mouse.y) * 2;
+
+    _mouse.y = new_y;
+
+
+    if (!xDown || !yDown) return;
+
+    var xUp = event.touches[0].clientX;
+    var yUp = event.touches[0].clientY;
+    var xDiff = xDown - xUp;
+    var yDiff = yDown - yUp;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff)) {
+        if (xDiff > 1) changePage(1)
+        else changePage(-1);
+    } else {
+        if (yDiff > 0) {
+            /* up swipe */
+        } else {
+            /* down swipe */
+        }
+    }
+
+    xDown = null;
+    yDown = null;
+
+}
+
+function onTouchStart(event) {
+    xDown = event.touches[0].clientX;
+    yDown = event.touches[0].clientY;
+};
+
+window.addEventListener('mousemove', onMouseMove, false);
+window.addEventListener('mousedown', onMouseDown, false);
+window.addEventListener('mouseup', onMouseUp, false);
+window.addEventListener('wheel', onScroll, false);
+window.addEventListener('keydown', onKeyDown, false);
+window.addEventListener('touchmove', onTouchMove, false);
+window.addEventListener('touchstart', onTouchStart, false);
 
 init();
