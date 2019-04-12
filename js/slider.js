@@ -1,244 +1,244 @@
-var _scene, _camera, _renderer, _mouse, raycaster;
-var mouse_event = {}, slider_velocity = 0, intersected = null;
+var slider = {
 
-const height = 50;
-const _width = height * 1.4;
-const slider_width = 600;
-const slider_height = 150;
-const labels = ['Agar.io', 'Particle-Engine', 'Civio', 'Endless-City', 'Fitmed', 'Flappy-Pixie', 'Kiteprint', 'WebGL-Minecraft'];
-var slides = [];
-var images = [];
+    scene: new THREE.Scene(),
+    camera: new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000),
+    renderer: new THREE.WebGLRenderer({ canvas: document.querySelector('#slider'), alpha: true, antialias: true }),
+    mouse: new THREE.Vector2(),
+    raycaster: new THREE.Raycaster(),
 
-var clickOn = null;
-var switching = false;
-var slider_pos = 0;
+    intersected: null,
+    clicked: null,
+    switching: false,
 
-var xDown = null;
-var yDown = null;
+    width: 70,
+    height: 50,
+    slider_width: 600,
+    slider_height: 150,
+    position: 0,
+    velocity: 0,
 
-function init() {
+    slides: [],
+    images: [],
 
-    _scene = new THREE.Scene();
-    _camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
-    _camera.position.z += 125;
-    _camera.position.y += 25;
-    _mouse = new THREE.Vector2();
-    raycaster = new THREE.Raycaster();
+    mouse_event: {},
 
-    _renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#slider'), alpha: true, antialias: true });
-    _renderer.setSize(window.innerWidth, window.innerHeight);
+    labels: ['Agar.io', 'Particle-Engine', 'Civio', 'Endless-City', 'Fitmed', 'Flappy-Pixie', 'Kiteprint', 'WebGL-Minecraft'],
 
-    var textureloader = new THREE.TextureLoader();
+    xDown: null,
+    yDown: null,
 
-    var loader = new THREE.FontLoader();
-    loader.load('js/helvetiker_regular.typeface.json', function (font) {
+    init: function () {
 
-        for (let label of labels) {
+        _this.camera.position.z += 125;
 
-            let slide = new THREE.Group();
+        _this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-            let material = new THREE.MeshBasicMaterial({ map: textureloader.load(`img/${label}.png`), userData: label });
-            let geometry = new THREE.PlaneGeometry(_width, height, 1);
-            let img = new THREE.Mesh(geometry, material);
+        var textureloader = new THREE.TextureLoader();
 
-            let coords = noOverlap(slides);
-            slide.position.set(coords.x, coords.y, -Math.random() * 10);
-            slide.add(img);
+        var loader = new THREE.FontLoader();
+        loader.load('js/helvetiker_regular.typeface.json', function (font) {
 
-            let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.FrontSide });
-            let outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
-            outlineMesh.position.copy(img.position);
-            outlineMesh.scale.multiplyScalar(1.03);
-            outlineMesh.position.z -= 0.1;
-            slide.add(outlineMesh);
+            for (let label of _this.labels) {
 
-            let matLite = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xefefef), side: THREE.FrontSide });
+                let slide = new THREE.Group();
 
-            geometry = new THREE.ShapeBufferGeometry(font.generateShapes(label, 100));
+                let material = new THREE.MeshBasicMaterial({ map: textureloader.load(`img/${label}.png`), userData: label });
+                let geometry = new THREE.PlaneGeometry(_this.width, _this.height, 1);
+                let img = new THREE.Mesh(geometry, material);
 
-            geometry.computeBoundingBox();
-            geometry.translate(- 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x), 0, 0);
+                let coords = _this.noOverlap(_this.slides);
+                slide.position.set(coords.x, coords.y, -Math.random() * 10);
+                slide.add(img);
 
-            var text = new THREE.Mesh(geometry, matLite);
-            text.scale.set(0.04, 0.04, 0.04);
-            text.position.z -= 1;
-            slide.add(text)
+                let outlineMaterial = new THREE.MeshBasicMaterial({ color: 0x000, side: THREE.FrontSide });
+                let outlineMesh = new THREE.Mesh(geometry, outlineMaterial);
+                outlineMesh.position.copy(img.position);
+                outlineMesh.scale.multiplyScalar(1.03);
+                outlineMesh.position.z -= 0.1;
+                slide.add(outlineMesh);
 
-            slides.push(slide);
-            _scene.add(slide);
+                let matLite = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xefefef), side: THREE.FrontSide });
 
+                geometry = new THREE.ShapeBufferGeometry(font.generateShapes(label, 100));
+
+                geometry.computeBoundingBox();
+                geometry.translate(- 0.5 * (geometry.boundingBox.max.x - geometry.boundingBox.min.x), 0, 0);
+
+                var text = new THREE.Mesh(geometry, matLite);
+                text.scale.set(0.04, 0.04, 0.04);
+                text.position.z -= 1;
+                slide.add(text)
+
+                _this.slides.push(slide);
+                _this.scene.add(slide);
+
+            }
+
+            _this.images = _this.slides.map(slide => slide.children[0]);
+
+            if (window.location.pathname == "/" || window.location.pathname == '/index.html' ||
+                window.location.pathname == '/about.html') {
+                _this.position = -1;
+                _this.slides.forEach((e) => e.position.x -= _this.slider_width);
+            }
+            else if (window.location.pathname == '/skills.html' ||
+                window.location.pathname == '/contact.html') {
+                _this.position = 1;
+                _this.slides.forEach((e) => e.position.x += _this.slider_width)
+            }
+
+            _this.render();
+
+        });
+
+        window.addEventListener('mousemove', _this.onMouseMove, false);
+        window.addEventListener('mousedown', _this.onMouseDown, false);
+        window.addEventListener('mouseup', _this.onMouseUp, false);
+        window.addEventListener('wheel', _this.onScroll, false);
+        window.addEventListener('keydown', _this.onKeyDown, false);
+        window.addEventListener('touchmove', _this.onTouchMove, false);
+        window.addEventListener('touchstart', _this.onTouchStart, false);
+
+    },
+
+    render: function () {
+        requestAnimationFrame(_this.render);
+
+        if (!_this.position) {
+            for (let i = 0; i < _this.slides.length; i++) {
+                _this.slides[i].position.x += _this.velocity;
+                if (_this.slides[i].position.x < -_this.slider_width / 2 || _this.slides[i].position.x > _this.slider_width / 2) _this.slides[i].position.x = -_this.slides[i].position.x;
+            }
         }
 
-        images = slides.map(slide => slide.children[0]);
+        _this.velocity *= .94;
 
-        if (window.location.pathname == '/index.html' ||
-            window.location.pathname == '/about.html') {
-            slider_pos = -1;
-            slides.forEach((e) => e.position.x -= slider_width);
+        _this.camera.position.x += (-_this.mouse.x - _this.camera.position.x) * 1.4;
+        _this.camera.position.y += (-_this.mouse.y - _this.camera.position.y) * 1.4;
+        _this.camera.lookAt(_this.scene.position);
+
+        _this.renderer.render(_this.scene, _this.camera);
+    },
+
+    onMouseMove: function (event) {
+
+        _this.raycaster.setFromCamera(_this.mouse, _this.camera);
+
+        let intersects = _this.raycaster.intersectObjects(_this.images);
+
+        if (intersects.length > 0) _this.raycastOn(intersects);
+        else if (_this.intersected) _this.raycastOff();
+
+        let new_x = (event.clientX / window.innerWidth) * 2 - 1;
+
+        _this.velocity += _this.mouse_event[1] ? (new_x - _this.mouse.x) * 10 : 0;
+
+        _this.mouse.x = new_x;
+        _this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    },
+
+    onMouseDown: function (event) {
+        _this.mouse_event[event.which] = true;
+        _this.clicked = _this.intersected;
+    },
+
+    onMouseUp: function (event) {
+        _this.mouse_event[event.which] = false;
+        if (_this.intersected && _this.clicked == _this.intersected) window.open(`https://github.com/Tomasz-Zielinski/${_this.intersected.material.userData}`, '_blank');
+    },
+
+    onScroll: function (event) {
+        _this.velocity += (event.deltaY / 100);
+    },
+
+    raycastOn: function (intersects) {
+        if (_this.intersected && _this.intersected != intersects[0].object) _this.raycastOff();
+        _this.intersected = intersects[0].object;
+        TweenMax.to(_this.intersected.parent.position, 0.6, { z: 10 + Math.random() * 5, ease: Power2.easeOut });
+        TweenMax.to(_this.intersected.parent.children[2].position, 0.4, { y: _this.intersected.parent.children[0].position.y + (_this.height / 2) * 1.1, ease: Power2.easeOut });
+    },
+
+    raycastOff: function () {
+        TweenMax.to(_this.intersected.parent.position, 0.6, { z: 0 + Math.random() * 5, ease: Power2.easeOut });
+        TweenMax.to(_this.intersected.parent.children[2].position, 0.4, { y: _this.intersected.parent.children[0].position.y, ease: Power2.easeOut });
+        _this.intersected = null;
+    },
+
+    onKeyDown: (event) => {
+        switch (event.keyCode) {
+            case 37: _this.changePage(-1); break;
+            case 39: _this.changePage(1); break;
         }
-        else if (window.location.pathname == '/skills.html' ||
-            window.location.pathname == '/contact.html') {
-            slider_pos = 1;
-            slides.forEach((e) => e.position.x += slider_width);
+    },
+
+    changePage: function (direction) {
+        let arr = document.querySelectorAll('nav a');
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i].classList.contains('nav-current')) {
+                if ((i == 0 && direction == -1) || (i == 4 && direction == 1) || _this.switching) return;
+                document.querySelectorAll('nav a')[i + direction].click();
+                break;
+            }
+        }
+    },
+
+    noOverlap: function () {
+
+        if (_this.slides.length == 0) return { x: (Math.random() - 0.5) * _this.slider_width, y: (Math.random() - 0.5) * _this.slider_height };
+
+        let x, y, overlap = true;
+
+        while (overlap) {
+            x = (Math.random() - 0.5) * _this.slider_width;
+            for (let s of _this.slides) {
+                overlap = (x > s.position.x - _this.width / 1.5 && x < s.position.x + _this.width / 1.5);
+                if (overlap) break;
+            }
+        }
+        overlap = true;
+        while (overlap) {
+            y = (Math.random() - 0.5) * _this.slider_height;
+            for (let s of _this.slides) {
+                overlap = (y > s.position.y + _this.height / 2.5 && y < s.position.y - _this.height / 2.5);
+                if (overlap) break;
+            }
         }
 
-        render();
+        return { x, y };
 
-    });
+    },
 
-}
+    onTouchMove: function (event) {
 
-function render() {
-    requestAnimationFrame(render);
+        let new_y = (event.touches[0].clientY / window.innerHeight) * 2 - 1;
 
-    if (!slider_pos) {
-        for (let i = 0; i < slides.length; i++) {
-            slides[i].position.x += slider_velocity;
-            if (slides[i].position.x < -slider_width / 2 || slides[i].position.x > slider_width / 2) slides[i].position.x = -slides[i].position.x;
+        _this.velocity -= Math.abs(new_y - _this.mouse.y) * 2;
+
+        _this.mouse.y = new_y;
+
+        if (!xDown || !yDown) return;
+
+        var xUp = event.touches[0].clientX;
+        var yUp = event.touches[0].clientY;
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if (Math.abs(xDiff) > Math.abs(yDiff)) {
+            if (xDiff > 1) slider.changePage(1)
+            else slider.changePage(-1);
         }
+
+        xDown = null;
+        yDown = null;
+
+    },
+
+    onTouchStart: function (event) {
+        xDown = event.touches[0].clientX;
+        yDown = event.touches[0].clientY;
     }
-
-    slider_velocity *= .94;
-
-    _camera.position.x += (-_mouse.x - _camera.position.x) * 1.4;
-    _camera.position.y += (-_mouse.y - _camera.position.y) * 1.4;
-    _camera.lookAt(_scene.position);
-
-    _renderer.render(_scene, _camera);
-};
-
-function onMouseMove(event) {
-
-    raycaster.setFromCamera(_mouse, _camera);
-
-    let intersects = raycaster.intersectObjects(images);
-
-    if (intersects.length > 0) raycastOn(intersects);
-    else if (intersected) raycastOff();
-
-    let new_x = (event.clientX / window.innerWidth) * 2 - 1;
-
-    slider_velocity += mouse_event[1] ? (new_x - _mouse.x) * 10 : 0;
-
-    _mouse.x = new_x;
-    _mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
-function onMouseDown(event) {
-    mouse_event[event.which] = true;
-    clickOn = intersected;
-}
+var _this = slider;
 
-function onMouseUp(event) {
-    mouse_event[event.which] = false;
-    if (intersected && clickOn == intersected) window.open(`https://github.com/Tomasz-Zielinski/${intersected.material.userData}`, '_blank');
-}
-
-function onScroll(event) {
-    slider_velocity += (event.deltaY / 100);
-}
-
-function raycastOn(intersects) {
-    if (intersected && intersected != intersects[0].object) raycastOff();
-    intersected = intersects[0].object;
-    TweenMax.to(intersected.parent.position, 0.6, { z: 10 + Math.random() * 5, ease: Power2.easeOut });
-    TweenMax.to(intersected.parent.children[2].position, 0.4, { y: intersected.parent.children[0].position.y + (height / 2) * 1.1, ease: Power2.easeOut });
-}
-
-function raycastOff() {
-    TweenMax.to(intersected.parent.position, 0.6, { z: 0 + Math.random() * 5, ease: Power2.easeOut });
-    TweenMax.to(intersected.parent.children[2].position, 0.4, { y: intersected.parent.children[0].position.y, ease: Power2.easeOut });
-    intersected = null;
-}
-
-function onKeyDown(event) {
-    switch (event.keyCode) {
-        case 37: changePage(-1); break;
-        case 39: changePage(1); break;
-    }
-}
-
-function changePage(direction) {
-    let arr = document.querySelectorAll('nav a');
-    for (let i = 0; i < arr.length; i++) {
-        if (arr[i].classList.contains('nav-current')) {
-            if ((i == 0 && direction == -1) || (i == 4 && direction == 1) || switching) return;
-            document.querySelectorAll('nav a')[i + direction].click();
-            break;
-        }
-    }
-}
-
-function noOverlap(slides) {
-
-    if (slides.length == 0) return { x: (Math.random() - 0.5) * slider_width, y: (Math.random() - 0.5) * slider_height };
-
-    let x, y, overlap = true;
-
-    while (overlap) {
-        x = (Math.random() - 0.5) * slider_width;
-        for (let s of slides) {
-            overlap = (x > s.position.x - _width / 1.5 && x < s.position.x + _width / 1.5);
-            if (overlap) break;
-        }
-    }
-    overlap = true;
-    while (overlap) {
-        y = (Math.random() - 0.5) * slider_height;
-        for (let s of slides) {
-            overlap = (y > s.position.y + height / 2.5 && y < s.position.y - height / 2.5);
-            if (overlap) break;
-        }
-    }
-
-    return { x, y };
-
-}
-
-function onTouchMove(event) {
-
-
-    let new_y = (event.touches[0].clientY / window.innerHeight) * 2 - 1;
-
-    slider_velocity -= Math.abs(new_y - _mouse.y) * 2;
-
-    _mouse.y = new_y;
-
-
-    if (!xDown || !yDown) return;
-
-    var xUp = event.touches[0].clientX;
-    var yUp = event.touches[0].clientY;
-    var xDiff = xDown - xUp;
-    var yDiff = yDown - yUp;
-
-    if (Math.abs(xDiff) > Math.abs(yDiff)) {
-        if (xDiff > 1) changePage(1)
-        else changePage(-1);
-    } else {
-        if (yDiff > 0) {
-            /* up swipe */
-        } else {
-            /* down swipe */
-        }
-    }
-
-    xDown = null;
-    yDown = null;
-
-}
-
-function onTouchStart(event) {
-    xDown = event.touches[0].clientX;
-    yDown = event.touches[0].clientY;
-};
-
-window.addEventListener('mousemove', onMouseMove, false);
-window.addEventListener('mousedown', onMouseDown, false);
-window.addEventListener('mouseup', onMouseUp, false);
-window.addEventListener('wheel', onScroll, false);
-window.addEventListener('keydown', onKeyDown, false);
-window.addEventListener('touchmove', onTouchMove, false);
-window.addEventListener('touchstart', onTouchStart, false);
-
-init();
+_this.init();

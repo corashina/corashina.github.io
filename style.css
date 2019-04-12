@@ -276,9 +276,7 @@ nav>a:hover::before {
 
 .skills-grid {
     display: grid;
-    display: -ms-grid;
     grid-template-columns: repeat(4, 1fr);
-    -ms-grid-columns: (1fr)(4);
     grid-gap: auto;
     row-gap: 3rem;
 }
@@ -379,7 +377,6 @@ nav>a:hover::before {
     }
 
     .offer-grid, .skills-grid {
-        -ms-grid-columns: (1fr)(3);
         grid-template-columns: repeat(3, 1fr);
     }
     .skills-grid {
