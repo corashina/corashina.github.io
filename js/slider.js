@@ -10,8 +10,8 @@ var slider = {
     clicked: null,
     switching: false,
 
-    width: 70,
-    height: 50,
+    width: window.innerHeight / 20 * 1.4,
+    height: window.innerHeight / 20,
     slider_width: 600,
     slider_height: 150,
     position: 0,
