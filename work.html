@@ -8,22 +8,15 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
     <link href="style.css" type="text/css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/TweenMax.min.js"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-117328709-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'UA-117328709-1');
-    </script>
 </head>
 
 <body oncontextmenu="return false;">
 
     <canvas></canvas>
-    <canvas id="slider"></canvas>
 
     <main id="barba-wrapper">
 
@@ -33,17 +26,44 @@
                 <a href="index.html">HOME</a>
                 <a href="about.html">ABOUT</a>
                 <a href="work.html" class="nav-current">WORK</a>
-                <a href="skills.html">SKILLS</a>
                 <a href="contact.html">CONTACT</a>
             </nav>
 
             <section class="projects">
 
-                <div class="mouse">
+                <div class="projects-grid">
 
-                    <div class="mouse-icon">
-                        <span class="mouse-wheel"></span>
-                    </div>
+                    <a href="https://github.com/Tomasz-Zielinski/Agar.io" target="_blank">
+                        <img class="projects-item" src="img/Agar.io.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Civio" target="_blank">
+                        <img class="projects-item" src="img/Civio.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Endless-City" target="_blank">
+                        <img class="projects-item" src="img/Endless-City.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Fitmed" target="_blank">
+                        <img class="projects-item" src="img/Fitmed.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Flappy-Pixie" target="_blank">
+                        <img class="projects-item" src="img/Flappy-Pixie.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Kiteprint" target="_blank">
+                        <img class="projects-item" src="img/Kiteprint.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/Particle-Engine" target="_blank">
+                        <img class="projects-item" src="img/Particle-Engine.png" />
+                    </a>
+
+                    <a href="https://github.com/Tomasz-Zielinski/WebGL-Minecraft" target="_blank">
+                        <img class="projects-item" src="img/WebGL-Minecraft.png" />
+                    </a>
 
                 </div>
 
@@ -51,14 +71,6 @@
 
             <div class="location-indicator">
                 03 --- Work
-            </div>
-
-            <div class="page-indicator">
-                <div></div>
-                <div></div>
-                <div class="page-indicator-active"></div>
-                <div></div>
-                <div></div>
             </div>
 
         </div>
@@ -71,10 +83,8 @@
 <script type="text/javascript" src="js/bundle.js"></script>
 <script type="text/javascript" src="js/barba.js"></script>
 
-<script type="text/javascript" src="js/posprocessing.js"></script>
+<script type="text/javascript" src="js/postprocessing.js"></script>
 <script type="text/javascript" src="js/shader.js"></script>
-<script type="text/javascript" src="js/slider.js"></script>
 <script type="text/javascript" src="js/pages.js"></script>
-<script type="text/javascript">sliderOn = true;</script>
 
 </html>

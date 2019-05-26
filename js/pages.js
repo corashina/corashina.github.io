@@ -37,20 +37,9 @@ document.addEventListener("DOMContentLoaded", function () {
             var _this = this;
             var goingForward = true;
 
-            let pages = ['index.html', 'about.html', 'work.html', 'skills.html', 'contact.html'];
-            slider.switching = true;
+            let pages = ['index.html', 'about.html', 'work.html', 'contact.html'];
 
             if (pages.indexOf(this.getPrevPageFile()) > pages.indexOf(this.getNewPageFile())) goingForward = false;
-
-            let move = goingForward ? -1 : 1;
-
-            if (this.getPrevPageFile() == 'work.html') {
-                slider.position = move;
-                slider.slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + move * slider.slider_width, ease: Power2.easeOut }));
-            } else if (this.getNewPageFile() == 'work.html') {
-                slider.slides.forEach((e) => TweenLite.to(e.position, 1, { x: e.position.x + (-slider.position) * slider.slider_width, ease: Power2.easeOut }));
-                slider.position = 0;
-            }
 
             if (this.getNewPageFile() == 'index.html') {
                 typeout(
@@ -77,7 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 xPercent: 0, onComplete: function () {
                     TweenLite.set(_this.newContainer, { clearProps: 'all' });
                     _this.done();
-                    slider.switching = false;
                 }
             });
 

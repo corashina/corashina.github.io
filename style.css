@@ -2,8 +2,7 @@
 
 :root {
     --whitey: #efefef;
-    --blueish: #4285f4;
-    --pinky: #f44263;
+    --blueish: #00caf5;
 }
 
 body {
@@ -17,30 +16,22 @@ body {
     font: 100% "Product Sans", sans-serif;
     color: #eee;
     background-color: var(--background);
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 canvas {
-    position: absolute;
-    max-width: 100%;
-    background-color: var(--background);
+    position: fixed;
+    display: block;
     margin: 0px;
-    overflow: hidden;
-    background-image: -webkit-gradient(var(--background), #080808, var(--background));
-    background-image: -webkit-linear-gradient(var(--background), #080808, var(--background));
-    background-image: -moz-linear-gradient(var(--background), #080808, var(--background));
-    background-image: -o-linear-gradient(var(--background), #080808, var(--background));
-    background-image: linear-gradient(var(--background), #080808, var(--background));
 }
 
 a {
     color: var(--whitey);
     text-decoration: none;
-    cursor: pointer;
 }
 
 h2  {
-    color: var(--pinky);
+    color: var(--blueish);
 }
 
 h2 > span {
@@ -62,14 +53,10 @@ ul {
     height: 100vh;
 }
 
-#slider {
-    background: transparent;
-}
-
 /* Navigation */
 
 nav {
-    position: fixed;
+    position: absolute;
     width: 100%;
     top: 0;
     left: 50%;
@@ -96,7 +83,7 @@ nav>a::before {
     height: 2px;
     bottom: 0;
     left: 0;
-    background-color: var(--pinky);
+    background-color: var(--blueish);
     visibility: hidden;
     -webkit-transform: scaleX(0);
     -ms-transform: scaleX(0);
@@ -119,31 +106,6 @@ nav>a:hover::before {
 .nav-current {
     pointer-events: none;
     opacity: 0.6;
-}
-
-/* Page indicator */
-
-.page-indicator {
-    text-align: center;
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translate(-50%, -25%);
-}
-
-.page-indicator > div {
-    display: inline-block;
-    border: 0.1rem solid var(--whitey);   
-    height: 0.5rem;
-    border-radius:50%;
-    -moz-border-radius:50%;
-    -webkit-border-radius:50%;
-    width: 0.5rem;
-    opacity: 0.8;
-}
-
-.page-indicator-active {
-    background-color:var(--whitey);
 }
 
 /* Location indicator */
@@ -178,7 +140,7 @@ nav>a:hover::before {
 }
 
 .typeout {
-    color: var(--pinky)
+    color: var(--blueish)
 }
 
 .typeout:after {
@@ -194,74 +156,33 @@ nav>a:hover::before {
 .about {
     position: relative;
     box-sizing: border-box;
+    padding-top: 5rem;
+    max-width: 600px;
+    margin: auto;
+}
+
+/* Work section */
+
+.projects {
+    position: relative;
+    box-sizing: border-box;
     padding: 5rem 0;
     max-width: 600px;
     margin: auto;
 }
 
-.offer-grid {
+.projects-grid {
     display: grid;
-    grid-gap: 5%;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem;
 }
 
-.offer-item {
+.projects-grid > a {
+    cursor: default;
+}
+
+.projects-item {
     width: 100%;
-    height: 100%;
-    color: var(--whitey);
-    text-align: center;
-}
-
-.offer-item>h3 {
-    position: relative;
-    display: inline-block;
-}
-
-.offer-item>i {
-    display: block;
-}
-
-.offer-item>h3::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 2px;
-    left: 0;
-    bottom: 0;
-    background-color: var(--pinky);
-}
-
-/* Work section */
-
-.mouse{
-    margin: auto;
-    width: auto;
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translate(-50%, -100%)
-}
-
-.mouse-icon{
-    width: 25px;
-    height: 45px;
-    border: 2px solid var(--whitey);
-    border-radius: 15px;
-    cursor: pointer;
-    position: relative;
-    text-align: center;
-}
-
-.mouse-wheel{
-    height: 6px;
-    margin: 2px auto 0;
-    display: block;
-    width: 3px;
-    background-color: var(--whitey);
-    border-radius: 50%;
-    -webkit-animation: 1.6s ease infinite wheel-up-down;
-    -moz-animation: 1.6s ease infinite wheel-up-down;
-    animation: 1.6s ease infinite wheel-up-down;
 }
 
 /* Skills section */
@@ -269,9 +190,9 @@ nav>a:hover::before {
 .skills {
     position: relative;
     box-sizing: border-box;
-    padding: 5rem 0;
     max-width: 600px;
     margin: auto;
+    height: auto;
 }
 
 .skills-grid {
@@ -309,7 +230,7 @@ nav>a:hover::before {
 }
 
 .copyright-sign {
-    color: var(--pinky);
+    color: var(--blueish);
     font-weight: bold;
 }
 
@@ -367,8 +288,11 @@ nav>a:hover::before {
 
 @media all and (max-width: 768px) {
 
+    nav {
+        font-size: 0.8rem;
+    }
     nav>a {
-        margin: 0 0.5rem;
+        margin: 0 0.4rem;
     }
 
     .skills, .about, .contact {
@@ -376,13 +300,17 @@ nav>a:hover::before {
         padding: 5rem 3rem;
     }
 
-    .offer-grid, .skills-grid {
+    .skills-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-    .skills-grid {
-        font-size: 50%;
+    .projects-grid {
+        grid-template-columns: repeat(1, 1fr);
+        margin: 3rem;
     }
-    .contact-text,  .offer-item>p {
+    .skills-grid {
+        font-size: 0.5rem;
+    }
+    .contact-text {
         display: none;
     }
 }
