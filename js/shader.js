@@ -153,15 +153,6 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.gammaInput = renderer.gammaOutput = true;
 
-    light1 = new THREE.PointLight(0xff0000);
-    light1.position.set(250, 0, 100);
-    scene.add(light1);
-
-    var uniformss = THREE.UniformsUtils.merge([
-        THREE.UniformsLib['lights'],
-        { diffuse: { type: 'c', value: new THREE.Color(0xff00ff) } }
-    ]);
-
     var effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
     effectVignette.uniforms["offset"].value = 0.95;
     effectVignette.uniforms["darkness"].value = 1.6;
