@@ -124,6 +124,8 @@ void main() {
 var camera, scene, renderer, composer, container, plane;
 var clock = new THREE.Clock();
 var uniforms = { u_amplitude: { value: 300.0 }, u_frequency: { value: 0.005 }, u_time: { value: 0.0 } }
+var mouseX = 0, mouseY = 0;
+var windowHalfX = window.innerWidth / 2, windowHalfY = window.innerHeight / 2;
 
 init();
 animate();
@@ -133,22 +135,32 @@ function init() {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-    camera.position.set(0, 0, 100);
+    camera.position.set(0, 0, 1800);
 
-    plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(1000, 1000, 200, 200), new THREE.ShaderMaterial({
+    plane = new THREE.Mesh(new THREE.PlaneBufferGeometry(2000, 2000, 400, 400), new THREE.ShaderMaterial({
         uniforms: uniforms,
         vertexShader: vShader,
         fragmentShader: fShader,
-        side: THREE.DoubleSide,
-        wireframe: true
+        side: THREE.BackSide,
+        wireframe: true,
     }));
-    plane.position.z -= 500;
+    plane.position.z = 1000;
+    
     scene.add(plane);
 
     renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('canvas') });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.gammaInput = renderer.gammaOutput = true;
+
+    light1 = new THREE.PointLight(0xff0000);
+    light1.position.set(250, 0, 100);
+    scene.add(light1);
+
+    var uniformss = THREE.UniformsUtils.merge([
+        THREE.UniformsLib['lights'],
+        { diffuse: { type: 'c', value: new THREE.Color(0xff00ff) } }
+    ]);
 
     var effectVignette = new THREE.ShaderPass(THREE.VignetteShader);
     effectVignette.uniforms["offset"].value = 0.95;
@@ -175,6 +187,10 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
 
+    camera.position.x += ( mouseX - camera.position.x ) * 0.01;
+    camera.position.y += ( -mouseY - camera.position.y ) * 0.01;
+    camera.lookAt( new THREE.Vector3(0,0,0) );
+
     plane.material.uniforms.u_time.value += clock.getDelta() / 4;
 
     composer.render(clock.getDelta());
@@ -183,6 +199,9 @@ function animate() {
 var mX, mY, distance;
 
 window.addEventListener('mousemove', (e) => {
+
+    mouseX = ( e.clientX - windowHalfX );
+    mouseY = ( e.clientY - windowHalfY );
 
     mX = e.pageX;
     mY = e.pageY;
