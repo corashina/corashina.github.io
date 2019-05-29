@@ -179,10 +179,30 @@ nav>a:hover::before {
 
 .projects-grid > a {
     cursor: default;
+    position: relative;
 }
 
 .projects-item {
     width: 100%;
+    height: 100%;
+}
+
+.projects-grid > a > h3 {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: fit-content;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    border: 2px solid #efefef;
+    padding: 0.5rem 1rem;
+    pointer-events: none;
+    /* opacity: inherit; */
+}
+
+video {
+    width: 100%;
+    height: 100%;
 }
 
 /* Skills section */
