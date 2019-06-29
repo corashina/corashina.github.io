@@ -209,14 +209,14 @@ window.addEventListener('mousemove', (e) => {
     } else if (Barba.Pjax.getCurrentUrl().includes('work')) {
 
         let titles = document.querySelectorAll('.title');
-
+     
         document.querySelectorAll('.projects-item').forEach((el, i) => {
 
             elem = el.getBoundingClientRect();
             distance = Math.floor(Math.sqrt(Math.pow(mX - (elem.left + (elem.width / 2)), 2) + Math.pow(mY - (elem.top + (elem.height / 2)), 2)));
 
             let val = 100 / Math.min(Math.max(distance, 100), 1000);
-            el.setAttribute("style", `-webkit-filter:grayscale(${distance / 10}%); opacity: ${val}`);
+            el.setAttribute("style", `filter: grayscale(${ distance / 10}%); -webkit-filter:grayscale(${distance / 10}%); opacity: ${val}`);
             titles[i].setAttribute("style", `opacity: ${distance / window.innerWidth}`);
         })
     }

@@ -166,14 +166,13 @@ nav>a:hover::before {
 .projects {
     position: relative;
     box-sizing: border-box;
-    padding: 5rem 0;
-    max-width: 600px;
+    padding: 10% 5%;
     margin: auto;
 }
 
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     grid-gap: 1rem;
 }
 
