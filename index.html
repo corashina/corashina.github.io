@@ -18,50 +18,254 @@
 
     <canvas></canvas>
 
-    <main id="barba-wrapper">
-
-        <div class="barba-container">
-
             <nav>
-                <a href="index.html" class="nav-current">HOME</a>
-                <a href="about.html">ABOUT</a>
-                <a href="work.html">WORK</a>
-                <a href="contact.html">CONTACT</a>
+                <a id="nav-home">HOME</a>
+                <a id="nav-about">ABOUT</a>
+                <a id="nav-work">WORK</a>
+                <a id="nav-contact">CONTACT</a>
             </nav>
 
             <section class="landing">
+
                 <h1 class="intro">Hello I am Tomasz. I'm
                     <br>
                     <span class="typeout">a programmer</span>
                 </h1>
+
+                <div class="location-indicator">
+                    01 --- Home
+                </div>
+
+            </section>
+            
+            <section>
+
+                <hr />
+                <br />
+                
+                <div class="about">
+                    
+                    <h2>
+                        Who am I
+                        <span>?</span>
+                    </h2>
+                    <p>
+                        My name is Tomasz, I'm an aspiring web engineer. I started to pursue the career of a web
+                        developer 3 years ago. I moved to United Kingdom in 2017 to study computer science and develop my
+                        passions on the University of Southampton. I love making things, especially pretty 3D graphics with
+                        code. I use a lot of different tools to accomplish my goals.
+                    </p>
+                    
+                    <br />
+
+                    <div class="skills-grid">
+                    
+                        <div class="image">
+                            <img src="img/html.png" />
+                            <div>HTML</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/css.png" />
+                            <div>CSS</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/js.png" />
+                            <div>JavaScript</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/node.png" />
+                            <div>Node.js</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/react.png" />
+                            <div>React</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/redux.png" />
+                            <div>Redux</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/mongodb.png" />
+                            <div>MongoDB</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/git.png" />
+                            <div>Git</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/ps.png" />
+                            <div>Photoshop</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/webpack.png" />
+                            <div>Webpack</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/tux.png" />
+                            <div>Linux</div>
+                        </div>
+                    
+                        <div class="image">
+                            <img src="img/vscode.png" />
+                            <div>VSCode</div>
+                        </div>
+                    
+                    </div>
+
+                </div>
+            
+                <div class="location-indicator">
+                   02 --- About
+                </div>
+
             </section>
 
-            <div class="location-indicator">
-                01 --- Home
-            </div>
+            <section class="section-container">
+            
+                <hr />
+                <br />
 
-        </div>
+                <div class="work">
 
-    </main>
+                    <div class="work-grid">
+
+                        <a href="https://github.com/Tomasz-Zielinski/WebGL-Minecraft" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/webgl-minecraft.mp4" type="video/mp4">
+                                <p>Your browser doesn't support HTML5 video</p>
+                            </video>
+                            <h3 class="title">WebGL Minecraft</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Endless-City" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/endless-city.mp4" type="video/mp4">
+                            </video>
+                            <h3 class="title">Endless City</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Flappy-Pixie" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/flappy-pixie.mp4" type="video/mp4">
+                            </video>
+                            <h3 class="title">Flappy Pixie</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Civio" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/civio.mp4" type="video/mp4">
+                            </video>
+                            <h3 class="title">Civio</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Particle-Simulation" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/particle-simulation.mp4" type="video/mp4">
+                            </video>
+                            <h3 class="title">Particle Simulation</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Agar.io" target="_blank">
+                            <video class="work-item" loop onmouseover="this.play();" onmouseout="this.pause(); this.currentTime=0;">
+                                <source src="vid/agario.mp4" type="video/mp4">
+                            </video>
+                            <h3 class="title">Agario</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Fitmed" target="_blank">
+                            <img class="work-item" src="img/fitmed.png" />
+                            <h3 class="title">Fitmed</h3>
+                        </a>
+
+                        <a href="https://github.com/Tomasz-Zielinski/Kiteprint" target="_blank">
+                            <img class="work-item" src="img/kiteprint.png" />
+                            <h3 class="title">Kiteprint</h3>
+                        </a>
+
+                    </div>
+
+                </div>
+            
+                <div class="location-indicator">
+                    03 --- Work
+                </div>
+
+            </section>
+
+            <section class="section-container">
+                
+                <hr />
+                <br />
+
+                <div class="contact">
+            
+                <h2 class="contact-text">
+                    Hire <span>?</span>
+                </h2>
+                <p class="contact-text">
+                    Looking for hand-crafted, interactive 3D experiences for your website or product? I'm
+                    available for freelance and consulting work.
+                </p>
+            
+                <br class="contact-text" />
+                <hr class="contact-text">
+                <br class="contact-text" />
+            
+                <a href="https://github.com/Tomasz-Zielinski" target="_blank">
+                    <i class="fa fa-github fa-fw" aria-hidden="true"></i> Github
+                </a>
+                <a href="https://stackoverflow.com/users/7306664/tomasz-zieli%C5%84ski" target="_blank">
+                    <i class="fa fa-stack-overflow fa-fw" aria-hidden="true"></i> Stack Overflow
+                </a>
+                <a href="https://www.linkedin.com/in/tomasz-zielinski-a97999161/" target="_blank">
+                    <i class="fa fa-linkedin fa-fw" aria-hidden="true"></i> Linkedin
+                </a>
+                <a a href="https://twitter.com/Asaris11" target="_blank">
+                    <i class="fa fa-twitter fa-fw" aria-hidden="true"></i> Twitter
+                </a>
+            
+                <a href="mailto:nowhere@mozilla.org">
+                    <i class="fa fa-envelope fa-fw" aria-hidden="true"></i> contact@tomasz-zielinski.com
+                </a>
+            
+                <a href="./tomasz_zielinski.pdf" target="_blank">
+                    <i class="fa fa-file fa-fw" aria-hidden="true"></i> download resume
+                </a>
+                <p>
+                    <i class="fa fa-phone fa-fw" aria-hidden="true"></i> 07519554924
+                </p>
+            
+                <br />
+                <hr>
+                <br />
+            
+                <p>Copyright <span class="copyright-sign">&#9400;</span>
+                    <span class="copyright-date">2019</span> Tomasz Zielinski
+                </p>
+                <script>document.querySelector(".copyright-date").textContent = new Date().getFullYear();</script>
+
+               </div>
+
+                <div class="location-indicator">
+                    04 --- Contact
+                </div>
+
+        </section>
 
 </body>
 
 <script type="text/javascript" src="js/bundle.js"></script>
-<script type="text/javascript" src="js/barba.js"></script>
-
 <script type="text/javascript" src="js/postprocessing.js"></script>
 <script type="text/javascript" src="js/shader.js"></script>
-<script type="text/javascript" src="js/pages.js"></script>
-<script>
-    !function n(e, t, r) { function o(u, f) { if (!t[u]) { if (!e[u]) { var a = "function" == typeof require && require; if (!f && a) return a(u, !0); if (i) return i(u, !0); var c = new Error("Cannot find module '" + u + "'"); throw c.code = "MODULE_NOT_FOUND", c } var l = t[u] = { exports: {} }; e[u][0].call(l.exports, function (n) { var t = e[u][1][n]; return o(t ? t : n) }, l, l.exports, n, e, t, r) } return t[u].exports } for (var i = "function" == typeof require && require, u = 0; u < r.length; u++)o(r[u]); return o }({ 1: [function (n, e, t) { !function (n, r) { "function" == typeof define && define.amd ? define(r) : "object" == typeof t ? e.exports = r() : n.aqueue = r() }(this, function () { function n() { } var e = function (e, t) { function r() { u || (u = !0, setTimeout(function () { f() }, 0)) } var o = [], i = -1, e = e || n, t = t || !1, u = !1, f = function () { var n = [].slice.call(arguments), r = n.shift(), a = null; return r || !u || i === o.length - 1 && !t ? (r && e.apply(this, [].slice.call(arguments)), void (u = !1)) : (i = (i + 1) % o.length, a = o[i], n = n.concat(a[1]), n.push(f), void a[0].apply(f, n)) }, a = function () { var n = [].slice.call(arguments), e = n.shift(); return e && "function" == typeof e && (o.push([e, n]), r()), a }; return a }; return e }) }, {}], 2: [function (n) { (function (e) { function t(n, e) { var t = {}; for (var r in n) n.hasOwnProperty(r) && (t[r] = "undefined" != typeof e[r] ? e[r] : n[r]); return t } function r(n, e) { n.className += " " + e } var o = n("aqueue"), i = { interval: 3e3, completeClass: "typeout-complete", callback: function () { }, numLoops: 1, max: 110, min: 40 }, u = function (n, e, u) { function f() { var n = p.innerHTML.trim(); "" !== n && (m = !1, u.words.unshift(n), p.innerHTML = ""), a() } function a() { var n = 0, e = u.words.length; u.words.forEach(function () { return h(c, u.words[n]), n === e - 1 ? (y++ , 1 / 0 !== y && y === u.numLoops ? h(d, null) : (h(v, u.interval)(l), a())) : (h(v, u.interval)(l), n++ , void (n === e && (n = 0))) }) } function c(n, e) { var t = 0, r = n.length, o = setInterval(function () { r > t ? (p.innerHTML += n[t], t++) : (window.clearInterval(o), e()) }, s()) } function l(n) { var e = setInterval(function () { var t = p.innerHTML, r = t.length; r || (clearInterval(e), n()), p.innerHTML = t.substring(0, r - 1) }, s()) } function s() { var n = u.max, e = u.min; return Math.floor(Math.random() * (n - e + 1) + e) } function v(n, e) { setTimeout(function () { e() }, n) } function d() { r(p, u.completeClass), u.callback(p) } u = t(i, u || {}), u.words = e; var p = document.querySelector(n), m = !0, h = o(), y = 0; f() }; e.typeout = u }).call(this, "undefined" != typeof global ? global : "undefined" != typeof self ? self : "undefined" != typeof window ? window : {}) }, { aqueue: 1 }] }, {}, [2]);
-    typeout(
-        ".typeout",
-        ["a student", "an engineer", "a designer", "a developer"],
-        {
-            numLoops: 12,
-            callback: (el) => el.innerHTML += "."
-        }
-    );
-</script>
 
 </html>
