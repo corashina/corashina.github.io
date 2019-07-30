@@ -1,4 +1,5 @@
-# Tomasz-Zielinski.github.io 👨
->My personal website
-## How to run
-Just open https://tomasz-zielinski.github.io/
+## Website ❄️
+
+[Domain](https://www.tomasz-zielinski.com)
+
+[Github Pages](https://www.tomasz-zielinski.github.io)
