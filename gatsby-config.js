@@ -1,16 +1,15 @@
 module.exports = {
-  siteMetadata: {
-      title: "XD"
-  },
   plugins: [
+    'gatsby-plugin-transition-link',
+    'gatsby-plugin-offline',
+    'gatsby-transformer-json',
+    'gatsby-plugin-theme-ui',
+    'gatsby-plugin-sass',
     {
       resolve: `gatsby-plugin-typography`,
       options: {
         pathToConfigModule: `src/utils/typography`,
       },
-    },
-    {
-        resolve: `gatsby-plugin-sass`
     },
     // {
     //   resolve: `gatsby-plugin-manifest`,
@@ -24,14 +23,12 @@ module.exports = {
     //     icon: `src/images/icon.png`,
     //   },
     // },
-    `gatsby-plugin-offline`,
-    `gatsby-transformer-json`,
     {
       resolve: `gatsby-source-filesystem`,
       options: {
         name: `data`,
         path: `${__dirname}/src/data/`,
       },
-    },
+    }
   ]
 }
