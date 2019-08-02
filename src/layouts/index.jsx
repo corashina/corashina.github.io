@@ -7,4 +7,4 @@ export default ({ children, location }) => (
     <Canvas />
     <Transition location={location}>{children}</Transition>
   </div>
-);
+)

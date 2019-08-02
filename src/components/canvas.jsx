@@ -70,30 +70,30 @@ class Canvas extends React.Component {
 
   initScene() {
           
-        this.scene = new THREE.Scene()
-        this.clock = new THREE.Clock()
-        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000)
-        this.camera.position.set(0, 0, 1800)
+    this.scene = new THREE.Scene()
+    this.clock = new THREE.Clock()
+    this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000)
+    this.camera.position.set(0, 0, 1800)
 
-        var uniforms = {
-            u_amplitude: { value: 300.0 },
-            u_frequency: { value: 0.005 },
-            u_time: { value: 0.0 }
-        };
+    var uniforms = {
+        u_amplitude: { value: 300.0 },
+        u_frequency: { value: 0.005 },
+        u_time: { value: 0.0 }
+    };
 
-        this.plane = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(2000, 2000, 40, 40),
-            new THREE.ShaderMaterial({
-                uniforms: uniforms,
-                vertexShader: vShader,
-                fragmentShader: fShader,
-                side: THREE.BackSide,
-                wireframe: true
-            })
-        )
-        this.plane.position.z = 1000
+    this.plane = new THREE.Mesh(
+        new THREE.PlaneBufferGeometry(2000, 2000, 40, 40),
+        new THREE.ShaderMaterial({
+            uniforms: uniforms,
+            vertexShader: vShader,
+            fragmentShader: fShader,
+            side: THREE.BackSide,
+            wireframe: true
+        })
+    )
+    this.plane.position.z = 1000
 
-        this.scene.add(this.plane)
+    this.scene.add(this.plane)
 
   }
 

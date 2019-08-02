@@ -10,19 +10,27 @@ export default class WorkItem extends Component {
         this.handleMouseOut = this.handleMouseOut.bind(this)
     }
     handleMouseOver(e) {
-        this.refs.video.play()
-        console.log(this.refs.video.style)
+        try {
+            this.refs.video.play()
+        } catch(error) {
+            
+        }
     }
     handleMouseOut(e) {
-        this.refs.video.pause() 
-        this.currentTime=0
+        try {
+            this.refs.video.pause() 
+            this.currentTime = 0
+        } catch(error) {
+            
+        }
+
     }
     render() {
         return (
             <Link to={this.props.slug}>
                 <div>
                     <video ref='video' loop onMouseOver={this.handleMouseOver} onMouseOut={this.handleMouseOut}>
-                        <source  src={getUrl(this.props.url)} type="video/mp4"/>
+                        <source  src={getUrl(this.props.url)} type='video/mp4'/>
                         <p>Your browser doesn't support HTML5 video</p>
                     </video> 
                 </div>

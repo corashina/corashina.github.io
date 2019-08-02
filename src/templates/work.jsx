@@ -16,19 +16,6 @@ export default ({ data, location }) => {
     );
   }
 
-  let imgElem
-  if(work.url.includes('mp4')) {
-      imgElem = (
-    <video ref='video' loop>
-        <source  src={getImageUrl(work.url)} type="video/mp4"/>
-        <p>Your browser doesn't support HTML5 video</p>
-    </video> 
-  )
-  } else {
-    imgElem = (
-    <img style={{width: '100%'}}src={getImageUrl(work.url)}/>)
-  }
-
 
   const detailElem = (
     <div className="detail">
@@ -46,7 +33,10 @@ export default ({ data, location }) => {
       <div className="work">
         <div>
           {detailElem}
-            {imgElem}
+     <video loop>
+        <source  src={getImageUrl(work.url)} type="video/mp4"/>
+        <p>Your browser doesn't support HTML5 video</p>
+    </video> 
         </div>
         {detailElem}
       </div>

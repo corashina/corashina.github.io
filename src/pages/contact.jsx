@@ -57,7 +57,7 @@ export default ({ location }) => (
       <div>
         <h2>see also</h2>
         <p>
-          <a href="http://old.iamnop.com/">old website</a>
+          hi
         </p>
       </div>
     </div>

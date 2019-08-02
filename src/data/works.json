@@ -1,40 +1,40 @@
 [
     {
         "title": "WebGL-Minecraft",
-        "description": "Graphic design assignment for Advanced Studio Art at Milton Academy.",
-        "tools": ["React"],
-        "date": "2006",
+        "description": "Primitive minecraft clone made with three.js",
+        "tools": ["Javascript", "Three.js", "WebGL"],
+        "date": "April 2018",
         "url": "webgl-minecraft.mp4",
         "link": "https://github.com/Tomasz-Zielinski/WebGL-Minecraft"
     },
     {
         "title": "Endless-City",
-        "description": "Graphic design assignment for Advanced Studio Art at Milton Academy.",
-        "tools": ["React"],
-        "date": "2006",
+        "description": "Infinite WebGL scene heavily inspired by littleworkshop.fr",
+        "tools": ["Javascript", "Three.js", "WebGL", "glTF"],
+        "date": "September 2018",
         "url": "endless-city.mp4",
         "link": "https://github.com/Tomasz-Zielinski/Endless-City"
     },
     {
         "title": "Flappy-Pixie",
-        "description": "ewq",
-        "tools": ["React"],
-        "date": "2018",
+        "description": "Flappy Bird clone made in one week for an interview challenge",
+        "tools": ["Javascript", "Three.js", "WebGL"],
+        "date": "October 2018",
         "url": "flappy-pixie.mp4",
         "link": "https://github.com/Tomasz-Zielinski/Flappy-Pixie"
     },
     {
         "title": "Civio",
-        "description": "wqe",
-        "tools": ["React"],
-        "date": "2018",
+        "description": "Hexagonal map generation using simplex noise",
+        "tools": ["Javascript", "Three.js", "WebGL"],
+        "date": "December 2018",
         "url": "civio.mp4",
         "link": "https://github.com/Tomasz-Zielinski/Civio"
     },
     {
         "title": "Particle-Simulation",
-        "description": "weq",
-        "tools": ["React"],
+        "description": "Particle generator made with GLSL",
+        "tools": ["Javascript", "Three.js", "WebGL", "GLSL"],
         "date": "2019",
         "url": "particle-simulation.mp4",
         "link": "https://github.com/Tomasz-Zielinski/Particle-Simulation"
@@ -42,25 +42,41 @@
     {
         "title": "Agar.io",
         "description": "wqeew",
-        "tools": ["React"],
-        "date": "2018",
+        "tools": ["Javascript", "Node", "Socket.io"],
+        "date": "March 2018",
         "url": "endless-city.mp4",
         "link": "https://github.com/Tomasz-Zielinski/Agar.io"
     },
     {
         "title": "Fitmed",
-        "description": "weq",
-        "tools": ["React"],
-        "date": "wqe",
+        "description": "Prototype system for dieteticians",
+        "tools": ["Javascript", "React", "Redux", "Node", "Express", "MongoDB"],
+        "date": "July 2018",
         "url": "fitmed.png",
         "link": "https://github.com/Tomasz-Zielinski/Fitmed"
     },
     {
         "title": "Kiteprint",
-        "description": "weq",
-        "tools": ["React"],
-        "date": "wqe",
+        "description": "Simple PSD to HTML",
+        "tools": ["Javscript", "React"],
+        "date": "September 2018",
         "url": "kiteprint.png",
         "link": "https://github.com/Tomasz-Zielinski/Kiteprint"
+    },
+    {
+        "title": "Digital Doily",
+        "description": "Mandelbrot set generator",
+        "tools": ["Java", "Swing"],
+        "date": "April 2018",
+        "url": "digital-doily.png",
+        "link": "https://github.com/Tomasz-Zielinski/Digital-Doily"
+    },
+    {
+        "title": "Sushi Go",
+        "description": "Prototype management system for the sushi business",
+        "tools": ["Java", "Swing", "Socket"],
+        "date": "May 2018",
+        "url": "sushi-go.png",
+        "link": "https://github.com/Tomasz-Zielinski/Sushi-Go"
     }
 ]
