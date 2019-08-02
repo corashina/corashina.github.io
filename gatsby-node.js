@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const path = require("path");
 const { createFilePath } = require("gatsby-source-filesystem");
 
@@ -73,25 +72,3 @@ const createWorkPages = ({ graphql, actions }) => {
 exports.createPages = ({ graphql, actions }) =>
   Promise.resolve()
     .then(() => createWorkPages({ graphql, actions }));
-=======
-const { createFilePath } = require(`gatsby-source-filesystem`)
-
-exports.onCreateNode = ({ node, getNode, actions }) => {
-  const { createNodeField } = actions
-
-  if (node.internal.type === "MarkdownRemark") {
-
-    const relativeFilePath = createFilePath({
-      node,
-      getNode,
-      basePath: "src/data/",
-    })
-
-    createNodeField({
-      node,
-      name: "data",
-      value: `/data${relativeFilePath}`,
-    })
-  }
-}
->>>>>>> 101dd8b6c8c9a0f181e173cb2b67ecda2e858cad

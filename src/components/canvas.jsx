@@ -1,13 +1,75 @@
-import React, { Component } from 'react'
+import React from 'react'
 import * as THREE from 'three'
-import styles from "./styles/canvas.module.scss"
 import { vShader, fShader } from './utils/shader'
-import { TransitionPortal } from "gatsby-plugin-transition-link"
 
-export default class Canvas extends Component {
-    componentDidMount() {
+class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
 
-        this.animate = this.animate.bind(this)
+    this.update = this.update.bind(this);
+    this.resize = this.resize.bind(this);
+
+    this.colorMain = 0xcccccc;
+    this.colorBg = 0x222222;
+    this._lastTime = Date.now();
+
+    this._lastPageY = 0;
+    this._transitionStartTime = 0;
+    this._transitionDuration = 0;
+    this._transitionIsBackward = false;
+
+    if (typeof window !== "undefined")  window.CANVAS_BACKGROUND = this;
+
+  }
+
+  componentDidMount() {
+    window.addEventListener("resize", this.resize);
+    this.init();
+  }
+
+  componentWillUnmount() {
+        cancelAnimationFrame(this.frameId);
+    this.frameId = undefined;
+    this.mount.removeChild(this.renderer.domElement);
+    window.removeEventListener("resize", this.resize);
+  }
+
+  setColors(colorMain, colorBg) {
+    this.renderer.setClearColor(colorBg);
+  }
+
+  init() {
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: true })
+    this.scene = new THREE.Scene()
+    this.camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100)
+
+    this.mount.appendChild(this.renderer.domElement)
+
+    this.resize()
+    this.initScene()
+    this.setColors(this.colorMain, this.colorBg);
+    
+    if (!this.frameId)  this.frameId = requestAnimationFrame(this.update);
+
+  }
+
+  update() {
+    this.updateScene();
+    this.renderer.render(this.scene, this.camera);
+    this.frameId = requestAnimationFrame(this.update);
+  }
+
+  resize() {
+    const w = this.mount.clientWidth;
+    const h = this.mount.clientHeight;
+    this.renderer.setSize(w, h);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+  }
+
+  initScene() {
+          
         this.scene = new THREE.Scene()
         this.clock = new THREE.Clock()
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000)
@@ -20,7 +82,7 @@ export default class Canvas extends Component {
         };
 
         this.plane = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(2000, 2000, 400, 400),
+            new THREE.PlaneBufferGeometry(2000, 2000, 40, 40),
             new THREE.ShaderMaterial({
                 uniforms: uniforms,
                 vertexShader: vShader,
@@ -33,32 +95,33 @@ export default class Canvas extends Component {
 
         this.scene.add(this.plane)
 
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.refs.canvas, antialias: true})
+  }
 
-        this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.renderer.gammaInput = this.renderer.gammaOutput = true
-
-        this.animate()
-    }
-    animate() {
-        requestAnimationFrame( this.animate )
-    
+  updateScene() {
+        
         // this.camera.position.x += (mouseX - camera.position.x) * 0.01;
         // this.camera.position.y += (-mouseY - camera.position.y) * 0.01;
         this.camera.lookAt(new THREE.Vector3(0, 0, 0))
 
         this.plane.material.uniforms.u_time.value += this.clock.getDelta() / 4;
+  }
 
-        this.renderer.render(this.scene, this.camera)
+  triggerTransition(duration) {
+    this._transitionStartTime = this._lastTime;
+    this._transitionDuration = duration;
+  }
 
-    }
-    render() {
-        
-        return (
-            <TransitionPortal>
-                <canvas className={styles.canvas} ref='canvas'></canvas>
-            </TransitionPortal> 
-        )
-    }
+  render() {
+    return (
+      <div
+        id="canvas-wrap"
+        ref={(mount) => {
+          this.mount = mount;
+        }}
+      />
+    );
+  }
 }
+
+export default Canvas
+
