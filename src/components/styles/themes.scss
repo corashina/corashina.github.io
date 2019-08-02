@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css?family=Vollkorn|VT323");
+$font-stack: "Vollkorn", Georgia, Times New Roman, Times, serif;
+
+$media-sm: 480px;
+$media-md: 768px;
+$spacing: 1.5rem;
+
+$color-1:  var(--color-1);
+$color-2:  var(--color-2);
+$color-25: var(--color-25);
+$color-3:  var(--color-3);
+$color-bg: var(--color-bg);
+
+$themes: (
+  white: (
+    color-bg: #fff,
+    color-1:  #000,
+    color-2:  #aaa,
+    color-25: #ccc,
+    color-3:  #880000,
+  ),
+  dark: (
+    color-bg: #222,
+    color-1:  #ccc,
+    color-2:  #666,
+    color-25: #444,
+    color-3:  #cc6600,
+  )
+);
+
+@each $themeName, $colors in $themes {
+  body.#{$themeName} {
+    @each $colorName, $color in $colors {
+      --#{$colorName}: #{$color};
+    }
+  }
+  .theme-palette>div[data-palette="#{$themeName}"] {
+    background-color: map-get($colors, color-bg);
+    border-color: map-get($colors, color-bg);
+  }
+}

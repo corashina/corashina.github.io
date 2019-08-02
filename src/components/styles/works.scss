@@ -1,0 +1,50 @@
+@import 'themes.scss';
+
+.works {
+  display: grid;
+  column-gap: $spacing;
+  row-gap: $spacing;
+  margin-bottom: $spacing;
+
+  @media (min-width: $media-sm) {
+    grid-template-columns: 1fr 1fr;
+  }
+  @media (min-width: $media-md) {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  &.narrow {
+    @media (min-width: $media-md) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .item {
+    .image-wrap {
+      padding: 5px;
+      border: 1px solid $color-25;
+      margin-bottom: 0.5rem;
+
+      &:hover {
+        border-color: $color-3;
+        .image {
+          opacity: 1.0;
+        }
+      }
+    }
+    .image {
+      width: 100%;
+      background-repeat: no-repeat;
+      background-position-y: center;
+      background-size: 100%;
+      opacity: 0.7;
+
+      // https://spin.atomicobject.com/2015/07/14/css-responsive-square/
+      &::after {
+        content: "";
+        display: block;
+        padding-bottom: 50%;
+      }
+    }
+  }
+}

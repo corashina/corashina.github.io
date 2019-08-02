@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+npm-debug.log.*
+node_modules/
+public/
+.gatsby-context.js
+.DS_Store
+.intermediate-representation/
+.cache/
+yarn.lock
+/node_modules
+/public
