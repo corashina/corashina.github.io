@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React from "react";
 import { Link, graphql } from "gatsby";
 import Layout from "../components/Layout";
@@ -66,3 +67,18 @@ export default ({ location, data }) => {
     </Layout>
   );
 };
+=======
+import React from 'react'
+import Layout from '../components/layout'
+
+
+export default function index({children}) {
+    console.log(children)
+    return (
+         <Layout>
+       sdas
+          
+         </Layout>
+    )
+}
+>>>>>>> 101dd8b6c8c9a0f181e173cb2b67ecda2e858cad
