@@ -1,24 +1,21 @@
 import React from 'react'
-import { FaEnvelope, FaFile, FaTwitter, FaPhone, FaStackOverflow, FaGithub, FaLinkedin} from 'react-icons/fa'
+import { FaEnvelope, FaFile, FaTwitter, FaStackOverflow, FaGithub, FaLinkedin} from 'react-icons/fa'
 import Layout from '../components/Layout'
+
+import contactStyle from '../components/styles/contact.module.scss'
+import sectionStyle from '../components/styles/section.module.scss'
 
 export default ({ location }) => (
   <Layout location={location}>
     <h1>Contact</h1>
-    <div className="layout23">
+    <div className={sectionStyle.section}>
       <div>
         <h2>find me</h2>
-        <ul className="contact">
+        <ul className={contactStyle.contact}>
           <li>
             <a href="mailto:contact@tomasz-zielinski.com">
               <FaEnvelope />
               contact@tomasz-zielinski.com
-            </a>
-          </li>
-          <li>
-            <a>
-              <FaPhone />
-              (+44) 07519554924
             </a>
           </li>
           <li>

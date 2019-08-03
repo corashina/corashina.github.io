@@ -1,9 +1,9 @@
 @import url("https://fonts.googleapis.com/css?family=Vollkorn|VT323");
 $font-stack: "Vollkorn", Georgia, Times New Roman, Times, serif;
 
+$spacing: 1.5rem;
 $media-sm: 480px;
 $media-md: 768px;
-$spacing: 1.5rem;
 
 $color-1:  var(--color-1);
 $color-2:  var(--color-2);
@@ -33,9 +33,5 @@ $themes: (
     @each $colorName, $color in $colors {
       --#{$colorName}: #{$color};
     }
-  }
-  .theme-palette>div[data-palette="#{$themeName}"] {
-    background-color: map-get($colors, color-bg);
-    border-color: map-get($colors, color-bg);
   }
 }

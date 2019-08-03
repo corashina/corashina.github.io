@@ -9,10 +9,9 @@ class Transition extends React.Component {
   constructor(props) {
     super(props);
 
-    this.isBackward = false;
-    this.timeoutId = undefined;
+    this.isBackward = false
+    this.timeoutId = undefined
 
-    // HACK: set CANVAS_BACKGROUND directly
     this.startBackward = () => {
       this.isBackward = true;
       window.CANVAS_BACKGROUND._transitionIsBackward = true;
@@ -22,16 +21,12 @@ class Transition extends React.Component {
       if (this.timeoutId) clearTimeout(this.timeoutId);
 
       // then, sets timeout to reset isBackward state
-      this.timeoutId = setTimeout(() => {
-        window.CANVAS_BACKGROUND._transitionIsBackward = false;
-      }, duration * 2);
+      this.timeoutId = setTimeout(() => window.CANVAS_BACKGROUND._transitionIsBackward = false, duration * 2);
     };
 
-    this.endBackward = () => {
-      this.isBackward = false;
-    };
+    this.endBackward = () => this.isBackward = false
 
-    if ( typeof window !== "undefined" && window.history && window.history.pushState ) {
+    if(typeof window !== "undefined" && window.history && window.history.pushState) {
       window.addEventListener("popstate", this.startBackward);
     }
   }

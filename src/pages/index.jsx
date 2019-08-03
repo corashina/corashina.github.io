@@ -3,27 +3,26 @@ import { Link, graphql } from "gatsby";
 import Layout from "../components/Layout";
 import WorkItem from "../components/WorkItem";
 
+import styles from '../components/styles/section.module.scss'
+
 export default ({ location, data }) => {
 
   const introSection = (
     <div className="section">
       <h1>Tomasz Zielinski</h1>
-      <div className="layout23">
+      <div className={styles.section}>
         <div>
           <h2>an aspiring software engineer</h2>
           <p>
-            Hello! I{"'"}m 75% technologist, 25% artist, and 100% perfectionist.
-            I love making things, especially pretty 3D things with code!
+            My name is Tomasz, I 'm an aspiring web engineer. I started to pursue the career of a web
+            developer 3 years ago.I moved to United Kingdom in 2017 to study computer science and develop my
+            passions on the University of Southampton.I love making things, especially pretty 3 D graphics with
+            code.
           </p>
           <p>
-            My background is in computer graphics, games, and animation. I
-            graduated from the{" "}
-            <a href="http://www.upenn.edu/">University of Pennsylvania</a> in{" "}
-            <a href="http://cg.cis.upenn.edu/">computer graphics</a>. Then I
-            went on to work in animation and gaming for a while at various
-            places. Now I{"'"}m at{" "}
-            <a href="http://www.autodesk.com/">Autodesk</a> working on an
-            exciting <a href="http://lmv.rocks/">new web viewer</a>.
+            I use a lot of different tools to accomplish my goals.Most of them are popular web technologies and
+            frameworks, although I enjoy learning and making stuff with other languages like C++, Java and
+            GLSL.
           </p>
         </div>
         <div>

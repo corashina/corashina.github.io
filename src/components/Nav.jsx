@@ -1,9 +1,9 @@
 import React from 'react'
 import { Link } from 'gatsby'
 import { GoThreeBars, GoX } from 'react-icons/go'
-import ThemePalette from './ThemePalette'
+import Theme from './Theme'
 
-class Navigation extends React.Component {
+class Nav extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -20,9 +20,9 @@ class Navigation extends React.Component {
     const { expanded } = this.state;
 
     const links = {
-      Home: "/",
-      Work: "/works",
-      Contact: "/contact",
+      Home: '/',
+      Work: '/works',
+      Contact: '/contact',
     };
     const menu = (
       <ul>
@@ -45,24 +45,24 @@ class Navigation extends React.Component {
     let menuElem;
     if (expanded) {
       toggleElem = (
-        <GoX className="menu-toggle" onClick={() => this.toggle()} />
+        <GoX className='menu-toggle' onClick={() => this.toggle()} />
       );
-      menuElem = <div className="menu-container expanded">{menu}</div>;
+      menuElem = <div className='menu-container expanded'>{menu}</div>;
     } else {
       toggleElem = (
-        <GoThreeBars className="menu-toggle" onClick={() => this.toggle()} />
+        <GoThreeBars className='menu-toggle' onClick={() => this.toggle()} />
       );
-      menuElem = <div className="menu-container">{menu}</div>;
+      menuElem = <div className='menu-container'>{menu}</div>;
     }
 
     return (
-      <div className="navbar">
-        <ThemePalette />
+      <nav className='navbar'>
+        <Theme />
         {toggleElem}
         {menuElem}
-      </div>
+      </nav>
     );
   }
 }
 
-export default Navigation;
+export default Nav;
