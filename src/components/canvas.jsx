@@ -1,6 +1,7 @@
 import React from 'react'
 import * as THREE from 'three'
 import { vShader, fShader } from './utils/shader'
+import styles from './styles/canvas.module.scss'
 
 class Canvas extends React.Component {
   constructor(props) {
@@ -115,6 +116,7 @@ class Canvas extends React.Component {
     return (
       <div
         id="canvas-wrap"
+        className={styles.wrap}
         ref={(mount) => {
           this.mount = mount;
         }}

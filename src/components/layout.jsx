@@ -1,6 +1,7 @@
 import React from 'react'
 import Helmet from 'react-helmet'
-import Navigation from './Navigation'
+import Nav from './Nav'
+import styles from './styles/layout.module.scss'
 
 export default ({ children, location, title, width }) => {
 
@@ -14,11 +15,11 @@ export default ({ children, location, title, width }) => {
 
   const style = width ? { maxWidth: `${width}px` } : {};
   return (
-    <div className="layout" style={style}>
+    <div className={styles.layout} style={style}>
       <Helmet title={location.pathname.slice(1, -1)}>
         <meta name="description" content='Tomasz Zielinski Portfolio Website' />
       </Helmet>
-      <Navigation location={location} />
+      <Nav location={location} />
       <div className="content">{children}</div>
       {footer}
     </div>

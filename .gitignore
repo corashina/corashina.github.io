@@ -9,3 +9,4 @@ public/
 .cache/
 yarn.lock
 /node_modules
+/public
