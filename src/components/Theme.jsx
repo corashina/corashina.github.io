@@ -1,5 +1,7 @@
 import React from 'react'
 
+import styles from './styles/theme.module.scss'
+
 const toHex = x => `0${parseInt(x, 10).toString(16)}`.slice(-2)
 const rgbToHex = s => {
   if (/^#[0-9A-F]{6}$/i.test(s)) return s;
@@ -37,7 +39,7 @@ class Theme extends React.Component {
 
   render() {
     return (
-      <div  className='theme-palette'>
+      <div  className={styles.theme}>
         <div style={{backgroundColor: this.color}} onClick={this.switchTheme} />
       </div>
     );

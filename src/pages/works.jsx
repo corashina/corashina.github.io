@@ -8,7 +8,7 @@ export default ({ location, data }) => {
   const items = data.allWorksJson.edges.map(({ node }) => node);
   
   return (
-    <Layout location={location} width={900}>
+    <Layout location={location}>
       <h1>Work</h1>
       <h2>my stuff</h2>
       <WorkList items={items} />

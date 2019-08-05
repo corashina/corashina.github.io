@@ -26,7 +26,7 @@ export default ({ location, data }) => {
           </p>
         </div>
         <div>
-          <h2>I use</h2>
+          <h2>i use</h2>
           <p>
             html
             <br />

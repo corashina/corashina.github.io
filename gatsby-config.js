@@ -40,7 +40,6 @@ module.exports = {
         trackingId: "UA-13260028-1",
       },
     },
-    "gatsby-plugin-feed",
     // "gatsby-plugin-offline",
     "gatsby-plugin-react-helmet",
     "gatsby-plugin-sass",

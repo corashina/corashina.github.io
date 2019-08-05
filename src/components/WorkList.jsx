@@ -12,7 +12,7 @@ class WorkList extends React.Component {
 
     return (
       <div>
-        <div className="works">
+        <div className='works'>
           {items.map((item) => (
             <WorkItem
               key={item.title}
