@@ -26,7 +26,8 @@
     "gatsby-source-filesystem": "^2.0.0",
     "gatsby-transformer-json": "^2.0.0",
     "gatsby-transformer-remark": "^2.6.10",
-    "gatsby-transformer-sharp": "^2.0.0",
+    "gatsby-transformer-sharp": "^2.2.5",
+    "gh-pages": "^2.0.1",
     "node-sass": "^4.9.3",
     "normalize.css": "^8.0.0",
     "prismjs": "^1.15.0",
@@ -50,8 +51,8 @@
   "scripts": {
     "build": "npm-run-all -s validate gatsby:build",
     "validate": "npm-run-all -s prettier eslint",
-    "deploy": "npm-run-all -s clean build ghpages",
-    "gatsby:build": "gatsby build",
+    "deploy": "gatsby build --prefix-paths && gh-pages -d public",
+    "ghpages": "gh-pages --dist public --branch master --repo https://github.com/Tomasz-Zielinski/Tomasz-Zielinski.github.io",
     "clean": "rm -rf .cache public"
   }
 }

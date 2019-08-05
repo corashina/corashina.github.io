@@ -141,7 +141,6 @@ blockquote {
     column-gap: $spacing;
     row-gap: $spacing;
     margin-bottom: $spacing;
-
     @media (min-width: $media-sm) {
         grid-template-columns: 1fr 1fr;
     }
@@ -172,10 +171,14 @@ blockquote {
 
         .image {
             width: 100%;
+            filter: grayscale(1);
             background-repeat: no-repeat;
             background-position-y: center;
             background-size: cover;
-
+            &:hover {
+                  animation: grayscale-anim 0.4s ease-in-out forwards;
+                  -webkit-animation: grayscale-anim 0.4s ease-in-out forwards;
+            }
             &::after {
                 content: "";
                 display: block;
