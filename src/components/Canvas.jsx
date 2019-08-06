@@ -2,40 +2,53 @@ import React from 'react'
 import * as THREE from 'three'
 import { vShader, fShader } from './utils/shader'
 
+import styles from './styles/canvas.module.scss'
+
 class Canvas extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
-    this.update = this.update.bind(this);
-    this.resize = this.resize.bind(this);
+    this.update = this.update.bind(this)
+    this.resize = this.resize.bind(this)
+    this.onMouseMove = this.onMouseMove.bind(this)
 
-    this.colorMain = 0xcccccc;
-    this.colorBg = 0x222222;
-    this._lastTime = Date.now();
+    this.mouseX = 0
+    this.mouseY = 0
 
-    this._lastPageY = 0;
-    this._transitionStartTime = 0;
-    this._transitionDuration = 0;
-    this._transitionIsBackward = false;
+    this.colorMain = '#cccccc'
+    this.colorBg = '#222222'
 
-    if (typeof window !== "undefined")  window.CANVAS_BACKGROUND = this;
+    this.lastTime = Date.now()
+    this.transitionStartTime = 0
+    this.transitionDuration = 0
+
+    if (typeof window !== 'undefined')  window.canvas = this
 
   }
 
   componentDidMount() {
-    window.addEventListener("resize", this.resize);
-    this.init();
+    window.addEventListener('resize', this.resize)
+    window.addEventListener('mousemove', this.onMouseMove)
+    this.init()
   }
 
   componentWillUnmount() {
-        cancelAnimationFrame(this.frameId);
-    this.frameId = undefined;
-    this.mount.removeChild(this.renderer.domElement);
-    window.removeEventListener("resize", this.resize);
+    cancelAnimationFrame(this.frameId)
+    this.frameId = undefined
+    this.mount.removeChild(this.renderer.domElement)
+    window.removeEventListener('resize', this.resize)
+    window.removeEventListener('mousemove', this.onMouseMove)
   }
 
   setColors(colorMain, colorBg) {
-    this.renderer.setClearColor(colorBg);
+    this.renderer.setClearColor(colorBg)
+    this.colorMain = colorMain
+    this.uniforms.u_color.value = colorMain === '#000000' ? 0.8 : 0.2
+  }
+
+  onMouseMove(event) {
+    this.mouseX = event.clientX - window.innerWidth / 2
+    this.mouseY = event.clientY - window.innerHeight / 2
   }
 
   init() {
@@ -48,24 +61,28 @@ class Canvas extends React.Component {
 
     this.resize()
     this.initScene()
-    this.setColors(this.colorMain, this.colorBg);
+    this.renderer.setClearColor(this.colorBg)
     
-    if (!this.frameId)  this.frameId = requestAnimationFrame(this.update);
+    if (!this.frameId)  this.frameId = requestAnimationFrame(this.update)
 
   }
 
   update() {
-    this.updateScene();
-    this.renderer.render(this.scene, this.camera);
-    this.frameId = requestAnimationFrame(this.update);
+
+    this.camera.position.x += (this.mouseX - this.camera.position.x) * 0.01
+    this.camera.position.y += (-this.mouseY - this.camera.position.y) * 0.01
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0))
+    this.plane.material.uniforms.u_time.value += this.clock.getDelta() / 4
+    
+    this.renderer.render(this.scene, this.camera)
+    this.frameId = requestAnimationFrame(this.update)
+
   }
 
   resize() {
-    const w = this.mount.clientWidth;
-    const h = this.mount.clientHeight;
-    this.renderer.setSize(w, h);
-    this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(this.mount.clientWidth, this.mount.clientHeight)
+    this.camera.aspect = this.mount.clientWidth / this.mount.clientHeight
+    this.camera.updateProjectionMatrix()
   }
 
   initScene() {
@@ -73,53 +90,42 @@ class Canvas extends React.Component {
         this.scene = new THREE.Scene()
         this.clock = new THREE.Clock()
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000)
-        this.camera.position.set(0, 0, 1800)
+        this.camera.position.set(0, 0, 1000)
 
-        var uniforms = {
+        this.uniforms = {
             u_amplitude: { value: 300.0 },
             u_frequency: { value: 0.005 },
-            u_time: { value: 0.0 }
-        };
+            u_time: { value: 0.0 },
+            u_color: { value: 0.2}
+        }
 
         this.plane = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(2000, 2000, 40, 40),
+            new THREE.PlaneBufferGeometry(4000, 4000, 80, 80),
             new THREE.ShaderMaterial({
-                uniforms: uniforms,
+                uniforms: this.uniforms,
                 vertexShader: vShader,
                 fragmentShader: fShader,
                 side: THREE.BackSide,
                 wireframe: true
             })
         )
-        this.plane.position.z = 1000
 
         this.scene.add(this.plane)
 
   }
 
-  updateScene() {
-        
-        // this.camera.position.x += (mouseX - camera.position.x) * 0.01;
-        // this.camera.position.y += (-mouseY - camera.position.y) * 0.01;
-        this.camera.lookAt(new THREE.Vector3(0, 0, 0))
-
-        this.plane.material.uniforms.u_time.value += this.clock.getDelta() / 4;
-  }
-
   triggerTransition(duration) {
-    this._transitionStartTime = this._lastTime;
-    this._transitionDuration = duration;
+    this.transitionStartTime = this.lastTime
+    this.transitionDuration = duration
   }
 
   render() {
     return (
       <div
-        id="canvas-wrap"
-        ref={(mount) => {
-          this.mount = mount;
-        }}
+        className={styles.wrap}
+        ref={(mount) => this.mount = mount}
       />
-    );
+    )
   }
 }
 

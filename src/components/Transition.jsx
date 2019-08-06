@@ -3,7 +3,7 @@ import { TransitionGroup, Transition as CanvasTransition} from 'react-transition
 import './styles/transition.scss'
 import { duration, state } from './utils/states'
 
-const triggerTransition = () => window.CANVAS_BACKGROUND.triggerTransition(duration * 2)
+const triggerTransition = () => window.canvas.triggerTransition(duration * 2)
 
 class Transition extends React.Component {
   constructor(props) {
@@ -14,14 +14,14 @@ class Transition extends React.Component {
 
     this.startBackward = () => {
       this.isBackward = true;
-      window.CANVAS_BACKGROUND._transitionIsBackward = true;
+      window.canvas._transitionIsBackward = true;
 
       // in case user clicks back quicker than duration
       // we need to cancel the previous unresolved timeout
       if (this.timeoutId) clearTimeout(this.timeoutId);
 
       // then, sets timeout to reset isBackward state
-      this.timeoutId = setTimeout(() => window.CANVAS_BACKGROUND._transitionIsBackward = false, duration * 2);
+      this.timeoutId = setTimeout(() => window.canvas._transitionIsBackward = false, duration * 2);
     };
 
     this.endBackward = () => this.isBackward = false

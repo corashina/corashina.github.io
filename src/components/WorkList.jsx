@@ -4,14 +4,12 @@ import WorkItem from './WorkItem'
 class WorkList extends React.Component {
   constructor() {
     super();
-    this.state = { category: "all" }
   }
 
   render() {
     let { items } = this.props;
 
     return (
-      <div>
         <div className='works'>
           {items.map((item) => (
             <WorkItem
@@ -22,7 +20,6 @@ class WorkList extends React.Component {
             />
           ))}
         </div>
-      </div>
     );
   }
 }

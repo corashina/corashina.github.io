@@ -22,29 +22,21 @@ export default class work extends Component {
     render() {
         const elem = this.work.url.includes('mp4') ? (
             <video
-                ref="video"
+                ref='video'
                 loop
                 onMouseOver={this.handleMouseOver}
                 onMouseOut={this.handleMouseOut}
             >
                 <source
-                    src={
-                        this.work.url.includes('http')
-                            ? this.work.url
-                            : `/portfolio/${this.work.url}`
-                    }
-                    type="video/mp4"
+                    src={this.work.url.includes('http') ? this.work.url : `/portfolio/${this.work.url}`}
+                    type='video/mp4'
                 />
                 <p>Your browser doesn't support HTML5 video</p>
             </video>
         ) : (
             <img
-                className="image"
-                src={
-                    this.work.url.includes('http')
-                        ? this.work.url
-                        : `/portfolio/${this.work.url}`
-                }
+                className='image'
+                src={this.work.url.includes('http') ? this.work.url : `/portfolio/${this.work.url}`}
             />
         )
 
@@ -54,22 +46,25 @@ export default class work extends Component {
                 title={this.work.title}
                 width={900}
             >
-                <div className="work">
+                <div className='work'>
                     {elem}
                     <div>
                         <h2>{this.work.title}</h2>
                         <h4>{this.work.date}</h4>
                         <p>{this.work.description}</p>
 
-                        <ul className="tools">
+                        <br />
+
+                        <ul className='tools'>
                             {this.work.tools.map(tool => (
                                 <li key={tool}>{tool}</li>
                             ))}
                         </ul>
 
-                        <a href={this.work.link}>live →</a>
                         <br />
+
                         <a href={this.work.link}>github →</a>
+
                     </div>
                 </div>
             </Layout>

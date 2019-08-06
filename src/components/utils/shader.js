@@ -2,9 +2,10 @@ const fShader = `
     uniform float   u_amplitude;
     uniform float 	u_frequency;
     uniform float   u_time;
+    uniform float   u_color;
 
     void main() {
-        gl_FragColor = vec4(0.433, 0.433, 0.433, 0);
+        gl_FragColor = vec4(u_color, u_color, u_color, 0);
     }
 `;
 
@@ -16,26 +17,26 @@ const vShader = `precision highp float;
 
     vec3 mod289(vec3 x)
     {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
+        return x - floor(x * (1.0 / 289.0)) * 289.0;
     }
 
     vec4 mod289(vec4 x)
     {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
+        return x - floor(x * (1.0 / 289.0)) * 289.0;
     }
 
     vec4 permute(vec4 x)
     {
-    return mod289(((x*34.0)+1.0)*x);
+        return mod289(((x*34.0)+1.0)*x);
     }
 
     vec4 taylorInvSqrt(vec4 r)
     {
-    return 1.79284291400159 - 0.85373472095314 * r;
+        return 1.79284291400159 - 0.85373472095314 * r;
     }
 
     vec3 fade(vec3 t) {
-    return t*t*t*(t*(t*6.0-15.0)+10.0);
+        return t*t*t*(t*(t*6.0-15.0)+10.0);
     }
 
     // Classic Perlin noise
@@ -114,6 +115,7 @@ const vShader = `precision highp float;
 
         vec3 newPosition = position + normal * displacement;
         gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+        
     }
 `;
 

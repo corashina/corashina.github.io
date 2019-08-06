@@ -191,23 +191,20 @@ blockquote {
 .work {
   display: grid;
   column-gap: 2rem;
-  a.image {
-    display: block;
-    margin-bottom: 1rem;
-    img {
-      display: block;
+  .image {
       width: 100%;
-    }
   }
-    .tools {
-      list-style-type: none;
-      li {
-          color: $color-1;
-          display: inline-block;
-          box-sizing: border-box;
-          padding: 0.1rem 0.2rem;
-          margin-right: 1%;
-      }
+  .tools {
+    list-style-type: none;
+    li {
+        color: $color-2;
+        border: 1px solid $color-2;
+        display: inline-block;
+        box-sizing: border-box;
+        padding: 0 $spacing / 10;
+        margin-right: $spacing / 5;
+        margin-bottom: $spacing / 5;
+    }
   }
 
   @media (min-width: $media-sm) {
@@ -223,4 +220,12 @@ blockquote {
 @-webkit-keyframes grayscale-anim {
   from { -webkit-filter: grayscale(1); }
   to   { -webkit-filter: grayscale(0); }
+}
+
+::-webkit-scrollbar {
+    background-color: $color-bg;
+}
+
+::-webkit-scrollbar-thumb {
+    background: $color-25;
 }
