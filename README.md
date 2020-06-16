@@ -1,5 +1,5 @@
-## Website ❄️
+## Website
 
-[Domain](https://www.tomasz-zielinski.com)
+[Domain](https://www.zielin.ski)
 
-[Github Pages](https://www.tomasz-zielinski.github.io)
+[Github Pages](https://www.corashina.github.io)

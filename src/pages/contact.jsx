@@ -13,9 +13,9 @@ export default ({ location }) => (
         <h2>find me</h2>
         <ul className={contactStyle.contact}>
           <li>
-            <a href="mailto:contact@tomasz-zielinski.com">
+            <a href="mailto:contact@zielin.ski">
               <FaEnvelope />
-              contact@tomasz-zielinski.com
+              contact@zielin.ski
             </a>
           </li>
           <li>
@@ -26,15 +26,15 @@ export default ({ location }) => (
           </li>
           <br />
           <li>
-            <a href="https://github.com/Tomasz-Zielinski">
+            <a href="https://github.com/corashina">
               <FaGithub />
-              github <span>github.com/tomasz-zielinski</span>
+              github <span>github.com/corashina</span>
             </a>
           </li>
           <li>
-            <a href="https://stackoverflow.com/users/7306664/tomasz-zieli%C5%84ski">
+            <a href="https://stackoverflow.com/users/7306664/corashina?tab=profile">
               <FaStackOverflow />
-              stack overflow <span>stackoverflow.com/tomasz-zielinski</span>
+              stack overflow <span>stackoverflow.com/corashina</span>
             </a>
           </li>
           <li>
@@ -50,12 +50,6 @@ export default ({ location }) => (
             </a>
           </li>
         </ul>
-      </div>
-      <div>
-        <h2>see also</h2>
-        <p>
-          hi
-        </p>
       </div>
     </div>
   </Layout>

@@ -20,21 +20,22 @@ export default ({ location, data }) => {
             code.
           </p>
           <p>
-            I use a lot of different tools to accomplish my goals.Most of them are popular web technologies and
-            frameworks, although I enjoy learning and making stuff with other languages like C++, Java and
-            GLSL.
+            I use a lot of different tools to accomplish my goals. Most of them are popular web technologies and
+            frameworks, although I enjoy learning and making stuff with other languages like C++ and GLSL.
           </p>
         </div>
         <div>
           <h2>i use</h2>
           <p>
-            html
-            <br />
-            css
-            <br />
+            
+            
             javascript
             <br />
-            threejs
+            typescript
+            <br />
+            scss
+            <br />
+            three
             <br />
             <br />
             react
@@ -44,14 +45,11 @@ export default ({ location, data }) => {
             gatsby
             <br />
             <br />
-            graphql
-            <br />
             node
             <br />
+            nosql
             <br />
-            mongodb
-            <br />
-            postgres
+            mongo
             <br />
           </p>
         </div>

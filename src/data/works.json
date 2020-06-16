@@ -5,7 +5,7 @@
         "tools": ["javascript", "three.js", "webgl"],
         "date": "April 2018",
         "url": "webgl-minecraft.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/WebGL-Minecraft"
+        "link": "https://github.com/corashina/WebGL-Minecraft"
     },
     {
         "title": "Endless-City",
@@ -13,7 +13,7 @@
         "tools": ["javascript", "three.js", "webgl", "gltf"],
         "date": "September 2018",
         "url": "endless-city.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/Endless-City"
+        "link": "https://github.com/corashina/Endless-City"
     },
     {
         "title": "Flappy-Pixie",
@@ -21,7 +21,7 @@
         "tools": ["javascript", "three.js", "webgl"],
         "date": "October 2018",
         "url": "flappy-pixie.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/Flappy-Pixie"
+        "link": "https://github.com/corashina/Flappy-Pixie"
     },
     {
         "title": "Civio",
@@ -29,23 +29,15 @@
         "tools": ["javascript", "three.js", "webgl"],
         "date": "December 2018",
         "url": "civio.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/Civio"
+        "link": "https://github.com/corashina/Civio"
     },
     {
         "title": "Particle Simulation",
         "description": "Particle generator made with GLSL",
-        "tools": ["javascript", "three.js", "webgl", "glsl"],
+        "tools": ["typescript", "three.js", "webgl", "glsl"],
         "date": "February 2019",
         "url": "particle-simulation.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/Particle-Simulation"
-    },
-    {
-        "title": "Agar.io",
-        "description": "Agar.io clone made using websockets",
-        "tools": ["javascript", "node", "socket.io"],
-        "date": "March 2018",
-        "url": "agario.mp4",
-        "link": "https://github.com/Tomasz-Zielinski/Agar.io"
+        "link": "https://github.com/corashina/Particle-Simulation"
     },
     {
         "title": "Fitmed",
@@ -53,7 +45,7 @@
         "tools": ["javascript", "react", "redux", "node", "express", "mongodb"],
         "date": "July 2018",
         "url": "fitmed.png",
-        "link": "https://github.com/Tomasz-Zielinski/Fitmed"
+        "link": "https://github.com/corashina/Fitmed"
     },
     {
         "title": "Kiteprint",
@@ -61,7 +53,7 @@
         "tools": ["javscript", "react"],
         "date": "September 2018",
         "url": "kiteprint.png",
-        "link": "https://github.com/Tomasz-Zielinski/Kiteprint"
+        "link": "https://github.com/corashina/Kiteprint"
     },
     {
         "title": "Digital Doily",
@@ -69,7 +61,7 @@
         "tools": ["java", "swing"],
         "date": "April 2018",
         "url": "digital-doily.png",
-        "link": "https://github.com/Tomasz-Zielinski/Digital-Doily"
+        "link": "https://github.com/corashina/Digital-Doily"
     },
     {
         "title": "Sushi Go",
@@ -77,6 +69,6 @@
         "tools": ["java", "swing", "sockets"],
         "date": "May 2018",
         "url": "sushi-go.png",
-        "link": "https://github.com/Tomasz-Zielinski/Sushi-Go"
+        "link": "https://github.com/corashina/Sushi-Go"
     }
 ]
