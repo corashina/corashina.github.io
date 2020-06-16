@@ -10,3 +10,6 @@ public/
 yarn.lock
 /node_modules
 /public
+.prettierrc
+.eslintrc.js
+.vscode
