@@ -14,14 +14,14 @@ export default ({ location, data }) => {
         <div>
           <h2>an aspiring software engineer</h2>
           <p>
-            My name is Tomasz, I 'm an aspiring web engineer. I started to pursue the career of a web
-            developer 3 years ago.I moved to United Kingdom in 2017 to study computer science and develop my
-            passions on the University of Southampton.I love making things, especially pretty 3 D graphics with
-            code.
+            Web enthusiast with experience in software development and architecture. 
+            Interested in network programming, web-based architecture, web-based authentication and unix systems. 
+            Advocate of fast paced development environments that embrace continuous change. 
+            Student at the University of Southampton.
           </p>
           <p>
-            I use a lot of different tools to accomplish my goals. Most of them are popular web technologies and
-            frameworks, although I enjoy learning and making stuff with other languages like C++ and GLSL.
+            Accomplishing my goals with a variety of tools, predominantly web stuff such as Javascript, React, Redux, Node. 
+            Always ready to grasp new concepts and learn different technologies.
           </p>
         </div>
         <div>

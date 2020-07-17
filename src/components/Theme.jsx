@@ -36,9 +36,11 @@ class Theme extends React.Component {
   }
 
   render() {
+    const window_ = typeof window === 'undefined' ? { canvas: { colorMain: '#cccccc' } } : window
+
     return (
       <div  className={styles.theme}>
-        <div style={{backgroundColor: window.canvas.colorMain}} onClick={this.switchTheme} />
+        <div style={{backgroundColor: window_.canvas.colorMain}} onClick={this.switchTheme} />
       </div>
     );
   }

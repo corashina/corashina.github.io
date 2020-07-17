@@ -54,21 +54,5 @@
         "date": "September 2018",
         "url": "kiteprint.png",
         "link": "https://github.com/corashina/Kiteprint"
-    },
-    {
-        "title": "Digital Doily",
-        "description": "Mandelbrot set generator",
-        "tools": ["java", "swing"],
-        "date": "April 2018",
-        "url": "digital-doily.png",
-        "link": "https://github.com/corashina/Digital-Doily"
-    },
-    {
-        "title": "Sushi Go",
-        "description": "Prototype management system for the sushi business",
-        "tools": ["java", "swing", "sockets"],
-        "date": "May 2018",
-        "url": "sushi-go.png",
-        "link": "https://github.com/corashina/Sushi-Go"
     }
 ]
