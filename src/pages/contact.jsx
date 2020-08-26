@@ -50,6 +50,14 @@ export default ({ location }) => (
             </a>
           </li>
         </ul>
+      
+        <br />
+        <br />
+      
+        <a className={contactStyle.flair} href="https://stackexchange.com/users/9864859">
+          <img src={`https://stackexchange.com/users/flair/9864859.png?theme=default`} width="208" height="58" alt="profile for corashina on Stack Exchange, a network of free, community-driven Q&amp;A sites" title="profile for corashina on Stack Exchange, a network of free, community-driven Q&amp;A sites"/>
+        </a>
+
       </div>
     </div>
   </Layout>

@@ -65,6 +65,12 @@ class Canvas extends React.Component {
     
     if (!this.frameId)  this.frameId = requestAnimationFrame(this.update)
 
+    const loading = document.getElementsByClassName('loading');
+
+    if(loading.length > 0) {
+      document.body.removeChild(loading[0])
+    }
+
   }
 
   update() {
