@@ -13,3 +13,4 @@ yarn.lock
 .prettierrc
 .eslintrc.js
 .vscode
+.worktrees/
