@@ -1,0 +1,118 @@
+@use "themes" as *;
+
+.workPage {
+  display: grid;
+  gap: $spacing;
+}
+
+.grid {
+  display: grid;
+  gap: $spacing;
+  grid-template-columns: 1fr;
+}
+
+.card {
+  border: 1px solid $color-25;
+  display: block;
+  padding: 5px;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: $color-3;
+  color: $color-accent-text;
+}
+
+.card h3 {
+  color: inherit;
+  margin: 0;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.media {
+  align-items: center;
+  aspect-ratio: 2 / 1;
+  background: $color-bg;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  width: 100%;
+}
+
+.media img,
+.media video {
+  filter: grayscale(1);
+  height: 100%;
+  object-fit: cover;
+  transition: filter 400ms ease-in-out;
+  width: 100%;
+}
+
+.card:hover .media img,
+.card:hover .media video,
+.card:focus-visible .media img,
+.card:focus-visible .media video {
+  filter: grayscale(0);
+}
+
+.mediaFallback {
+  border: 1px solid $color-25;
+  box-sizing: border-box;
+  color: $color-muted-text;
+  padding: $spacing;
+  text-align: center;
+}
+
+.detail {
+  display: grid;
+  gap: $spacing;
+}
+
+.detailCopy p {
+  text-align: left;
+}
+
+.detailCopy section {
+  margin: $spacing 0;
+}
+
+.contributions {
+  padding-inline-start: $spacing;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$spacing} / 5);
+  list-style: none;
+  margin: 0;
+}
+
+.tags li {
+  border: 1px solid $color-25;
+  color: $color-muted-text;
+  padding: 0 calc(#{$spacing} / 10);
+}
+
+@media (min-width: $media-sm) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+@media (min-width: $media-md) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media img,
+  .media video {
+    transition: none;
+  }
+}

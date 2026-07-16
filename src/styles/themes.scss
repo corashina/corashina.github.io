@@ -1,0 +1,31 @@
+$spacing: 1.5rem;
+$media-sm: 480px;
+$media-md: 768px;
+
+$color-bg: var(--color-bg);
+$color-1: var(--color-1);
+$color-2: var(--color-2);
+$color-25: var(--color-25);
+$color-3: var(--color-3);
+$color-muted-text: var(--color-muted-text);
+$color-accent-text: var(--color-accent-text);
+
+body.white {
+  --color-bg: #fff;
+  --color-1: #000;
+  --color-2: #aaa;
+  --color-25: #ccc;
+  --color-3: #880000;
+  --color-muted-text: #767676;
+  --color-accent-text: #880000;
+}
+
+body.dark {
+  --color-bg: #222;
+  --color-1: #ccc;
+  --color-2: #666;
+  --color-25: #444;
+  --color-3: #f44263;
+  --color-muted-text: #9a9a9a;
+  --color-accent-text: #ff5270;
+}

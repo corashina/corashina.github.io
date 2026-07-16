@@ -1,0 +1,25 @@
+@use "themes" as *;
+
+.contact {
+  list-style-type: none;
+  margin-left: 0;
+}
+
+.contact svg {
+  height: 16px;
+  margin-bottom: -3px;
+  margin-right: 3px;
+  margin-top: 3px;
+  width: 16px;
+}
+
+.socialStart {
+  margin-top: $spacing;
+}
+
+.flair {
+  display: block;
+  margin-top: calc(2 * #{$spacing});
+  position: relative;
+  left: 50%;
+}

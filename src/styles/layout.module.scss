@@ -1,0 +1,128 @@
+@use "themes" as *;
+
+.layout {
+  display: grid;
+  margin: auto;
+  max-width: 600px;
+  padding: 0 $spacing;
+}
+
+.workLayout {
+  max-width: 900px;
+}
+
+.navigation {
+  border-bottom: 1px solid $color-25;
+  font-size: 1.25rem;
+  margin-bottom: 5rem;
+  padding: $spacing 0;
+}
+
+.navigation ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation li {
+  display: inline;
+  margin-right: 1rem;
+}
+
+.active {
+  color: $color-muted-text;
+}
+
+.menuToggle {
+  background: transparent;
+  border: 0;
+  color: $color-1;
+  cursor: pointer;
+  display: block;
+  height: 2rem;
+  margin: -0.4rem 0 -0.6rem;
+  padding: 0;
+}
+
+.menuToggle:hover,
+.menuToggle:active {
+  color: $color-accent-text;
+}
+
+.menuToggle svg {
+  fill: currentColor;
+  height: 2rem;
+  width: 2rem;
+}
+
+.themeControl {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  float: right;
+  margin-top: 0.3rem;
+  padding: 0;
+}
+
+.themeControl span {
+  background-color: $color-1;
+  border: 1px solid $color-bg;
+  display: block;
+  height: 1rem;
+  width: 1rem;
+}
+
+.route {
+  animation: route-enter 500ms ease-out both;
+}
+
+.footer {
+  border-top: 1px solid $color-25;
+  color: $color-muted-text;
+  margin-top: calc(5rem - #{$spacing});
+  padding: $spacing 0;
+}
+
+.footer p {
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateX(3rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: ($media-sm - 1px)) {
+  .menu {
+    display: none;
+  }
+
+  .menuExpanded {
+    display: block;
+  }
+
+  .navigation li {
+    display: block;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (min-width: $media-sm) {
+  .menuToggle {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route {
+    animation: none;
+  }
+}

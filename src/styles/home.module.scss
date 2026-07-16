@@ -1,0 +1,44 @@
+@use "themes" as *;
+
+.home {
+  display: grid;
+  gap: 1rem;
+}
+
+.copy,
+.copy p,
+.skills {
+  text-align: left;
+}
+
+.skillGroup {
+  margin-bottom: calc(#{$spacing} / 2);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(#{$spacing} / 5);
+  list-style-type: none;
+  margin: 0;
+}
+
+.tags li {
+  border: 1px solid $color-25;
+  color: $color-muted-text;
+  padding: 0 calc(#{$spacing} / 10);
+}
+
+@media (min-width: $media-sm) {
+  .home {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  .skills {
+    text-align: right;
+  }
+
+  .tags {
+    justify-content: flex-end;
+  }
+}

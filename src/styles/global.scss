@@ -1,0 +1,118 @@
+@use "themes" as *;
+@import url("https://fonts.googleapis.com/css?family=Questrial&display=swap");
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: $color-bg;
+  color: $color-1;
+  font-family: "Questrial", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+a,
+a:visited {
+  color: $color-1;
+  text-decoration: none;
+}
+
+a span {
+  color: $color-muted-text;
+}
+
+a:hover,
+a:active {
+  color: $color-accent-text;
+}
+
+a svg {
+  fill: currentColor;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid $color-3;
+  outline-offset: 3px;
+}
+
+h1 {
+  color: $color-1;
+  font-size: 2.25rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: $color-muted-text;
+  font-weight: normal;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+
+h1 {
+  color: $color-1;
+}
+
+h1:first-of-type {
+  margin-bottom: 0;
+}
+
+p {
+  text-align: justify;
+}
+
+ul {
+  padding-inline-start: 0;
+}
+
+li {
+  margin-bottom: 0;
+}
+
+blockquote {
+  border-left: 1px solid $color-25;
+  color: $color-muted-text;
+}
+
+video {
+  filter: grayscale(1);
+  width: 100%;
+}
+
+video:hover {
+  filter: grayscale(0);
+  transition: filter 400ms ease-in-out;
+}
+
+::-webkit-scrollbar {
+  background-color: $color-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  video:hover {
+    transition: none;
+  }
+}
