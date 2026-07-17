@@ -55,15 +55,38 @@ function advanceFrames(
   callbacks: Map<number, FrameRequestCallback>,
   count: number,
   deltaMs: number,
+  startFrame = 1,
 ): void {
-  for (let frame = 1; frame <= count; frame += 1) {
+  for (let frame = startFrame; frame < startFrame + count; frame += 1) {
     callbacks.get(frame)?.(1_000 + (frame - 1) * deltaMs);
   }
 }
 
-function ambientDrawCount(renderer: ReturnType<typeof createSceneSetup>["renderer"]): number {
-  return ((renderedField(renderer).children[0] as THREE.Points).geometry as THREE.BufferGeometry)
-    .drawRange.count;
+function qualityState(renderer: ReturnType<typeof createSceneSetup>["renderer"]): {
+  connections: number;
+  mix: number;
+  particles: number;
+  signals: number;
+} {
+  const field = renderedField(renderer);
+  const ambient = field.children[0] as THREE.Points<
+    THREE.BufferGeometry,
+    THREE.ShaderMaterial
+  >;
+  const signals = field.children[1] as THREE.Mesh<
+    THREE.InstancedBufferGeometry,
+    THREE.ShaderMaterial
+  >;
+  const connections = field.children[2] as THREE.LineSegments<
+    THREE.BufferGeometry,
+    THREE.ShaderMaterial
+  >;
+  return {
+    connections: connections.geometry.drawRange.count,
+    mix: ambient.material.uniforms.uQualityMix.value as number,
+    particles: ambient.geometry.drawRange.count,
+    signals: signals.geometry.instanceCount,
+  };
 }
 
 describe("background scene helpers", () => {
@@ -84,6 +107,7 @@ describe("background scene helpers", () => {
     const rect = { width: 1_000, height: 500 } as DOMRect;
 
     expect(normalizePointerSpeed(100, 0, 16, rect)).toBeCloseTo(1);
+    expect(normalizePointerSpeed(1, 0, 100, rect)).toBeCloseTo(0.01);
     expect(normalizePointerSpeed(0, 0, 0, rect)).toBe(0);
     expect(normalizePointerSpeed(10_000, 0, 16, rect)).toBe(1);
   });
@@ -186,6 +210,25 @@ describe("background scene controller", () => {
     expect(callbacks.has(2)).toBe(true);
   });
 
+  it("decays pointer energy across multiple inactive frames", () => {
+    const { callbacks, controller, renderer } = createHarness();
+
+    controller.setPointer(1, -1, 0.8);
+    controller.start();
+    callbacks.get(1)?.(1_000);
+    const initialSpeed = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uPointerSpeed.value as number;
+    callbacks.get(2)?.(2_000);
+    callbacks.get(3)?.(3_000);
+    const decayedSpeed = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uPointerSpeed.value as number;
+
+    expect(decayedSpeed).toBeGreaterThan(0);
+    expect(decayedSpeed).toBeLessThan(initialSpeed);
+  });
+
   it("interpolates the full palette and changes blend mode", () => {
     const { callbacks, controller, renderer } = createHarness();
 
@@ -203,12 +246,39 @@ describe("background scene controller", () => {
       (child) => (child as THREE.Points | THREE.Mesh | THREE.LineSegments).material,
     ) as THREE.ShaderMaterial[];
     expect(materials.every((material) => material.blending === THREE.NormalBlending)).toBe(true);
-    expect(materials[0].uniforms.uParticleColor.value.getHexString()).not.toBe("aeb4ba");
-    expect(materials[1].uniforms.uSignalColor.value.getHexString()).not.toBe("f4f6f7");
-    expect(materials[2].uniforms.uConnectionColor.value.getHexString()).not.toBe("697078");
+    const intermediateParticle = (
+      materials[0].uniforms.uParticleColor.value as THREE.Color
+    ).clone();
+    const intermediateSignal = (
+      materials[1].uniforms.uSignalColor.value as THREE.Color
+    ).clone();
+    const intermediateConnection = (
+      materials[2].uniforms.uConnectionColor.value as THREE.Color
+    ).clone();
+    const intermediateClear = (
+      renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color
+    ).clone();
+    expect(intermediateParticle).toEqual(
+      new THREE.Color("#aeb4ba").lerp(new THREE.Color("#555555"), 0.035),
+    );
+    expect(intermediateSignal).toEqual(
+      new THREE.Color("#f4f6f7").lerp(new THREE.Color("#333333"), 0.035),
+    );
+    expect(intermediateConnection).toEqual(
+      new THREE.Color("#697078").lerp(new THREE.Color("#777777"), 0.035),
+    );
+    expect(intermediateClear).toEqual(
+      new THREE.Color("#222222").lerp(new THREE.Color("#ffffff"), 0.035),
+    );
+
+    controller.renderStatic();
+
+    expect(materials[0].uniforms.uParticleColor.value.getHexString()).toBe("555555");
+    expect(materials[1].uniforms.uSignalColor.value.getHexString()).toBe("333333");
+    expect(materials[2].uniforms.uConnectionColor.value.getHexString()).toBe("777777");
     expect(
       (renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color).getHexString(),
-    ).not.toBe("222222");
+    ).toBe("ffffff");
   });
 
   it("reports an asynchronous render failure once, stops frames, and disposes", () => {
@@ -316,7 +386,12 @@ describe("background scene controller", () => {
     controller.resize(1_440, 900, 1.5);
     controller.start();
     advanceFrames(setup.callbacks, 136, 25);
-    expect(ambientDrawCount(setup.renderer)).toBe(6_000);
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 3_600,
+      mix: 1,
+      particles: 6_000,
+      signals: 80,
+    });
   });
 
   it("keeps high quality during a sustained 60 fps sample", () => {
@@ -328,6 +403,124 @@ describe("background scene controller", () => {
     controller.resize(1_440, 900, 1.5);
     controller.start();
     advanceFrames(setup.callbacks, 140, 16);
-    expect(ambientDrawCount(setup.renderer)).toBe(10_000);
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 6_400,
+      mix: 2,
+      particles: 10_000,
+      signals: 128,
+    });
+  });
+
+  it.each([
+    {
+      width: 900,
+      cores: 12,
+      expected: { connections: 3_600, mix: 1, particles: 6_000, signals: 80 },
+    },
+    {
+      width: 500,
+      cores: 12,
+      expected: { connections: 1_800, mix: 0, particles: 3_000, signals: 48 },
+    },
+  ])("applies initial quality budgets for a $width px viewport", ({ width, cores, expected }) => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: cores,
+    });
+
+    controller.resize(width, 700, 1);
+    controller.renderStatic();
+
+    expect(qualityState(setup.renderer)).toEqual(expected);
+  });
+
+  it("applies a lower resize tier immediately for static rendering", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.resize(900, 700, 1);
+
+    controller.renderStatic();
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 3_600,
+      mix: 1,
+      particles: 6_000,
+      signals: 80,
+    });
+  });
+
+  it("keeps old draw ranges during a fade and shrinks them at completion", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.start();
+    controller.resize(900, 700, 1);
+
+    advanceFrames(setup.callbacks, 9, 25);
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 6_400,
+      mix: 1.5,
+      particles: 10_000,
+      signals: 128,
+    });
+
+    advanceFrames(setup.callbacks, 9, 25, 10);
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 3_600,
+      mix: 1,
+      particles: 6_000,
+      signals: 80,
+    });
+  });
+
+  it("continues to a lower tier requested during an active fade", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.start();
+    controller.resize(900, 700, 1);
+    advanceFrames(setup.callbacks, 9, 25);
+
+    controller.resize(500, 700, 1);
+    advanceFrames(setup.callbacks, 41, 25, 10);
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 1_800,
+      mix: 0,
+      particles: 3_000,
+      signals: 48,
+    });
+  });
+
+  it("never raises quality after a higher-tier resize", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(900, 700, 1);
+    controller.resize(1_440, 900, 1.5);
+
+    controller.renderStatic();
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 3_600,
+      mix: 1,
+      particles: 6_000,
+      signals: 80,
+    });
   });
 });

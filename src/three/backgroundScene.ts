@@ -118,6 +118,7 @@ export function createBackgroundScene(
   let slowFrames = 0;
   let performanceLocked = false;
   let qualityTransition: { from: number; to: QualityTier; elapsed: number } | null = null;
+  let pendingQualityTier: QualityTier | null = null;
 
   const disposeResources = (): void => {
     if (disposed) return;
@@ -164,8 +165,33 @@ export function createBackgroundScene(
   };
 
   const beginQualityTransition = (to: QualityTier): void => {
-    if (to === qualityTier || qualityTransition) return;
+    if (QUALITY_MIX[to] >= QUALITY_MIX[qualityTier]) return;
+    if (qualityTransition) {
+      if (
+        QUALITY_MIX[to] < QUALITY_MIX[qualityTransition.to] &&
+        (!pendingQualityTier || QUALITY_MIX[to] < QUALITY_MIX[pendingQualityTier])
+      ) {
+        pendingQualityTier = to;
+      }
+      return;
+    }
     qualityTransition = { from: QUALITY_MIX[qualityTier], to, elapsed: 0 };
+  };
+
+  const applyLowestQualityImmediately = (requestedTier?: QualityTier): void => {
+    const candidates = [
+      qualityTier,
+      qualityTransition?.to,
+      pendingQualityTier,
+      requestedTier,
+    ].filter((tier): tier is QualityTier => tier !== null && tier !== undefined);
+    qualityTier = candidates.reduce((lowest, tier) =>
+      QUALITY_MIX[tier] < QUALITY_MIX[lowest] ? tier : lowest,
+    );
+    qualityTransition = null;
+    pendingQualityTier = null;
+    field.setQuality(qualityTier);
+    field.setQualityMix(QUALITY_MIX[qualityTier]);
   };
 
   const samplePerformance = (deltaMs: number): void => {
@@ -197,6 +223,9 @@ export function createBackgroundScene(
     qualityTier = qualityTransition.to;
     field.setQuality(qualityTier);
     qualityTransition = null;
+    const pendingTier = pendingQualityTier;
+    pendingQualityTier = null;
+    if (pendingTier) beginQualityTransition(pendingTier);
   };
 
   const animate: FrameRequestCallback = (timestamp) => {
@@ -261,7 +290,8 @@ export function createBackgroundScene(
         field.setQuality(qualityTier);
         field.setQualityMix(QUALITY_MIX[qualityTier]);
       } else if (QUALITY_MIX[selectedTier] < QUALITY_MIX[qualityTier]) {
-        beginQualityTransition(selectedTier);
+        if (running) beginQualityTransition(selectedTier);
+        else applyLowestQualityImmediately(selectedTier);
       }
     },
     setPointer(x: number, y: number, speed: number): void {
@@ -277,6 +307,7 @@ export function createBackgroundScene(
     },
     renderStatic(): void {
       if (disposed) return;
+      applyLowestQualityImmediately();
       pointer.set(0, 0);
       pointerTarget.set(0, 0);
       pointerSpeed = 0;
