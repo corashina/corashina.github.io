@@ -14,5 +14,6 @@ yarn.lock
 .eslintrc.js
 .vscode
 .worktrees/
+.superpowers/
 dist/
 tsconfig.tsbuildinfo
