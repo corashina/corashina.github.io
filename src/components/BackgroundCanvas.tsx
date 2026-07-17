@@ -9,8 +9,20 @@ import {
 import type { Theme } from "../theme/theme";
 
 const sceneThemes: Record<Theme, SceneTheme> = {
-  dark: { wire: "#555555", background: "#222222" },
-  white: { wire: "#b7b7b7", background: "#ffffff" },
+  dark: {
+    background: "#222222",
+    blendMode: "additive",
+    particle: "#aeb4ba",
+    signal: "#f4f6f7",
+    connection: "#697078",
+  },
+  white: {
+    background: "#ffffff",
+    blendMode: "normal",
+    particle: "#7d848a",
+    signal: "#272b2e",
+    connection: "#a2a7ac",
+  },
 };
 
 const canvasOpacities: Record<Theme, string> = {
@@ -51,7 +63,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const pointer = normalizePointer(event.clientX, event.clientY, rect);
-      controller.setPointer(pointer.x, pointer.y);
+      controller.setPointer(pointer.x, pointer.y, 0);
     };
 
     const onVisibilityChange = (): void => {

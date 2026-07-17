@@ -1,16 +1,23 @@
 import * as THREE from "three";
-import { fragmentShader, vertexShader } from "./shaders";
+import {
+  createParticleField,
+  lowerQuality,
+  selectQualityTier,
+  type ParticleBlendMode,
+  type ParticlePalette,
+  type QualityTier,
+} from "./particleField";
 
-export type SceneTheme = {
-  wire: THREE.ColorRepresentation;
+export type SceneTheme = ParticlePalette & {
   background: THREE.ColorRepresentation;
+  blendMode: ParticleBlendMode;
 };
 
 export type BackgroundController = {
   start(): void;
   stop(): void;
   resize(width: number, height: number, pixelRatio: number): void;
-  setPointer(x: number, y: number): void;
+  setPointer(x: number, y: number, speed: number): void;
   setTheme(theme: SceneTheme): void;
   renderStatic(): void;
   dispose(): void;
@@ -23,6 +30,7 @@ export type BackgroundSceneDependencies = {
 };
 
 export type BackgroundSceneOptions = Partial<BackgroundSceneDependencies> & {
+  hardwareConcurrency?: number;
   onFailure?(error: unknown): void;
 };
 
@@ -38,6 +46,17 @@ export const normalizePointer = (
   y: 1 - ((clientY - rect.top) / rect.height) * 2,
 });
 
+export function normalizePointerSpeed(
+  deltaX: number,
+  deltaY: number,
+  deltaMs: number,
+  rect: DOMRect,
+): number {
+  if (deltaMs <= 0 || rect.width <= 0 || rect.height <= 0) return 0;
+  const normalizedDistance = Math.hypot(deltaX / rect.width, deltaY / rect.height);
+  return Math.min(normalizedDistance / (deltaMs / 1_000), 1);
+}
+
 const defaultDependencies: BackgroundSceneDependencies = {
   createRenderer: (canvas) =>
     new THREE.WebGLRenderer({
@@ -48,6 +67,12 @@ const defaultDependencies: BackgroundSceneDependencies = {
   cancelFrame: (handle) => window.cancelAnimationFrame(handle),
 };
 
+const SAMPLE_FRAMES = 90;
+const SLOW_FRAME_MS = 22;
+const REQUIRED_SLOW_FRAMES = 45;
+const QUALITY_FADE_SECONDS = 0.4;
+const QUALITY_MIX = { low: 0, medium: 1, high: 2 } as const;
+
 export function createBackgroundScene(
   canvas: HTMLCanvasElement,
   options: BackgroundSceneOptions = {},
@@ -56,43 +81,28 @@ export function createBackgroundScene(
   const requestFrame = options.requestFrame ?? defaultDependencies.requestFrame;
   const cancelFrame = options.cancelFrame ?? defaultDependencies.cancelFrame;
   const onFailure = options.onFailure ?? (() => undefined);
+  const hardwareConcurrency =
+    options.hardwareConcurrency ??
+    (typeof navigator === "undefined" ? 4 : navigator.hardwareConcurrency);
   const renderer = createRenderer(canvas);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(42, 1, 1, 4000);
-  const baseCameraY = -180;
-  camera.position.set(0, baseCameraY, 1050);
+  camera.position.set(0, 0, 1050);
 
-  const geometry = new THREE.PlaneGeometry(3600, 2400, 120, 80);
+  const field = createParticleField("high");
+  scene.add(field.group);
   const pointer = new THREE.Vector2();
   const pointerTarget = new THREE.Vector2();
-  const wireColor = new THREE.Color("#555555");
-  const wireTarget = new THREE.Color("#555555");
+  let pointerSpeed = 0;
+  let pointerSpeedTarget = 0;
+  const particleColor = new THREE.Color("#aeb4ba");
+  const particleTarget = particleColor.clone();
+  const signalColor = new THREE.Color("#f4f6f7");
+  const signalTarget = signalColor.clone();
+  const connectionColor = new THREE.Color("#697078");
+  const connectionTarget = connectionColor.clone();
   const clearColor = new THREE.Color("#222222");
-  const clearTarget = new THREE.Color("#222222");
-
-  const createMaterial = (amplitude: number, opacity: number): THREE.ShaderMaterial =>
-    new THREE.ShaderMaterial({
-      fragmentShader,
-      transparent: true,
-      uniforms: {
-        uAmplitude: { value: amplitude },
-        uColor: { value: wireColor },
-        uOpacity: { value: opacity },
-        uPointer: { value: pointer },
-        uTime: { value: 0 },
-      },
-      vertexShader,
-      wireframe: true,
-      depthWrite: false,
-    });
-
-  const materials = [createMaterial(210, 0.68), createMaterial(150, 0.22)];
-  const layers = materials.map((material, index) => {
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.z = index === 0 ? 0 : -135;
-    scene.add(mesh);
-    return mesh;
-  });
+  const clearTarget = clearColor.clone();
 
   let frameHandle: number | null = null;
   let running = false;
@@ -101,6 +111,13 @@ export function createBackgroundScene(
   let elapsedTime = 0;
   let previousTimestamp: number | null = null;
   let onContextLost: (event: Event) => void;
+  let qualityTier: QualityTier = "high";
+  let qualityInitialized = false;
+  let warmupFrames = 0;
+  let sampleFrames = 0;
+  let slowFrames = 0;
+  let performanceLocked = false;
+  let qualityTransition: { from: number; to: QualityTier; elapsed: number } | null = null;
 
   const disposeResources = (): void => {
     if (disposed) return;
@@ -113,10 +130,8 @@ export function createBackgroundScene(
     }
     canvas.removeEventListener("webglcontextlost", onContextLost);
     renderer.debug.onShaderError = null;
-    scene.remove(...layers);
-    geometry.dispose();
-    materials[0].dispose();
-    materials[1].dispose();
+    scene.remove(field.group);
+    field.dispose();
     renderer.dispose();
   };
 
@@ -134,29 +149,70 @@ export function createBackgroundScene(
 
   const applyTargets = (amount: number): void => {
     pointer.lerp(pointerTarget, amount);
-    wireColor.lerp(wireTarget, amount);
+    pointerSpeed += (pointerSpeedTarget - pointerSpeed) * amount;
+    particleColor.lerp(particleTarget, amount);
+    signalColor.lerp(signalTarget, amount);
+    connectionColor.lerp(connectionTarget, amount);
     clearColor.lerp(clearTarget, amount);
-    camera.position.x += (pointerTarget.x * 20 - camera.position.x) * amount;
-    camera.position.y += (baseCameraY + pointerTarget.y * 14 - camera.position.y) * amount;
+    field.setPointer(pointer.x * 900, pointer.y * 520, pointerSpeed);
+    field.setColors({
+      particle: particleColor,
+      signal: signalColor,
+      connection: connectionColor,
+    });
     renderer.setClearColor(clearColor, 1);
   };
 
-  const renderAt = (time: number, damping: number): void => {
-    applyTargets(damping);
-    materials[0].uniforms.uTime.value = time;
-    materials[1].uniforms.uTime.value = time;
-    renderer.render(scene, camera);
+  const beginQualityTransition = (to: QualityTier): void => {
+    if (to === qualityTier || qualityTransition) return;
+    qualityTransition = { from: QUALITY_MIX[qualityTier], to, elapsed: 0 };
+  };
+
+  const samplePerformance = (deltaMs: number): void => {
+    if (!qualityInitialized || performanceLocked || qualityTransition) return;
+    if (warmupFrames < 30) {
+      warmupFrames += 1;
+      return;
+    }
+    sampleFrames += 1;
+    if (deltaMs > SLOW_FRAME_MS) slowFrames += 1;
+    if (sampleFrames < SAMPLE_FRAMES) return;
+    if (slowFrames >= REQUIRED_SLOW_FRAMES && qualityTier !== "low") {
+      performanceLocked = true;
+      beginQualityTransition(lowerQuality(qualityTier));
+    }
+    sampleFrames = 0;
+    slowFrames = 0;
+  };
+
+  const updateQualityTransition = (deltaSeconds: number): void => {
+    if (!qualityTransition) return;
+    qualityTransition.elapsed += deltaSeconds;
+    const progress = Math.min(qualityTransition.elapsed / QUALITY_FADE_SECONDS, 1);
+    const targetMix = QUALITY_MIX[qualityTransition.to];
+    field.setQualityMix(
+      THREE.MathUtils.lerp(qualityTransition.from, targetMix, progress),
+    );
+    if (progress < 1) return;
+    qualityTier = qualityTransition.to;
+    field.setQuality(qualityTier);
+    qualityTransition = null;
   };
 
   const animate: FrameRequestCallback = (timestamp) => {
     frameHandle = null;
     if (!running || disposed) return;
-    if (previousTimestamp !== null) {
-      elapsedTime += Math.max(timestamp - previousTimestamp, 0) * 0.001;
-    }
+    const deltaMs =
+      previousTimestamp === null ? 0 : Math.max(timestamp - previousTimestamp, 0);
+    elapsedTime += deltaMs * 0.001;
     previousTimestamp = timestamp;
+    samplePerformance(deltaMs);
+    updateQualityTransition(deltaMs * 0.001);
+    pointerSpeedTarget *= Math.exp(-deltaMs * 0.001 * 3.2);
     try {
-      renderAt(elapsedTime, 0.035);
+      applyTargets(0.035);
+      field.setTime(elapsedTime);
+      renderer.render(scene, camera);
     } catch (error) {
       reportFailure(error);
       return;
@@ -181,22 +237,54 @@ export function createBackgroundScene(
     resize(width: number, height: number, pixelRatio: number): void {
       const safeWidth = Math.max(width, 1);
       const safeHeight = Math.max(height, 1);
-      renderer.setPixelRatio(capPixelRatio(pixelRatio));
+      const safePixelRatio = capPixelRatio(pixelRatio);
+      renderer.setPixelRatio(safePixelRatio);
       renderer.setSize(safeWidth, safeHeight, false);
       camera.aspect = safeWidth / safeHeight;
       camera.updateProjectionMatrix();
+      field.setContentMask(
+        0.5,
+        0.5,
+        Math.min(0.28, 300 / safeWidth),
+        Math.min(0.42, 420 / safeHeight),
+      );
+
+      const selectedTier = selectQualityTier(
+        safeWidth,
+        safeHeight,
+        safePixelRatio,
+        hardwareConcurrency,
+      );
+      if (!qualityInitialized) {
+        qualityTier = selectedTier;
+        qualityInitialized = true;
+        field.setQuality(qualityTier);
+        field.setQualityMix(QUALITY_MIX[qualityTier]);
+      } else if (QUALITY_MIX[selectedTier] < QUALITY_MIX[qualityTier]) {
+        beginQualityTransition(selectedTier);
+      }
     },
-    setPointer(x: number, y: number): void {
+    setPointer(x: number, y: number, speed: number): void {
       pointerTarget.set(x, y);
+      pointerSpeedTarget = Math.min(Math.max(speed, 0), 1);
     },
     setTheme(theme: SceneTheme): void {
-      wireTarget.set(theme.wire);
+      particleTarget.set(theme.particle);
+      signalTarget.set(theme.signal);
+      connectionTarget.set(theme.connection);
       clearTarget.set(theme.background);
+      field.setBlendMode(theme.blendMode);
     },
     renderStatic(): void {
       if (disposed) return;
+      pointer.set(0, 0);
+      pointerTarget.set(0, 0);
+      pointerSpeed = 0;
+      pointerSpeedTarget = 0;
       try {
-        renderAt(18, 1);
+        applyTargets(1);
+        field.setTime(18);
+        renderer.render(scene, camera);
       } catch (error) {
         reportFailure(error);
       }

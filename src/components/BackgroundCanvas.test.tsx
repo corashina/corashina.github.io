@@ -151,21 +151,27 @@ describe("BackgroundCanvas", () => {
     expect(addEventListener).toHaveBeenCalledWith("pointermove", expect.any(Function), {
       passive: true,
     });
-    expect(controller.setPointer).toHaveBeenCalledWith(1, 1);
+    expect(controller.setPointer).toHaveBeenCalledWith(1, 1, 0);
   });
 
-  it("maps dark and white themes to the approved monochrome palette", () => {
+  it("maps dark and white themes to the constellation palette", () => {
     const { rerender } = render(<BackgroundCanvas theme="dark" />);
     expect(controller.setTheme).toHaveBeenLastCalledWith({
-      wire: "#555555",
       background: "#222222",
+      blendMode: "additive",
+      particle: "#aeb4ba",
+      signal: "#f4f6f7",
+      connection: "#697078",
     });
 
     rerender(<BackgroundCanvas theme="white" />);
 
     expect(controller.setTheme).toHaveBeenLastCalledWith({
-      wire: "#b7b7b7",
       background: "#ffffff",
+      blendMode: "normal",
+      particle: "#7d848a",
+      signal: "#272b2e",
+      connection: "#a2a7ac",
     });
   });
 

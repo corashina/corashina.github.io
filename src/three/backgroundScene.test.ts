@@ -4,8 +4,8 @@ import {
   capPixelRatio,
   createBackgroundScene,
   normalizePointer,
+  normalizePointerSpeed,
 } from "./backgroundScene";
-import { fragmentShader, vertexShader } from "./shaders";
 
 function createSceneSetup(onFailure = vi.fn()) {
   const canvas = document.createElement("canvas");
@@ -45,6 +45,27 @@ function renderedScene(renderer: ReturnType<typeof createHarness>["renderer"]): 
   return renderer.render.mock.calls.at(-1)?.[0] as THREE.Scene;
 }
 
+function renderedField(renderer: ReturnType<typeof createSceneSetup>["renderer"]): THREE.Group {
+  return renderedScene(renderer).children.find(
+    (child) => child instanceof THREE.Group,
+  ) as THREE.Group;
+}
+
+function advanceFrames(
+  callbacks: Map<number, FrameRequestCallback>,
+  count: number,
+  deltaMs: number,
+): void {
+  for (let frame = 1; frame <= count; frame += 1) {
+    callbacks.get(frame)?.(1_000 + (frame - 1) * deltaMs);
+  }
+}
+
+function ambientDrawCount(renderer: ReturnType<typeof createSceneSetup>["renderer"]): number {
+  return ((renderedField(renderer).children[0] as THREE.Points).geometry as THREE.BufferGeometry)
+    .drawRange.count;
+}
+
 describe("background scene helpers", () => {
   it("caps device pixel ratio", () => {
     expect(capPixelRatio(1)).toBe(1);
@@ -58,20 +79,13 @@ describe("background scene helpers", () => {
     expect(normalizePointer(110, 70, rect)).toEqual({ x: 0, y: 0 });
     expect(normalizePointer(210, 20, rect)).toEqual({ x: 1, y: 1 });
   });
-});
 
-describe("background shaders", () => {
-  it("implements four-octave displaced pointer-reactive terrain", () => {
-    expect(vertexShader).toContain("for(int i=0;i<4;i++)");
-    expect(vertexShader).toContain("vec2(uTime*0.018,-uTime*0.012)");
-    expect(vertexShader).toContain("exp(-distance(position.xy,focus)*0.0025)");
-    expect(vertexShader).toContain("position+normal*h");
-  });
+  it("normalizes pointer speed by time and canvas size", () => {
+    const rect = { width: 1_000, height: 500 } as DOMRect;
 
-  it("fades the monochrome wire intensity from displaced height", () => {
-    expect(fragmentShader).toContain("uniform vec3 uColor;");
-    expect(fragmentShader).toContain("uniform float uOpacity;");
-    expect(fragmentShader).toContain("smoothstep(-220.0,260.0,vHeight)");
+    expect(normalizePointerSpeed(100, 0, 16, rect)).toBeCloseTo(1);
+    expect(normalizePointerSpeed(0, 0, 0, rect)).toBe(0);
+    expect(normalizePointerSpeed(10_000, 0, 16, rect)).toBe(1);
   });
 });
 
@@ -89,26 +103,17 @@ describe("background scene controller", () => {
     expect(setup.renderer.dispose).toHaveBeenCalledOnce();
   });
 
-  it("builds the approved restrained two-layer wireframe field", () => {
+  it("builds the dense constellation instead of wireframe planes", () => {
     const { controller, renderer } = createHarness();
 
     controller.renderStatic();
 
-    const meshes = renderedScene(renderer).children as THREE.Mesh<
-      THREE.PlaneGeometry,
-      THREE.ShaderMaterial
-    >[];
-    expect(meshes).toHaveLength(2);
-    expect(meshes[0].geometry.parameters).toMatchObject({
-      width: 3600,
-      height: 2400,
-      widthSegments: 120,
-      heightSegments: 80,
-    });
-    expect(meshes.map((mesh) => mesh.position.z)).toEqual([0, -135]);
-    expect(meshes.map((mesh) => mesh.material.wireframe)).toEqual([true, true]);
-    expect(meshes.map((mesh) => mesh.material.uniforms.uAmplitude.value)).toEqual([210, 150]);
-    expect(meshes.map((mesh) => mesh.material.uniforms.uOpacity.value)).toEqual([0.68, 0.22]);
+    const field = renderedField(renderer);
+    expect(field.children[0]).toBeInstanceOf(THREE.Points);
+    expect((field.children[1] as THREE.Mesh).geometry).toBeInstanceOf(
+      THREE.InstancedBufferGeometry,
+    );
+    expect(field.children[2]).toBeInstanceOf(THREE.LineSegments);
   });
 
   it("renders reduced motion at fixed time without scheduling animation", () => {
@@ -116,11 +121,13 @@ describe("background scene controller", () => {
 
     controller.renderStatic();
 
-    const meshes = renderedScene(renderer).children as THREE.Mesh<
-      THREE.PlaneGeometry,
-      THREE.ShaderMaterial
-    >[];
-    expect(meshes.map((mesh) => mesh.material.uniforms.uTime.value)).toEqual([18, 18]);
+    const field = renderedField(renderer);
+    const materials = field.children.map(
+      (child) => (child as THREE.Points | THREE.Mesh | THREE.LineSegments).material,
+    ) as THREE.ShaderMaterial[];
+    expect(materials.map((material) => material.uniforms.uTime.value)).toEqual([18, 18, 18]);
+    expect(materials[0].uniforms.uPointer.value).toEqual(new THREE.Vector3(0, 0, 0));
+    expect(materials[0].uniforms.uPointerSpeed.value).toBe(0);
     expect(dependencies.requestFrame).not.toHaveBeenCalled();
     expect(renderer.render).toHaveBeenCalledTimes(1);
   });
@@ -135,7 +142,11 @@ describe("background scene controller", () => {
     expect(renderer.setPixelRatio).toHaveBeenCalledWith(1.5);
     expect(renderer.setSize).toHaveBeenCalledWith(900, 600, false);
     expect(camera.aspect).toBe(1.5);
-    expect(camera.position.toArray()).toEqual([0, -180, 1050]);
+    expect(camera.position.toArray()).toEqual([0, 0, 1050]);
+    const contentMask = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uContentMask.value as THREE.Vector4;
+    expect(contentMask.toArray()).toEqual([0.5, 0.5, 0.28, 0.42]);
   });
 
   it.each([
@@ -156,28 +167,48 @@ describe("background scene controller", () => {
     },
   );
 
-  it("animates with damped pointer, camera, wire, and clear-color interpolation", () => {
+  it("passes damped pointer position and speed into the field", () => {
     const { callbacks, controller, renderer } = createHarness();
 
-    controller.setPointer(1, -1);
-    controller.setTheme({ wire: "#b7b7b7", background: "#ffffff" });
+    controller.setPointer(1, -1, 0.8);
     controller.start();
     callbacks.get(1)?.(1_000);
 
-    const scene = renderedScene(renderer);
-    const meshes = scene.children as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>[];
-    const pointer = meshes[0].material.uniforms.uPointer.value as THREE.Vector2;
-    const camera = renderer.render.mock.calls.at(-1)?.[1] as THREE.PerspectiveCamera;
-    const wire = meshes[0].material.uniforms.uColor.value as THREE.Color;
-    const clear = renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color;
+    const uniforms = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms;
+    const pointer = uniforms.uPointer.value as THREE.Vector3;
     expect(pointer.x).toBeGreaterThan(0);
-    expect(pointer.x).toBeLessThan(1);
+    expect(pointer.x).toBeLessThan(900);
     expect(pointer.y).toBeLessThan(0);
-    expect(camera.position.x).toBeGreaterThan(0);
-    expect(camera.position.y).toBeLessThan(-180);
-    expect(wire.getHexString()).not.toBe("555555");
-    expect(clear.getHexString()).not.toBe("222222");
+    expect(uniforms.uPointerSpeed.value).toBeGreaterThan(0);
+    expect(uniforms.uPointerSpeed.value).toBeLessThan(0.8);
     expect(callbacks.has(2)).toBe(true);
+  });
+
+  it("interpolates the full palette and changes blend mode", () => {
+    const { callbacks, controller, renderer } = createHarness();
+
+    controller.setTheme({
+      particle: "#555555",
+      signal: "#333333",
+      connection: "#777777",
+      background: "#ffffff",
+      blendMode: "normal",
+    });
+    controller.start();
+    callbacks.get(1)?.(1_000);
+
+    const materials = renderedField(renderer).children.map(
+      (child) => (child as THREE.Points | THREE.Mesh | THREE.LineSegments).material,
+    ) as THREE.ShaderMaterial[];
+    expect(materials.every((material) => material.blending === THREE.NormalBlending)).toBe(true);
+    expect(materials[0].uniforms.uParticleColor.value.getHexString()).not.toBe("aeb4ba");
+    expect(materials[1].uniforms.uSignalColor.value.getHexString()).not.toBe("f4f6f7");
+    expect(materials[2].uniforms.uConnectionColor.value.getHexString()).not.toBe("697078");
+    expect(
+      (renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color).getHexString(),
+    ).not.toBe("222222");
   });
 
   it("reports an asynchronous render failure once, stops frames, and disposes", () => {
@@ -234,22 +265,19 @@ describe("background scene controller", () => {
     callbacks.get(1)?.(1_000);
     callbacks.get(2)?.(1_500);
     const beforePause = (
-      (renderedScene(renderer).children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>)
-        .material.uniforms.uTime.value as number
-    );
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uTime.value as number;
 
     controller.stop();
     controller.start();
     callbacks.get(4)?.(10_000);
     const afterResume = (
-      (renderedScene(renderer).children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>)
-        .material.uniforms.uTime.value as number
-    );
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uTime.value as number;
     callbacks.get(5)?.(10_250);
     const afterNextFrame = (
-      (renderedScene(renderer).children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>)
-        .material.uniforms.uTime.value as number
-    );
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uTime.value as number;
 
     expect(beforePause).toBeCloseTo(0.5);
     expect(afterResume).toBeCloseTo(beforePause);
@@ -259,12 +287,12 @@ describe("background scene controller", () => {
   it("stops and disposes the frame, geometry, materials, and renderer", () => {
     const { callbacks, controller, dependencies, renderer } = createHarness();
     controller.renderStatic();
-    const meshes = renderedScene(renderer).children as THREE.Mesh<
-      THREE.PlaneGeometry,
-      THREE.ShaderMaterial
-    >[];
-    const geometryDispose = vi.spyOn(meshes[0].geometry, "dispose");
-    const materialDisposes = meshes.map((mesh) => vi.spyOn(mesh.material, "dispose"));
+    const field = renderedField(renderer);
+    const resources = field.children.flatMap((child) => {
+      const renderable = child as THREE.Points | THREE.Mesh | THREE.LineSegments;
+      return [renderable.geometry, renderable.material];
+    }) as Array<{ dispose(): void }>;
+    const resourceDisposes = resources.map((resource) => vi.spyOn(resource, "dispose"));
 
     controller.start();
     controller.stop();
@@ -275,9 +303,31 @@ describe("background scene controller", () => {
     controller.dispose();
 
     expect(dependencies.cancelFrame).toHaveBeenLastCalledWith(2);
-    expect(geometryDispose).toHaveBeenCalledOnce();
-    expect(materialDisposes[0]).toHaveBeenCalledOnce();
-    expect(materialDisposes[1]).toHaveBeenCalledOnce();
+    resourceDisposes.forEach((dispose) => expect(dispose).toHaveBeenCalledOnce());
     expect(renderer.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("fades from high to medium after a sustained slow-frame window", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.start();
+    advanceFrames(setup.callbacks, 136, 25);
+    expect(ambientDrawCount(setup.renderer)).toBe(6_000);
+  });
+
+  it("keeps high quality during a sustained 60 fps sample", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.start();
+    advanceFrames(setup.callbacks, 140, 16);
+    expect(ambientDrawCount(setup.renderer)).toBe(10_000);
   });
 });
