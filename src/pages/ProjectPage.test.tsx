@@ -32,11 +32,13 @@ describe("ProjectPage", () => {
     );
   });
 
-  it("renders source links only for the three approved public projects", () => {
+  it("renders source links only for the five approved public projects", () => {
     const approvedSources = new Map([
       ["endless-city", "https://github.com/corashina/Endless-City"],
+      ["webgl-minecraft", "https://github.com/corashina/WebGL-Minecraft"],
       ["particle-simulation", "https://github.com/corashina/Particle-Simulation"],
       ["civio", "https://github.com/corashina/Civio"],
+      ["points-in-country", "https://github.com/corashina/points-in-country"],
     ]);
 
     for (const project of projects) {

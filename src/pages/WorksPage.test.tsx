@@ -25,7 +25,7 @@ afterEach(() => {
 });
 
 describe("WorksPage", () => {
-  it("renders exactly the eight approved projects as single semantic links", () => {
+  it("renders exactly the twelve approved projects as single semantic links", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe("WorksPage", () => {
     ).toBeInTheDocument();
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(8);
+    expect(links).toHaveLength(12);
 
     for (const project of projects) {
       const link = screen.getByRole("link", {

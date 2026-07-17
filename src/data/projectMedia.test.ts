@@ -5,6 +5,19 @@ import { describe, expect, it } from "vitest";
 import { projects } from "./projects";
 
 describe("private artwork", () => {
+  it("provides all four approved new media files", async () => {
+    for (const src of [
+      "/portfolio/shared-ui-components.svg",
+      "/portfolio/erp-integration-tooling.svg",
+      "/portfolio/webgl-minecraft.png",
+      "/portfolio/points-in-country.svg",
+    ]) {
+      await expect(
+        readFile(new URL("../../static" + src, import.meta.url)),
+      ).resolves.toBeDefined();
+    }
+  });
+
   it("provides titled 320 by 160 SVGs", async () => {
     for (const project of projects.filter((item) => !item.sourceUrl)) {
       const file = await readFile(

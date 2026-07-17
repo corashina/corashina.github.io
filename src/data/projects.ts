@@ -68,6 +68,60 @@ export const projects: readonly Project[] = [
     },
   },
   {
+    slug: "shared-ui-components",
+    title: "Shared UI Components",
+    summary:
+      "Reusable React controls, responsive tables, documentation, and package delivery.",
+    overview:
+      "A reusable React component library for consistent product interfaces. It combines Mantine controls with responsive TanStack tables, Storybook documentation, accessibility checks, Vite library builds, and npm packaging.",
+    contributions: [
+      "Built reusable form controls and responsive data-table components.",
+      "Documented component states and usage in Storybook.",
+      "Added unit, browser, and accessibility checks to the package workflow.",
+    ],
+    technologies: [
+      "React",
+      "TypeScript",
+      "Mantine",
+      "TanStack Table",
+      "Storybook",
+      "Vite",
+      "Vitest",
+      "Playwright",
+    ],
+    media: {
+      kind: "image",
+      src: "/portfolio/shared-ui-components.svg",
+      alt: "Reusable interface components and responsive data table",
+    },
+  },
+  {
+    slug: "erp-integration-tooling",
+    title: "ERP Integration Tooling",
+    summary:
+      "Typed n8n nodes for credentials, REST orchestration, and ERP workflows.",
+    overview:
+      "Integration tooling that connects automation workflows to Oracle JD Edwards through typed custom n8n nodes. It covers credential configuration, REST request orchestration, node metadata, package builds, and npm delivery.",
+    contributions: [
+      "Built typed n8n nodes for Oracle JD Edwards orchestration endpoints.",
+      "Implemented credential handling and configurable REST request flows.",
+      "Prepared build, lint, and package tooling for repeatable delivery.",
+    ],
+    technologies: [
+      "TypeScript",
+      "Node.js",
+      "n8n",
+      "REST APIs",
+      "Oracle JD Edwards",
+      "npm",
+    ],
+    media: {
+      kind: "image",
+      src: "/portfolio/erp-integration-tooling.svg",
+      alt: "Automation nodes connected to an ERP service",
+    },
+  },
+  {
     slug: "e-invoicing-ksef",
     title: "E-invoicing and KSeF",
     summary:
@@ -154,6 +208,31 @@ export const projects: readonly Project[] = [
     sourceLabel: "GitHub",
   },
   {
+    slug: "webgl-minecraft",
+    title: "WebGL Minecraft",
+    summary: "A voxel world with movement, collisions, and generated terrain.",
+    overview:
+      "A public Three.js voxel-world experiment with pointer-lock controls, collision detection, block selection, and simple infinite terrain generation.",
+    contributions: [
+      "Built first-person movement and pointer-lock controls.",
+      "Added terrain collisions and selectable block types.",
+      "Generated simple terrain as the player moves through the world.",
+    ],
+    technologies: [
+      "JavaScript",
+      "Three.js",
+      "WebGL",
+      "procedural generation",
+    ],
+    media: {
+      kind: "image",
+      src: "/portfolio/webgl-minecraft.png",
+      alt: "Voxel terrain in the WebGL Minecraft experiment",
+    },
+    sourceUrl: "https://github.com/corashina/WebGL-Minecraft",
+    sourceLabel: "GitHub",
+  },
+  {
     slug: "particle-simulation",
     title: "Particle Simulation",
     summary: "GLSL-powered GPU particle motion.",
@@ -186,6 +265,26 @@ export const projects: readonly Project[] = [
       alt: "Procedural hexagonal map",
     },
     sourceUrl: "https://github.com/corashina/Civio",
+    sourceLabel: "GitHub",
+  },
+  {
+    slug: "points-in-country",
+    title: "points-in-country",
+    summary: "Coordinate grids generated inside 206 country boundaries.",
+    overview:
+      "A public npm package that generates arrays of coordinates inside country boundaries. It includes boundary data for 206 countries and a configurable interval for controlling grid density.",
+    contributions: [
+      "Built coordinate-grid generation within country boundaries.",
+      "Packaged boundary data for 206 countries.",
+      "Published a configurable interval for controlling point density.",
+    ],
+    technologies: ["JavaScript", "Node.js", "geospatial data", "npm"],
+    media: {
+      kind: "image",
+      src: "/portfolio/points-in-country.svg",
+      alt: "Coordinate grid clipped to a country boundary",
+    },
+    sourceUrl: "https://github.com/corashina/points-in-country",
     sourceLabel: "GitHub",
   },
 ] as const satisfies readonly Project[];
