@@ -312,13 +312,24 @@ describe("constellation shaders", () => {
     expect(signalVertexShader).toContain("uPointerSpeed");
     expect(signalFragmentShader).toContain("vEnergy");
     expect(signalFragmentShader).toContain("vTrail");
+    expect(signalFragmentShader).toContain("1.0 - smoothstep(0.0, 0.52, vUv.x)");
+    expect(signalFragmentShader).not.toContain("smoothstep(0.52, 0.0, vUv.x)");
   });
 
   it("moves and pulses bounded connection endpoints", () => {
     expect(connectionVertexShader).toContain("attribute vec3 aEndpoint");
     expect(connectionVertexShader).toContain("attribute vec4 aEndpointSeed");
     expect(connectionVertexShader).toContain("attribute float aEdgePhase");
+    expect(connectionVertexShader).toContain("varying float vVisibility");
+    expect(connectionVertexShader).toContain("vSignal = pulse");
+    expect(connectionVertexShader).toContain(
+      "vVisibility = tierAlpha * contentVisibility(screen)",
+    );
     expect(connectionFragmentShader).toContain("vSignal");
+    expect(connectionFragmentShader).toContain("varying float vVisibility");
+    expect(connectionFragmentShader).toContain(
+      "(0.025 + vSignal * 0.16) * vVisibility",
+    );
   });
 });
 ```
@@ -429,7 +440,7 @@ varying float vTrail;
 void main() {
   vec2 centered = vUv - 0.5;
   float radial = 1.0 - smoothstep(0.02, 0.5, length(centered));
-  float trail = exp(-abs(centered.y) * 18.0) * smoothstep(0.52, 0.0, vUv.x) * vTrail;
+  float trail = exp(-abs(centered.y) * 18.0) * (1.0 - smoothstep(0.0, 0.52, vUv.x)) * vTrail;
   gl_FragColor = vec4(uSignalColor, (radial * (0.28 + vEnergy * 0.72) + trail * 0.3) * vEnergy);
 }`;
 
@@ -440,6 +451,7 @@ attribute float aEdgePhase;
 attribute float aLevel;
 uniform float uQualityMix;
 varying float vSignal;
+varying float vVisibility;
 ${motionChunk}
 void main() {
   vec3 moved = displacedPosition(aEndpoint, aEndpointSeed);
@@ -447,15 +459,17 @@ void main() {
   float tierAlpha = 1.0 - smoothstep(uQualityMix + 0.02, uQualityMix + 0.32, aLevel);
   vec4 clip = projectionMatrix * modelViewMatrix * vec4(moved, 1.0);
   vec2 screen = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
-  vSignal = pulse * tierAlpha * contentVisibility(screen);
+  vSignal = pulse;
+  vVisibility = tierAlpha * contentVisibility(screen);
   gl_Position = clip;
 }`;
 
 export const connectionFragmentShader = `
 uniform vec3 uConnectionColor;
 varying float vSignal;
+varying float vVisibility;
 void main() {
-  gl_FragColor = vec4(uConnectionColor, 0.025 + vSignal * 0.16);
+  gl_FragColor = vec4(uConnectionColor, (0.025 + vSignal * 0.16) * vVisibility);
 }`;
 ```
 
