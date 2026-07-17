@@ -44,24 +44,38 @@ describe("particle data", () => {
     expect(first.levels.slice(6_000).every((value) => value === 2)).toBe(true);
   });
 
-  it("creates the requested number of cluster-local, non-self links", () => {
-    const particles = createParticleData(10_000, 42);
-    const links = createConnectionData(particles, 3_200, 91);
+  it.each([
+    { tier: "low", count: 3_000, budget: 900 },
+    { tier: "medium", count: 6_000, budget: 1_800 },
+    { tier: "high", count: 10_000, budget: 3_200 },
+  ] as const)("creates bounded, cluster-local, non-self links for $tier quality", ({ count, budget }) => {
+    const particles = createParticleData(count, 42);
+    const links = createConnectionData(particles, budget, 91);
 
-    expect(links.indices).toHaveLength(6_400);
-    expect(links.phases).toHaveLength(6_400);
-    expect(links.levels).toHaveLength(6_400);
-    for (let edge = 0; edge < 3_200; edge += 1) {
+    expect(links.indices).toHaveLength(budget * 2);
+    expect(links.phases).toHaveLength(budget * 2);
+    expect(links.levels).toHaveLength(budget * 2);
+    for (let edge = 0; edge < budget; edge += 1) {
       const source = links.indices[edge * 2];
       const target = links.indices[edge * 2 + 1];
       const level = links.levels[edge * 2];
       const particleLimit = [3_000, 6_000, 10_000][level];
-      expect(source).toBeLessThan(10_000);
-      expect(target).toBeLessThan(10_000);
+      expect(source).toBeLessThan(count);
+      expect(target).toBeLessThan(count);
       expect(source).toBeLessThan(particleLimit);
       expect(target).toBeLessThan(particleLimit);
       expect(source).not.toBe(target);
       expect(particles.clusters[source]).toBe(particles.clusters[target]);
     }
+  });
+
+  it("creates repeatable connection attributes", () => {
+    const particles = createParticleData(10_000, 42);
+    const first = createConnectionData(particles, 3_200, 91);
+    const second = createConnectionData(particles, 3_200, 91);
+
+    expect(first.indices).toEqual(second.indices);
+    expect(first.phases).toEqual(second.phases);
+    expect(first.levels).toEqual(second.levels);
   });
 });

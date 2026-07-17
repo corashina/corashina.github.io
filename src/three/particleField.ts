@@ -93,7 +93,8 @@ export function createConnectionData(
   ];
   const membersByLevel = tierLimits.map((limit) => {
     const groups = Array.from({ length: 24 }, () => [] as number[]);
-    for (let index = 0; index < limit; index += 1) {
+    const availableLimit = Math.min(limit, particles.clusters.length);
+    for (let index = 0; index < availableLimit; index += 1) {
       groups[particles.clusters[index]].push(index);
     }
     return groups;
