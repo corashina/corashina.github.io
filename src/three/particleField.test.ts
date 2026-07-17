@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import * as THREE from "three";
+import { describe, expect, it, vi } from "vitest";
 import {
   QUALITY_PROFILES,
+  createParticleField,
   lowerQuality,
   selectQualityTier,
 } from "./particleField";
@@ -77,5 +79,111 @@ describe("particle data", () => {
     expect(first.indices).toEqual(second.indices);
     expect(first.phases).toEqual(second.phases);
     expect(first.levels).toEqual(second.levels);
+  });
+});
+
+describe("particle render field", () => {
+  it("creates one points field, one instanced signal mesh, and one line batch", () => {
+    const field = createParticleField("high");
+
+    expect(field.group.children).toHaveLength(3);
+    expect(field.group.children[0]).toBeInstanceOf(THREE.Points);
+    expect((field.group.children[1] as THREE.Mesh).geometry).toBeInstanceOf(
+      THREE.InstancedBufferGeometry,
+    );
+    expect(field.group.children[2]).toBeInstanceOf(THREE.LineSegments);
+    expect(field.group.children.every((child) => !child.frustumCulled)).toBe(true);
+
+    field.dispose();
+  });
+
+  it("builds tier-ordered attributes from the full high-quality buffers", () => {
+    const field = createParticleField("high");
+    const ambient = field.group.children[0] as THREE.Points;
+    const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
+    const connections = field.group.children[2] as THREE.LineSegments;
+
+    expect(ambient.geometry.getAttribute("position").count).toBe(10_000);
+    expect(ambient.geometry.getAttribute("aSeed").itemSize).toBe(4);
+    expect(ambient.geometry.getAttribute("aLevel").array).toEqual(
+      createParticleData(10_000, 0x51a7).levels,
+    );
+    expect(signals.geometry.getAttribute("aAnchor").count).toBe(128);
+    expect(signals.geometry.getAttribute("aSignalSeed").itemSize).toBe(4);
+    expect(Array.from(signals.geometry.getAttribute("aLevel").array)).toEqual([
+      ...Array(48).fill(0),
+      ...Array(32).fill(1),
+      ...Array(48).fill(2),
+    ]);
+    expect(connections.geometry.getAttribute("position").count).toBe(6_400);
+    expect(connections.geometry.getAttribute("aEndpoint").itemSize).toBe(3);
+    expect(connections.geometry.getAttribute("aEndpointSeed").itemSize).toBe(4);
+    expect(connections.geometry.getAttribute("aEdgePhase").itemSize).toBe(1);
+    expect(connections.geometry.getAttribute("aLevel").itemSize).toBe(1);
+
+    field.dispose();
+  });
+
+  it("applies exact draw budgets for each quality tier", () => {
+    const field = createParticleField("high");
+    const ambient = field.group.children[0] as THREE.Points;
+    const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
+    const connections = field.group.children[2] as THREE.LineSegments;
+
+    field.setQuality("medium");
+    expect(ambient.geometry.drawRange.count).toBe(6_000);
+    expect(signals.geometry.instanceCount).toBe(80);
+    expect(connections.geometry.drawRange.count).toBe(3_600);
+    field.setQuality("low");
+    expect(ambient.geometry.drawRange.count).toBe(3_000);
+    expect(signals.geometry.instanceCount).toBe(48);
+    expect(connections.geometry.drawRange.count).toBe(1_800);
+
+    field.dispose();
+  });
+
+  it("updates shared motion, palette, and quality uniforms", () => {
+    const field = createParticleField("high");
+    const materials = field.group.children.map(
+      (child) => (child as THREE.Points | THREE.Mesh | THREE.LineSegments).material,
+    ) as THREE.ShaderMaterial[];
+
+    field.setTime(4.5);
+    field.setPointer(120, -80, 0.7);
+    field.setContentMask(0.4, 0.6, 0.2, 0.3);
+    field.setQualityMix(1.4);
+    field.setColors({ particle: "#aaaaaa", signal: "#ffffff", connection: "#777777" });
+    field.setBlendMode("normal");
+
+    for (const material of materials) {
+      expect(material.uniforms.uTime.value).toBe(4.5);
+      expect(material.uniforms.uPointer.value).toEqual(new THREE.Vector3(120, -80, 0));
+      expect(material.uniforms.uPointerSpeed.value).toBe(0.7);
+      expect(material.uniforms.uContentMask.value).toEqual(new THREE.Vector4(0.4, 0.6, 0.2, 0.3));
+      expect(material.uniforms.uQualityMix.value).toBe(1.4);
+      expect(material.blending).toBe(THREE.NormalBlending);
+    }
+    expect(materials[0].uniforms.uTime).toBe(materials[1].uniforms.uTime);
+    expect(materials[1].uniforms.uTime).toBe(materials[2].uniforms.uTime);
+    expect(materials[0].uniforms.uParticleColor.value).toEqual(new THREE.Color("#aaaaaa"));
+    expect(materials[1].uniforms.uSignalColor.value).toEqual(new THREE.Color("#ffffff"));
+    expect(materials[2].uniforms.uConnectionColor.value).toEqual(new THREE.Color("#777777"));
+
+    field.dispose();
+  });
+
+  it("disposes each geometry and material once", () => {
+    const field = createParticleField("high");
+    const resources = field.group.children.flatMap((child) => {
+      const renderable = child as THREE.Points | THREE.Mesh | THREE.LineSegments;
+      return [renderable.geometry, renderable.material];
+    }) as Array<{ dispose(): void }>;
+    const spies = resources.map((resource) => vi.spyOn(resource, "dispose"));
+
+    field.dispose();
+    field.dispose();
+
+    expect(field.group.children).toHaveLength(0);
+    spies.forEach((spy) => expect(spy).toHaveBeenCalledOnce());
   });
 });

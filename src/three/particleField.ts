@@ -1,3 +1,13 @@
+import * as THREE from "three";
+import {
+  ambientFragmentShader,
+  ambientVertexShader,
+  connectionFragmentShader,
+  connectionVertexShader,
+  signalFragmentShader,
+  signalVertexShader,
+} from "./particleShaders";
+
 export type QualityTier = "low" | "medium" | "high";
 
 export type QualityProfile = {
@@ -118,4 +128,203 @@ export function createConnectionData(
   }
 
   return { indices, phases, levels };
+}
+
+export type ParticlePalette = {
+  particle: THREE.ColorRepresentation;
+  signal: THREE.ColorRepresentation;
+  connection: THREE.ColorRepresentation;
+};
+
+export type ParticleBlendMode = "additive" | "normal";
+
+export type ParticleFieldController = {
+  group: THREE.Group;
+  setTime(value: number): void;
+  setPointer(x: number, y: number, speed: number): void;
+  setContentMask(x: number, y: number, width: number, height: number): void;
+  setColors(colors: ParticlePalette): void;
+  setBlendMode(mode: ParticleBlendMode): void;
+  setQuality(tier: QualityTier): void;
+  setQualityMix(value: number): void;
+  dispose(): void;
+};
+
+export function createParticleField(initialTier: QualityTier): ParticleFieldController {
+  const particleData = createParticleData(QUALITY_PROFILES.high.particles, 0x51a7);
+  const connectionData = createConnectionData(
+    particleData,
+    QUALITY_PROFILES.high.connections,
+    0xc011,
+  );
+  const time = { value: 0 };
+  const pointer = { value: new THREE.Vector3() };
+  const pointerSpeed = { value: 0 };
+  const contentMask = { value: new THREE.Vector4(0.5, 0.5, 0.24, 0.38) };
+  const qualityMix = {
+    value: initialTier === "high" ? 2 : initialTier === "medium" ? 1 : 0,
+  };
+  const particleColor = { value: new THREE.Color("#aeb4ba") };
+  const signalColor = { value: new THREE.Color("#f4f6f7") };
+  const connectionColor = { value: new THREE.Color("#697078") };
+  const motionUniforms = {
+    uTime: time,
+    uPointer: pointer,
+    uPointerSpeed: pointerSpeed,
+    uContentMask: contentMask,
+    uQualityMix: qualityMix,
+  };
+
+  const ambientGeometry = new THREE.BufferGeometry();
+  ambientGeometry.setAttribute("position", new THREE.BufferAttribute(particleData.positions, 3));
+  ambientGeometry.setAttribute("aSeed", new THREE.BufferAttribute(particleData.seeds, 4));
+  ambientGeometry.setAttribute("aLevel", new THREE.BufferAttribute(particleData.levels, 1));
+  const ambientMaterial = new THREE.ShaderMaterial({
+    vertexShader: ambientVertexShader,
+    fragmentShader: ambientFragmentShader,
+    uniforms: { ...motionUniforms, uParticleColor: particleColor },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  });
+  const ambient = new THREE.Points(ambientGeometry, ambientMaterial);
+  ambient.frustumCulled = false;
+
+  const signalIndices = [
+    ...Array.from({ length: 48 }, (_, index) => index),
+    ...Array.from({ length: 32 }, (_, index) => 3_000 + index),
+    ...Array.from({ length: 48 }, (_, index) => 6_000 + index),
+  ];
+  const anchors = new Float32Array(signalIndices.length * 3);
+  const signalSeeds = new Float32Array(signalIndices.length * 4);
+  const signalLevels = new Uint8Array(signalIndices.length);
+  signalIndices.forEach((particleIndex, signalIndex) => {
+    anchors.set(
+      particleData.positions.subarray(particleIndex * 3, particleIndex * 3 + 3),
+      signalIndex * 3,
+    );
+    signalSeeds.set(
+      particleData.seeds.subarray(particleIndex * 4, particleIndex * 4 + 4),
+      signalIndex * 4,
+    );
+    signalLevels[signalIndex] = signalIndex < 48 ? 0 : signalIndex < 80 ? 1 : 2;
+  });
+
+  const quad = new THREE.PlaneGeometry(2, 2);
+  const signalGeometry = new THREE.InstancedBufferGeometry();
+  signalGeometry.setIndex(quad.getIndex());
+  Object.entries(quad.attributes).forEach(([name, attribute]) => {
+    signalGeometry.setAttribute(name, attribute);
+  });
+  quad.dispose();
+  signalGeometry.setAttribute("aAnchor", new THREE.InstancedBufferAttribute(anchors, 3));
+  signalGeometry.setAttribute("aSignalSeed", new THREE.InstancedBufferAttribute(signalSeeds, 4));
+  signalGeometry.setAttribute("aLevel", new THREE.InstancedBufferAttribute(signalLevels, 1));
+  const signalMaterial = new THREE.ShaderMaterial({
+    vertexShader: signalVertexShader,
+    fragmentShader: signalFragmentShader,
+    uniforms: { ...motionUniforms, uSignalColor: signalColor },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  });
+  const signals = new THREE.Mesh(signalGeometry, signalMaterial);
+  signals.frustumCulled = false;
+
+  const endpointPositions = new Float32Array(connectionData.indices.length * 3);
+  const endpointSeeds = new Float32Array(connectionData.indices.length * 4);
+  connectionData.indices.forEach((particleIndex, endpointIndex) => {
+    endpointPositions.set(
+      particleData.positions.subarray(particleIndex * 3, particleIndex * 3 + 3),
+      endpointIndex * 3,
+    );
+    endpointSeeds.set(
+      particleData.seeds.subarray(particleIndex * 4, particleIndex * 4 + 4),
+      endpointIndex * 4,
+    );
+  });
+  const connectionGeometry = new THREE.BufferGeometry();
+  connectionGeometry.setAttribute("position", new THREE.BufferAttribute(endpointPositions, 3));
+  connectionGeometry.setAttribute(
+    "aEndpoint",
+    new THREE.BufferAttribute(endpointPositions, 3),
+  );
+  connectionGeometry.setAttribute(
+    "aEndpointSeed",
+    new THREE.BufferAttribute(endpointSeeds, 4),
+  );
+  connectionGeometry.setAttribute(
+    "aEdgePhase",
+    new THREE.BufferAttribute(connectionData.phases, 1),
+  );
+  connectionGeometry.setAttribute(
+    "aLevel",
+    new THREE.BufferAttribute(connectionData.levels, 1),
+  );
+  const connectionMaterial = new THREE.ShaderMaterial({
+    vertexShader: connectionVertexShader,
+    fragmentShader: connectionFragmentShader,
+    uniforms: { ...motionUniforms, uConnectionColor: connectionColor },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+  });
+  const connections = new THREE.LineSegments(connectionGeometry, connectionMaterial);
+  connections.frustumCulled = false;
+
+  const group = new THREE.Group();
+  group.add(ambient, signals, connections);
+  const materials = [ambientMaterial, signalMaterial, connectionMaterial];
+  let disposed = false;
+
+  const applyQuality = (profile: QualityProfile): void => {
+    ambientGeometry.setDrawRange(0, profile.particles);
+    signalGeometry.instanceCount = profile.signalNodes;
+    connectionGeometry.setDrawRange(0, profile.connections * 2);
+  };
+  applyQuality(QUALITY_PROFILES[initialTier]);
+
+  return {
+    group,
+    setTime: (value) => {
+      time.value = value;
+    },
+    setPointer: (x, y, speed) => {
+      pointer.value.set(x, y, 0);
+      pointerSpeed.value = speed;
+    },
+    setContentMask: (x, y, width, height) => {
+      contentMask.value.set(x, y, width, height);
+    },
+    setColors: (colors) => {
+      particleColor.value.set(colors.particle);
+      signalColor.value.set(colors.signal);
+      connectionColor.value.set(colors.connection);
+    },
+    setBlendMode: (mode) => {
+      const blending = mode === "additive" ? THREE.AdditiveBlending : THREE.NormalBlending;
+      materials.forEach((material) => {
+        material.blending = blending;
+        material.needsUpdate = true;
+      });
+    },
+    setQuality: (tier) => {
+      applyQuality(QUALITY_PROFILES[tier]);
+    },
+    setQualityMix: (value) => {
+      qualityMix.value = value;
+    },
+    dispose: () => {
+      if (disposed) return;
+      disposed = true;
+      group.remove(ambient, signals, connections);
+      ambientGeometry.dispose();
+      signalGeometry.dispose();
+      connectionGeometry.dispose();
+      materials.forEach((material) => material.dispose());
+    },
+  };
 }
