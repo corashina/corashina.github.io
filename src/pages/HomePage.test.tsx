@@ -4,7 +4,7 @@ import { HomePage } from "./HomePage";
 
 const approvedParagraphs = [
   "I build web and mobile applications for operations, approvals, document processing, and ERP-connected workflows. My work spans React and TypeScript interfaces, reusable component systems, native mobile clients, .NET services, and automation tooling.",
-  "I focus on software that turns complex business rules into clear, reliable toolsâ€”from scanner-led warehouse processes and editable document workflows to e-invoicing, integrations, and WebGL experiments.",
+  "I focus on software that turns complex business rules into clear, reliable tools—from scanner-led warehouse processes and editable document workflows to e-invoicing, integrations, and WebGL experiments.",
 ];
 
 const approvedSkillGroups = [

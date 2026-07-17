@@ -15,7 +15,7 @@ export function HomePage(): JSX.Element {
             component systems, native mobile clients, .NET services, and automation tooling.
           </p>
           <p>
-            I focus on software that turns complex business rules into clear, reliable toolsâ€”from
+            I focus on software that turns complex business rules into clear, reliable tools—from
             scanner-led warehouse processes and editable document workflows to e-invoicing,
             integrations, and WebGL experiments.
           </p>
