@@ -68,6 +68,8 @@ describe("particle data", () => {
       expect(target).toBeLessThan(particleLimit);
       expect(source).not.toBe(target);
       expect(particles.clusters[source]).toBe(particles.clusters[target]);
+      expect(links.phases[edge * 2]).toBe(links.phases[edge * 2 + 1]);
+      expect(links.levels[edge * 2]).toBe(links.levels[edge * 2 + 1]);
     }
   });
 
@@ -102,25 +104,113 @@ describe("particle render field", () => {
     const ambient = field.group.children[0] as THREE.Points;
     const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
     const connections = field.group.children[2] as THREE.LineSegments;
+    const particles = createParticleData(10_000, 0x51a7);
+    const connectionData = createConnectionData(particles, 3_200, 0xc011);
+    const signalIndices = [
+      ...Array.from({ length: 48 }, (_, index) => index),
+      ...Array.from({ length: 32 }, (_, index) => 3_000 + index),
+      ...Array.from({ length: 48 }, (_, index) => 6_000 + index),
+    ];
+    const expectedAnchors = new Float32Array(signalIndices.length * 3);
+    const expectedSignalSeeds = new Float32Array(signalIndices.length * 4);
+    signalIndices.forEach((particleIndex, signalIndex) => {
+      expectedAnchors.set(
+        particles.positions.subarray(particleIndex * 3, particleIndex * 3 + 3),
+        signalIndex * 3,
+      );
+      expectedSignalSeeds.set(
+        particles.seeds.subarray(particleIndex * 4, particleIndex * 4 + 4),
+        signalIndex * 4,
+      );
+    });
+    const expectedEndpointPositions = new Float32Array(connectionData.indices.length * 3);
+    const expectedEndpointSeeds = new Float32Array(connectionData.indices.length * 4);
+    connectionData.indices.forEach((particleIndex, endpointIndex) => {
+      expectedEndpointPositions.set(
+        particles.positions.subarray(particleIndex * 3, particleIndex * 3 + 3),
+        endpointIndex * 3,
+      );
+      expectedEndpointSeeds.set(
+        particles.seeds.subarray(particleIndex * 4, particleIndex * 4 + 4),
+        endpointIndex * 4,
+      );
+    });
 
     expect(ambient.geometry.getAttribute("position").count).toBe(10_000);
     expect(ambient.geometry.getAttribute("aSeed").itemSize).toBe(4);
-    expect(ambient.geometry.getAttribute("aLevel").array).toEqual(
-      createParticleData(10_000, 0x51a7).levels,
-    );
-    expect(signals.geometry.getAttribute("aAnchor").count).toBe(128);
-    expect(signals.geometry.getAttribute("aSignalSeed").itemSize).toBe(4);
+    expect(ambient.geometry.getAttribute("aLevel").array).toEqual(particles.levels);
+    const anchorAttribute = signals.geometry.getAttribute("aAnchor");
+    const signalSeedAttribute = signals.geometry.getAttribute("aSignalSeed");
+    expect(anchorAttribute).toBeInstanceOf(THREE.InstancedBufferAttribute);
+    expect(anchorAttribute.count).toBe(128);
+    expect(anchorAttribute.itemSize).toBe(3);
+    expect(anchorAttribute.array).toEqual(expectedAnchors);
+    expect(signalSeedAttribute).toBeInstanceOf(THREE.InstancedBufferAttribute);
+    expect(signalSeedAttribute.itemSize).toBe(4);
+    expect(signalSeedAttribute.array).toEqual(expectedSignalSeeds);
     expect(Array.from(signals.geometry.getAttribute("aLevel").array)).toEqual([
       ...Array(48).fill(0),
       ...Array(32).fill(1),
       ...Array(48).fill(2),
     ]);
     expect(connections.geometry.getAttribute("position").count).toBe(6_400);
-    expect(connections.geometry.getAttribute("aEndpoint").itemSize).toBe(3);
-    expect(connections.geometry.getAttribute("aEndpointSeed").itemSize).toBe(4);
-    expect(connections.geometry.getAttribute("aEdgePhase").itemSize).toBe(1);
-    expect(connections.geometry.getAttribute("aLevel").itemSize).toBe(1);
+    expect(connections.geometry.getAttribute("position").array).toEqual(expectedEndpointPositions);
+    const endpointAttribute = connections.geometry.getAttribute("aEndpoint");
+    const endpointSeedAttribute = connections.geometry.getAttribute("aEndpointSeed");
+    const edgePhaseAttribute = connections.geometry.getAttribute("aEdgePhase");
+    const connectionLevelAttribute = connections.geometry.getAttribute("aLevel");
+    expect(endpointAttribute.itemSize).toBe(3);
+    expect(endpointAttribute.array).toEqual(expectedEndpointPositions);
+    expect(endpointSeedAttribute.itemSize).toBe(4);
+    expect(endpointSeedAttribute.array).toEqual(expectedEndpointSeeds);
+    expect(edgePhaseAttribute.itemSize).toBe(1);
+    expect(edgePhaseAttribute.array).toEqual(connectionData.phases);
+    expect(connectionLevelAttribute.itemSize).toBe(1);
+    expect(connectionLevelAttribute.array).toEqual(connectionData.levels);
 
+    field.dispose();
+  });
+
+  it("owns independent copies of the signal quad buffers", () => {
+    let sourceIndex: THREE.BufferAttribute | null = null;
+    let sourceAttributes: Record<
+      string,
+      THREE.BufferAttribute | THREE.InterleavedBufferAttribute
+    > = {};
+    const originalDispose = THREE.PlaneGeometry.prototype.dispose;
+    const disposeSpy = vi
+      .spyOn(THREE.PlaneGeometry.prototype, "dispose")
+      .mockImplementation(function (this: THREE.PlaneGeometry) {
+        sourceIndex = this.getIndex();
+        sourceAttributes = { ...this.attributes };
+        originalDispose.call(this);
+      });
+
+    const field = createParticleField("high");
+    disposeSpy.mockRestore();
+    const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
+    const reference = new THREE.PlaneGeometry(2, 2);
+    const signalIndex = signals.geometry.getIndex();
+    const capturedIndex = sourceIndex as THREE.BufferAttribute | null;
+
+    expect(signalIndex).not.toBeNull();
+    expect(signalIndex).not.toBe(capturedIndex);
+    expect(signalIndex?.array).not.toBe(capturedIndex?.array);
+    expect(signalIndex?.count).toBe(6);
+    expect(signalIndex?.itemSize).toBe(1);
+    expect(signalIndex?.array).toEqual(reference.getIndex()?.array);
+    for (const name of ["position", "normal", "uv"]) {
+      const attribute = signals.geometry.getAttribute(name);
+      const referenceAttribute = reference.getAttribute(name);
+      expect(attribute).toBeDefined();
+      expect(attribute).not.toBe(sourceAttributes[name]);
+      expect(attribute.array).not.toBe(sourceAttributes[name].array);
+      expect(attribute.count).toBe(referenceAttribute.count);
+      expect(attribute.itemSize).toBe(referenceAttribute.itemSize);
+      expect(attribute.array).toEqual(referenceAttribute.array);
+    }
+
+    reference.dispose();
     field.dispose();
   });
 
@@ -130,6 +220,9 @@ describe("particle render field", () => {
     const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
     const connections = field.group.children[2] as THREE.LineSegments;
 
+    expect(ambient.geometry.drawRange.count).toBe(10_000);
+    expect(signals.geometry.instanceCount).toBe(128);
+    expect(connections.geometry.drawRange.count).toBe(6_400);
     field.setQuality("medium");
     expect(ambient.geometry.drawRange.count).toBe(6_000);
     expect(signals.geometry.instanceCount).toBe(80);
@@ -138,6 +231,26 @@ describe("particle render field", () => {
     expect(ambient.geometry.drawRange.count).toBe(3_000);
     expect(signals.geometry.instanceCount).toBe(48);
     expect(connections.geometry.drawRange.count).toBe(1_800);
+    field.setQuality("high");
+    expect(ambient.geometry.drawRange.count).toBe(10_000);
+    expect(signals.geometry.instanceCount).toBe(128);
+    expect(connections.geometry.drawRange.count).toBe(6_400);
+
+    field.dispose();
+  });
+
+  it("configures all materials for additive transparent rendering", () => {
+    const field = createParticleField("high");
+    const materials = field.group.children.map(
+      (child) => (child as THREE.Points | THREE.Mesh | THREE.LineSegments).material,
+    ) as THREE.ShaderMaterial[];
+
+    for (const material of materials) {
+      expect(material.transparent).toBe(true);
+      expect(material.depthWrite).toBe(false);
+      expect(material.toneMapped).toBe(false);
+      expect(material.blending).toBe(THREE.AdditiveBlending);
+    }
 
     field.dispose();
   });

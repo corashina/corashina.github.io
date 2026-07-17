@@ -213,9 +213,9 @@ export function createParticleField(initialTier: QualityTier): ParticleFieldCont
 
   const quad = new THREE.PlaneGeometry(2, 2);
   const signalGeometry = new THREE.InstancedBufferGeometry();
-  signalGeometry.setIndex(quad.getIndex());
+  signalGeometry.setIndex(quad.getIndex()?.clone() ?? null);
   Object.entries(quad.attributes).forEach(([name, attribute]) => {
-    signalGeometry.setAttribute(name, attribute);
+    signalGeometry.setAttribute(name, attribute.clone());
   });
   quad.dispose();
   signalGeometry.setAttribute("aAnchor", new THREE.InstancedBufferAttribute(anchors, 3));
