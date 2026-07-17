@@ -1,5 +1,6 @@
 .canvas {
   background: var(--canvas-background);
+  contain: strict;
   display: block;
   height: 100%;
   inset: 0;

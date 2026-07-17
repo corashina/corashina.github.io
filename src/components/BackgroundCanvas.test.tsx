@@ -24,6 +24,12 @@ function createController(): BackgroundController {
   };
 }
 
+function pointerMove(clientX: number, clientY: number, timeStamp: number): MouseEvent {
+  const event = new MouseEvent("pointermove", { clientX, clientY });
+  Object.defineProperty(event, "timeStamp", { value: timeStamp });
+  return event;
+}
+
 describe("BackgroundCanvas", () => {
   let controller: BackgroundController;
   let resizeCallback: ResizeObserverCallback;
@@ -135,23 +141,55 @@ describe("BackgroundCanvas", () => {
     expect(canvas.style.height).toBe("");
   });
 
-  it("normalizes passive pointer movement around the canvas center", () => {
+  it("passes normalized pointer position and capped speed", () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
     vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 10,
-      top: 20,
-      width: 200,
-      height: 100,
+      left: 0,
+      top: 0,
+      width: 1_000,
+      height: 500,
     } as DOMRect);
 
-    act(() => window.dispatchEvent(new MouseEvent("pointermove", { clientX: 210, clientY: 20 })));
+    act(() => window.dispatchEvent(pointerMove(100, 100, 100)));
+    act(() => window.dispatchEvent(pointerMove(200, 100, 300)));
 
     expect(addEventListener).toHaveBeenCalledWith("pointermove", expect.any(Function), {
       passive: true,
     });
-    expect(controller.setPointer).toHaveBeenCalledWith(1, 1, 0);
+    expect(controller.setPointer).toHaveBeenNthCalledWith(1, -0.8, 0.6, 0);
+    const [x, y, speed] = vi.mocked(controller.setPointer).mock.calls.at(-1) ?? [];
+    expect(x).toBeCloseTo(-0.6);
+    expect(y).toBeCloseTo(0.6);
+    expect(speed).toBeCloseTo(0.5);
+    expect(speed).toBeGreaterThanOrEqual(0);
+    expect(speed).toBeLessThanOrEqual(1);
+  });
+
+  it("forgets pointer velocity while the document is hidden", () => {
+    render(<BackgroundCanvas theme="dark" />);
+    const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1_000,
+      height: 500,
+    } as DOMRect);
+
+    act(() => window.dispatchEvent(pointerMove(100, 100, 100)));
+    act(() => window.dispatchEvent(pointerMove(200, 100, 300)));
+
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("visible");
+    act(() => document.dispatchEvent(new Event("visibilitychange")));
+    act(() => window.dispatchEvent(pointerMove(800, 100, 1_000)));
+
+    const pointerCalls = vi.mocked(controller.setPointer).mock.calls;
+    expect(pointerCalls.map(([, , speed]) => speed)).toEqual([0, 0.5, 0]);
+    expect(pointerCalls.at(-1)?.[0]).toBeCloseTo(0.6);
+    expect(pointerCalls.at(-1)?.[1]).toBeCloseTo(0.6);
   });
 
   it("maps dark and white themes to the constellation palette", () => {
@@ -179,11 +217,11 @@ describe("BackgroundCanvas", () => {
     const { rerender } = render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas");
 
-    expect(canvas).toHaveStyle({ "--canvas-opacity": "0.42" });
+    expect(canvas).toHaveStyle({ "--canvas-opacity": "0.58" });
 
     rerender(<BackgroundCanvas theme="white" />);
 
-    expect(canvas).toHaveStyle({ "--canvas-opacity": "0.28" });
+    expect(canvas).toHaveStyle({ "--canvas-opacity": "0.38" });
   });
 
   it("hides the decorative canvas when WebGL creation fails", () => {

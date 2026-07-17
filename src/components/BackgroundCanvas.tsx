@@ -3,6 +3,7 @@ import styles from "../styles/canvas.module.scss";
 import {
   createBackgroundScene,
   normalizePointer,
+  normalizePointerSpeed,
   type BackgroundController,
   type SceneTheme,
 } from "../three/backgroundScene";
@@ -26,8 +27,8 @@ const sceneThemes: Record<Theme, SceneTheme> = {
 };
 
 const canvasOpacities: Record<Theme, string> = {
-  dark: "0.42",
-  white: "0.28",
+  dark: "0.58",
+  white: "0.38",
 };
 
 type BackgroundCanvasProps = {
@@ -57,18 +58,29 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     let listenersAttached = false;
     let closed = false;
     let controllerDisposed = false;
+    let previousPointer: { x: number; y: number; time: number } | null = null;
 
     const onPointerMove = (event: PointerEvent): void => {
       if (closed || reducedMotion || !controller) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const pointer = normalizePointer(event.clientX, event.clientY, rect);
-      controller.setPointer(pointer.x, pointer.y, 0);
+      const speed = previousPointer
+        ? normalizePointerSpeed(
+            event.clientX - previousPointer.x,
+            event.clientY - previousPointer.y,
+            event.timeStamp - previousPointer.time,
+            rect,
+          )
+        : 0;
+      previousPointer = { x: event.clientX, y: event.clientY, time: event.timeStamp };
+      controller.setPointer(pointer.x, pointer.y, speed);
     };
 
     const onVisibilityChange = (): void => {
       if (closed || !controller) return;
       if (document.visibilityState === "hidden") {
+        previousPointer = null;
         controller.stop();
       } else if (reducedMotion) {
         controller.renderStatic();
@@ -79,6 +91,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     const teardown = (): void => {
       closed = true;
+      previousPointer = null;
       resizeObserver?.disconnect();
       resizeObserver = null;
 
