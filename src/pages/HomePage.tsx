@@ -10,14 +10,14 @@ export function HomePage(): JSX.Element {
         <div className={styles.copy}>
           <h2>a full-stack software engineer</h2>
           <p>
-            I build web and mobile software for operational workflows, business platforms,
-            integrations, and document-heavy systems. My work covers React and TypeScript
-            interfaces, API and ERP integrations, mobile applications, e-invoicing, and document
-            AI.
+            I build web and mobile applications for operations, approvals, document processing,
+            and ERP-connected workflows. My work spans React and TypeScript interfaces, reusable
+            component systems, native mobile clients, .NET services, and automation tooling.
           </p>
           <p>
-            I work across product UI, backend services, and delivery tooling to turn complex
-            processes into software people can use under real working conditions.
+            I focus on software that turns complex business rules into clear, reliable toolsâ€”from
+            scanner-led warehouse processes and editable document workflows to e-invoicing,
+            integrations, and WebGL experiments.
           </p>
         </div>
         <Skills />
