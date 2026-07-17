@@ -51,7 +51,20 @@ export type ConnectionData = {
   indices: Uint32Array;
   phases: Float32Array;
   levels: Uint8Array;
+  endpointCoordinates: Float32Array;
+  metadata: Float32Array;
 };
+
+const CONNECTION_BUCKET_SIZE = 96;
+const MAX_BUCKET_SAMPLES = 6;
+
+type SpatialGroup = {
+  members: number[];
+  buckets: Map<string, number[]>;
+};
+
+const bucketKey = (x: number, y: number): string =>
+  `${Math.floor(x / CONNECTION_BUCKET_SIZE)},${Math.floor(y / CONNECTION_BUCKET_SIZE)}`;
 
 function mulberry32(seed: number): () => number {
   let value = seed >>> 0;
@@ -102,32 +115,91 @@ export function createConnectionData(
     QUALITY_PROFILES.high.particles,
   ];
   const membersByLevel = tierLimits.map((limit) => {
-    const groups = Array.from({ length: 24 }, () => [] as number[]);
+    const groups = Array.from(
+      { length: 24 },
+      (): SpatialGroup => ({ members: [], buckets: new Map<string, number[]>() }),
+    );
     const availableLimit = Math.min(limit, particles.clusters.length);
     for (let index = 0; index < availableLimit; index += 1) {
-      groups[particles.clusters[index]].push(index);
+      const group = groups[particles.clusters[index]];
+      group.members.push(index);
+      const key = bucketKey(particles.positions[index * 3], particles.positions[index * 3 + 1]);
+      const bucket = group.buckets.get(key);
+      if (bucket) bucket.push(index);
+      else group.buckets.set(key, [index]);
     }
     return groups;
   });
   const indices = new Uint32Array(budget * 2);
   const phases = new Float32Array(budget * 2);
   const levels = new Uint8Array(budget * 2);
+  const endpointCoordinates = new Float32Array(budget * 2);
+  const metadata = new Float32Array(budget * 8);
+
+  const nearbyTarget = (group: SpatialGroup, source: number): number => {
+    const sourceX = particles.positions[source * 3];
+    const sourceY = particles.positions[source * 3 + 1];
+    const cellX = Math.floor(sourceX / CONNECTION_BUCKET_SIZE);
+    const cellY = Math.floor(sourceY / CONNECTION_BUCKET_SIZE);
+    let bestTarget = -1;
+    let bestDistanceSquared = Number.POSITIVE_INFINITY;
+
+    for (let radius = 0; radius <= 1 && bestTarget < 0; radius += 1) {
+      for (let offsetY = -radius; offsetY <= radius; offsetY += 1) {
+        for (let offsetX = -radius; offsetX <= radius; offsetX += 1) {
+          if (Math.max(Math.abs(offsetX), Math.abs(offsetY)) !== radius) continue;
+          const bucket = group.buckets.get(`${cellX + offsetX},${cellY + offsetY}`);
+          if (!bucket?.length) continue;
+          const start = Math.floor(random() * bucket.length);
+          const sampleCount = Math.min(bucket.length, MAX_BUCKET_SAMPLES);
+          for (let sample = 0; sample < sampleCount; sample += 1) {
+            const candidate = bucket[(start + sample) % bucket.length];
+            if (candidate === source) continue;
+            const dx = particles.positions[candidate * 3] - sourceX;
+            const dy = particles.positions[candidate * 3 + 1] - sourceY;
+            const distanceSquared = dx * dx + dy * dy;
+            if (distanceSquared < bestDistanceSquared) {
+              bestDistanceSquared = distanceSquared;
+              bestTarget = candidate;
+            }
+          }
+        }
+      }
+    }
+
+    if (bestTarget >= 0) return bestTarget;
+    const sourceOffset = group.members.indexOf(source);
+    return group.members[(sourceOffset + 1) % group.members.length];
+  };
 
   for (let edge = 0; edge < budget; edge += 1) {
     const level = edge < 900 ? 0 : edge < 1_800 ? 1 : 2;
     const groups = membersByLevel[level];
     const group = groups[edge % groups.length];
-    const sourceOffset = Math.floor(random() * group.length);
-    const distance = 1 + Math.floor(random() * Math.min(12, group.length - 1));
-    const source = group[sourceOffset];
-    const target = group[(sourceOffset + distance) % group.length];
+    const source = group.members[Math.floor(random() * group.members.length)];
+    const target = nearbyTarget(group, source);
     const phase = random();
+    const dx = particles.positions[source * 3] - particles.positions[target * 3];
+    const dy = particles.positions[source * 3 + 1] - particles.positions[target * 3 + 1];
+    const distance = Math.hypot(dx, dy);
+    const averageDepth = Math.abs(
+      (particles.positions[source * 3 + 2] + particles.positions[target * 3 + 2]) * 0.5,
+    );
+    const edgeMetadata = [
+      Math.min(distance / 280, 1),
+      Math.min(averageDepth / 450, 1),
+      particles.clusters[source] / 23,
+      random(),
+    ];
     indices.set([source, target], edge * 2);
     phases.set([phase, phase], edge * 2);
     levels.set([level, level], edge * 2);
+    endpointCoordinates.set([0, 1], edge * 2);
+    metadata.set(edgeMetadata, edge * 8);
+    metadata.set(edgeMetadata, edge * 8 + 4);
   }
 
-  return { indices, phases, levels };
+  return { indices, phases, levels, endpointCoordinates, metadata };
 }
 
 export type ParticlePalette = {
@@ -258,6 +330,14 @@ export function createParticleField(initialTier: QualityTier): ParticleFieldCont
   connectionGeometry.setAttribute(
     "aEdgePhase",
     new THREE.BufferAttribute(connectionData.phases, 1),
+  );
+  connectionGeometry.setAttribute(
+    "aEndpointCoordinate",
+    new THREE.BufferAttribute(connectionData.endpointCoordinates, 1),
+  );
+  connectionGeometry.setAttribute(
+    "aEdgeMeta",
+    new THREE.BufferAttribute(connectionData.metadata, 4),
   );
   connectionGeometry.setAttribute(
     "aLevel",

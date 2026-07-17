@@ -61,7 +61,12 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     let previousPointer: { x: number; y: number; time: number } | null = null;
 
     const onPointerMove = (event: PointerEvent): void => {
-      if (closed || reducedMotion || !controller) return;
+      if (closed) return;
+      if (event.pointerType === "touch") {
+        previousPointer = null;
+        return;
+      }
+      if (reducedMotion || !controller) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const pointer = normalizePointer(event.clientX, event.clientY, rect);
@@ -116,6 +121,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
           setFailed(true);
           teardown();
         },
+        staticQuality: reducedMotion ? "medium" : undefined,
       });
     } catch {
       setFailed(true);

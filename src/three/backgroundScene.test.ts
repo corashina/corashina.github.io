@@ -156,6 +156,28 @@ describe("background scene controller", () => {
     expect(renderer.render).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    { width: 1_440, height: 900 },
+    { width: 390, height: 844 },
+  ])("renders explicit static medium density at $width x $height", ({ width, height }) => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+      staticQuality: "medium",
+    });
+
+    controller.resize(width, height, 1);
+    controller.renderStatic();
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 3_600,
+      mix: 1,
+      particles: 6_000,
+      signals: 80,
+    });
+  });
+
   it("caps DPR, updates projection, and leaves CSS sizing to the component", () => {
     const { controller, renderer } = createHarness();
 
@@ -216,17 +238,35 @@ describe("background scene controller", () => {
     controller.setPointer(1, -1, 0.8);
     controller.start();
     callbacks.get(1)?.(1_000);
+    advanceFrames(callbacks, 20, 16, 2);
     const initialSpeed = (
       (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
     ).uniforms.uPointerSpeed.value as number;
-    callbacks.get(2)?.(2_000);
-    callbacks.get(3)?.(3_000);
+    advanceFrames(callbacks, 100, 16, 22);
     const decayedSpeed = (
       (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
     ).uniforms.uPointerSpeed.value as number;
 
     expect(decayedSpeed).toBeGreaterThan(0);
     expect(decayedSpeed).toBeLessThan(initialSpeed);
+  });
+
+  it("caps a multi-second visible gap for elapsed time and pointer decay", () => {
+    const { callbacks, controller, renderer } = createHarness();
+
+    controller.setPointer(1, -1, 0.8);
+    controller.start();
+    callbacks.get(1)?.(1_000);
+    const initialSpeed = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms.uPointerSpeed.value as number;
+    callbacks.get(2)?.(6_000);
+
+    const uniforms = (
+      (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
+    ).uniforms;
+    expect(uniforms.uTime.value).toBeCloseTo(0.05);
+    expect(uniforms.uPointerSpeed.value).toBeGreaterThan(initialSpeed);
   });
 
   it("interpolates the full palette and changes blend mode", () => {
@@ -328,7 +368,7 @@ describe("background scene controller", () => {
     );
   });
 
-  it("accumulates only visible frame deltas when animation resumes", () => {
+  it("caps visible frame deltas and excludes hidden time when animation resumes", () => {
     const { callbacks, controller, renderer } = createHarness();
 
     controller.start();
@@ -349,9 +389,9 @@ describe("background scene controller", () => {
       (renderedField(renderer).children[0] as THREE.Points).material as THREE.ShaderMaterial
     ).uniforms.uTime.value as number;
 
-    expect(beforePause).toBeCloseTo(0.5);
+    expect(beforePause).toBeCloseTo(0.05);
     expect(afterResume).toBeCloseTo(beforePause);
-    expect(afterNextFrame).toBeCloseTo(0.75);
+    expect(afterNextFrame).toBeCloseTo(0.1);
   });
 
   it("stops and disposes the frame, geometry, materials, and renderer", () => {
@@ -480,6 +520,27 @@ describe("background scene controller", () => {
       mix: 1,
       particles: 6_000,
       signals: 80,
+    });
+  });
+
+  it("caps a multi-second visible gap during a quality fade", () => {
+    const setup = createSceneSetup();
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      hardwareConcurrency: 12,
+    });
+    controller.resize(1_440, 900, 1.5);
+    controller.start();
+    controller.resize(900, 700, 1);
+
+    setup.callbacks.get(1)?.(1_000);
+    setup.callbacks.get(2)?.(6_000);
+
+    expect(qualityState(setup.renderer)).toEqual({
+      connections: 6_400,
+      mix: 1.875,
+      particles: 10_000,
+      signals: 128,
     });
   });
 

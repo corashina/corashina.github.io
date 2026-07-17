@@ -30,6 +30,12 @@ function pointerMove(clientX: number, clientY: number, timeStamp: number): Mouse
   return event;
 }
 
+function touchPointerMove(clientX: number, clientY: number, timeStamp: number): MouseEvent {
+  const event = pointerMove(clientX, clientY, timeStamp);
+  Object.defineProperty(event, "pointerType", { value: "touch" });
+  return event;
+}
+
 describe("BackgroundCanvas", () => {
   let controller: BackgroundController;
   let resizeCallback: ResizeObserverCallback;
@@ -108,6 +114,10 @@ describe("BackgroundCanvas", () => {
     } as DOMRect);
     act(() => window.dispatchEvent(new MouseEvent("pointermove", { clientX: 200, clientY: 0 })));
 
+    expect(sceneMocks.createBackgroundScene).toHaveBeenCalledWith(
+      canvas,
+      expect.objectContaining({ staticQuality: "medium" }),
+    );
     expect(controller.renderStatic).toHaveBeenCalledOnce();
     expect(controller.start).not.toHaveBeenCalled();
     expect(controller.setPointer).not.toHaveBeenCalled();
@@ -190,6 +200,27 @@ describe("BackgroundCanvas", () => {
     expect(pointerCalls.map(([, , speed]) => speed)).toEqual([0, 0.5, 0]);
     expect(pointerCalls.at(-1)?.[0]).toBeCloseTo(0.6);
     expect(pointerCalls.at(-1)?.[1]).toBeCloseTo(0.6);
+  });
+
+  it("keeps touch scrolling autonomous and resets the next mouse velocity sample", () => {
+    render(<BackgroundCanvas theme="dark" />);
+    const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1_000,
+      height: 500,
+    } as DOMRect);
+
+    act(() => window.dispatchEvent(pointerMove(100, 100, 100)));
+    act(() => window.dispatchEvent(touchPointerMove(600, 100, 200)));
+    act(() => window.dispatchEvent(pointerMove(700, 100, 300)));
+
+    expect(controller.setPointer).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(controller.setPointer).mock.calls.map(([, , speed]) => speed)).toEqual([
+      0,
+      0,
+    ]);
   });
 
   it("maps dark and white themes to the constellation palette", () => {

@@ -29,19 +29,24 @@ describe("constellation shaders", () => {
     expect(signalFragmentShader).not.toContain("smoothstep(0.52, 0.0, vUv.x)");
   });
 
-  it("moves and pulses bounded connection endpoints", () => {
+  it("moves bounded connection endpoints and propagates pointer-reactive pulses", () => {
     expect(connectionVertexShader).toContain("attribute vec3 aEndpoint");
     expect(connectionVertexShader).toContain("attribute vec4 aEndpointSeed");
     expect(connectionVertexShader).toContain("attribute float aEdgePhase");
-    expect(connectionVertexShader).toContain("varying float vVisibility");
-    expect(connectionVertexShader).toContain("vSignal = pulse");
+    expect(connectionVertexShader).toContain("attribute float aEndpointCoordinate");
+    expect(connectionVertexShader).toContain("attribute vec4 aEdgeMeta");
+    expect(connectionVertexShader).toContain("aEdgeMeta.x");
+    expect(connectionVertexShader).toContain("aEdgeMeta.y");
+    expect(connectionVertexShader).toContain("aEdgeMeta.z");
+    expect(connectionVertexShader).toContain("aEdgeMeta.w");
     expect(connectionVertexShader).toContain(
-      "vVisibility = tierAlpha * contentVisibility(screen)",
+      "vEndpointCoordinate = aEndpointCoordinate",
     );
-    expect(connectionFragmentShader).toContain("vSignal");
+    expect(connectionVertexShader).toContain("varying float vVisibility");
+    expect(connectionFragmentShader).toContain("uniform float uPointerSpeed");
+    expect(connectionFragmentShader).toContain("fract(");
+    expect(connectionFragmentShader).toContain("clamp(uPointerSpeed, 0.0, 1.0)");
+    expect(connectionFragmentShader).toContain("clamp(");
     expect(connectionFragmentShader).toContain("varying float vVisibility");
-    expect(connectionFragmentShader).toContain(
-      "(0.025 + vSignal * 0.16) * vVisibility",
-    );
   });
 });

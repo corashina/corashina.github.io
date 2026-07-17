@@ -32,6 +32,7 @@ export type BackgroundSceneDependencies = {
 export type BackgroundSceneOptions = Partial<BackgroundSceneDependencies> & {
   hardwareConcurrency?: number;
   onFailure?(error: unknown): void;
+  staticQuality?: QualityTier;
 };
 
 export const capPixelRatio = (value: number): number =>
@@ -71,6 +72,7 @@ const SAMPLE_FRAMES = 90;
 const SLOW_FRAME_MS = 22;
 const REQUIRED_SLOW_FRAMES = 45;
 const QUALITY_FADE_SECONDS = 0.4;
+const MAX_SIMULATION_DELTA_MS = 50;
 const QUALITY_MIX = { low: 0, medium: 1, high: 2 } as const;
 
 export function createBackgroundScene(
@@ -81,6 +83,7 @@ export function createBackgroundScene(
   const requestFrame = options.requestFrame ?? defaultDependencies.requestFrame;
   const cancelFrame = options.cancelFrame ?? defaultDependencies.cancelFrame;
   const onFailure = options.onFailure ?? (() => undefined);
+  const staticQuality = options.staticQuality;
   const hardwareConcurrency =
     options.hardwareConcurrency ??
     (typeof navigator === "undefined" ? 4 : navigator.hardwareConcurrency);
@@ -233,11 +236,12 @@ export function createBackgroundScene(
     if (!running || disposed) return;
     const deltaMs =
       previousTimestamp === null ? 0 : Math.max(timestamp - previousTimestamp, 0);
-    elapsedTime += deltaMs * 0.001;
+    const simulationDeltaMs = Math.min(deltaMs, MAX_SIMULATION_DELTA_MS);
+    elapsedTime += simulationDeltaMs * 0.001;
     previousTimestamp = timestamp;
     samplePerformance(deltaMs);
-    updateQualityTransition(deltaMs * 0.001);
-    pointerSpeedTarget *= Math.exp(-deltaMs * 0.001 * 3.2);
+    updateQualityTransition(simulationDeltaMs * 0.001);
+    pointerSpeedTarget *= Math.exp(-simulationDeltaMs * 0.001 * 3.2);
     try {
       applyTargets(0.035);
       field.setTime(elapsedTime);
@@ -307,7 +311,15 @@ export function createBackgroundScene(
     },
     renderStatic(): void {
       if (disposed) return;
-      applyLowestQualityImmediately();
+      if (staticQuality) {
+        qualityTier = staticQuality;
+        qualityTransition = null;
+        pendingQualityTier = null;
+        field.setQuality(staticQuality);
+        field.setQualityMix(QUALITY_MIX[staticQuality]);
+      } else {
+        applyLowestQualityImmediately();
+      }
       pointer.set(0, 0);
       pointerTarget.set(0, 0);
       pointerSpeed = 0;

@@ -95,26 +95,42 @@ export const connectionVertexShader = `
 attribute vec3 aEndpoint;
 attribute vec4 aEndpointSeed;
 attribute float aEdgePhase;
+attribute float aEndpointCoordinate;
+attribute vec4 aEdgeMeta;
 attribute float aLevel;
 uniform float uQualityMix;
-varying float vSignal;
+varying float vEndpointCoordinate;
+varying float vEdgePhase;
 varying float vVisibility;
 ${motionChunk}
 void main() {
   vec3 moved = displacedPosition(aEndpoint, aEndpointSeed);
-  float pulse = 0.5 + 0.5 * sin(uTime * 1.1 - aEdgePhase * 20.0);
   float tierAlpha = 1.0 - smoothstep(uQualityMix + 0.02, uQualityMix + 0.32, aLevel);
   vec4 clip = projectionMatrix * modelViewMatrix * vec4(moved, 1.0);
   vec2 screen = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
-  vSignal = pulse;
-  vVisibility = tierAlpha * contentVisibility(screen);
+  float distanceVisibility = 1.0 - smoothstep(0.28, 1.0, aEdgeMeta.x);
+  float depthVisibility = mix(1.0, 0.35, aEdgeMeta.y);
+  float clusterPhase = 0.5 + 0.5 * sin(uTime * 0.55 + aEdgeMeta.z * 6.28318530718);
+  float signalActivity = mix(0.45, 1.0, aEdgeMeta.w) * mix(0.6, 1.0, clusterPhase);
+  vEndpointCoordinate = aEndpointCoordinate;
+  vEdgePhase = aEdgePhase;
+  vVisibility = tierAlpha * contentVisibility(screen) * distanceVisibility * depthVisibility * signalActivity;
   gl_Position = clip;
 }`;
 
 export const connectionFragmentShader = `
 uniform vec3 uConnectionColor;
-varying float vSignal;
+uniform float uTime;
+uniform float uPointerSpeed;
+varying float vEndpointCoordinate;
+varying float vEdgePhase;
 varying float vVisibility;
 void main() {
-  gl_FragColor = vec4(uConnectionColor, (0.025 + vSignal * 0.16) * vVisibility);
+  float pulsePosition = fract(uTime * 0.22 + vEdgePhase);
+  float pulseDistance = abs(vEndpointCoordinate - pulsePosition);
+  pulseDistance = min(pulseDistance, 1.0 - pulseDistance);
+  float pulse = 1.0 - smoothstep(0.0, 0.16, pulseDistance);
+  float pointerEnergy = clamp(uPointerSpeed, 0.0, 1.0);
+  float connectionEnergy = clamp(0.025 + pulse * (0.12 + pointerEnergy * 0.11), 0.025, 0.28);
+  gl_FragColor = vec4(uConnectionColor, connectionEnergy * vVisibility);
 }`;

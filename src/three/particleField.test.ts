@@ -57,6 +57,8 @@ describe("particle data", () => {
     expect(links.indices).toHaveLength(budget * 2);
     expect(links.phases).toHaveLength(budget * 2);
     expect(links.levels).toHaveLength(budget * 2);
+    expect(links.endpointCoordinates).toHaveLength(budget * 2);
+    expect(links.metadata).toHaveLength(budget * 8);
     for (let edge = 0; edge < budget; edge += 1) {
       const source = links.indices[edge * 2];
       const target = links.indices[edge * 2 + 1];
@@ -70,6 +72,20 @@ describe("particle data", () => {
       expect(particles.clusters[source]).toBe(particles.clusters[target]);
       expect(links.phases[edge * 2]).toBe(links.phases[edge * 2 + 1]);
       expect(links.levels[edge * 2]).toBe(links.levels[edge * 2 + 1]);
+      expect(Array.from(links.endpointCoordinates.subarray(edge * 2, edge * 2 + 2))).toEqual([
+        0,
+        1,
+      ]);
+      const sourceMetadata = links.metadata.subarray(edge * 8, edge * 8 + 4);
+      const targetMetadata = links.metadata.subarray(edge * 8 + 4, edge * 8 + 8);
+      expect(sourceMetadata).toEqual(targetMetadata);
+      expect(Array.from(sourceMetadata).every((value) => value >= 0 && value <= 1)).toBe(
+        true,
+      );
+
+      const dx = particles.positions[source * 3] - particles.positions[target * 3];
+      const dy = particles.positions[source * 3 + 1] - particles.positions[target * 3 + 1];
+      expect(Math.hypot(dx, dy)).toBeLessThan(280);
     }
   });
 
@@ -81,6 +97,8 @@ describe("particle data", () => {
     expect(first.indices).toEqual(second.indices);
     expect(first.phases).toEqual(second.phases);
     expect(first.levels).toEqual(second.levels);
+    expect(first.endpointCoordinates).toEqual(second.endpointCoordinates);
+    expect(first.metadata).toEqual(second.metadata);
   });
 });
 
@@ -158,6 +176,10 @@ describe("particle render field", () => {
     const endpointAttribute = connections.geometry.getAttribute("aEndpoint");
     const endpointSeedAttribute = connections.geometry.getAttribute("aEndpointSeed");
     const edgePhaseAttribute = connections.geometry.getAttribute("aEdgePhase");
+    const endpointCoordinateAttribute = connections.geometry.getAttribute(
+      "aEndpointCoordinate",
+    );
+    const edgeMetadataAttribute = connections.geometry.getAttribute("aEdgeMeta");
     const connectionLevelAttribute = connections.geometry.getAttribute("aLevel");
     expect(endpointAttribute.itemSize).toBe(3);
     expect(endpointAttribute.array).toEqual(expectedEndpointPositions);
@@ -165,6 +187,10 @@ describe("particle render field", () => {
     expect(endpointSeedAttribute.array).toEqual(expectedEndpointSeeds);
     expect(edgePhaseAttribute.itemSize).toBe(1);
     expect(edgePhaseAttribute.array).toEqual(connectionData.phases);
+    expect(endpointCoordinateAttribute.itemSize).toBe(1);
+    expect(endpointCoordinateAttribute.array).toEqual(connectionData.endpointCoordinates);
+    expect(edgeMetadataAttribute.itemSize).toBe(4);
+    expect(edgeMetadataAttribute.array).toEqual(connectionData.metadata);
     expect(connectionLevelAttribute.itemSize).toBe(1);
     expect(connectionLevelAttribute.array).toEqual(connectionData.levels);
 
