@@ -15,29 +15,19 @@ export function ProjectPage(): JSX.Element {
 
   return (
     <article className={styles.detail}>
-      <ProjectMedia interactive={false} media={project.media} />
-      <div className={styles.detailCopy}>
-        <h1>{project.title}</h1>
-        <p>{project.overview}</p>
-        <section aria-label="Selected contribution">
-          <h2>Selected contribution</h2>
-          <ul className={styles.contributions}>
-            {project.contributions.map((contribution) => (
-              <li key={contribution}>{contribution}</li>
-            ))}
-          </ul>
-        </section>
-        <section aria-label="Technologies">
-          <h2>Technologies</h2>
-          <ul className={styles.tags}>
-            {project.technologies.map((technology) => (
-              <li key={technology}>{technology}</li>
-            ))}
-          </ul>
-        </section>
-        {project.sourceUrl && project.sourceLabel ? (
-          <a href={project.sourceUrl}>{project.sourceLabel}</a>
-        ) : null}
+      <ProjectMedia interactive media={project.media} />
+      <div>
+        <h2>{project.title}</h2>
+        <h4>{project.date}</h4>
+        <p>{project.description}</p>
+        <br />
+        <ul className={styles.tools}>
+          {project.tools.map((tool) => (
+            <li key={tool}>{tool}</li>
+          ))}
+        </ul>
+        <br />
+        <a href={project.sourceUrl}>github →</a>
       </div>
     </article>
   );
