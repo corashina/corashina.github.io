@@ -1,7 +1,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BackgroundController } from "../three/backgroundScene";
-import { BackgroundCanvas } from "./BackgroundCanvas";
+import { BackgroundCanvas, resolveReducedMotion } from "./BackgroundCanvas";
 
 const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
@@ -36,6 +36,23 @@ function touchPointerMove(clientX: number, clientY: number, timeStamp: number): 
   return event;
 }
 
+describe("resolveReducedMotion", () => {
+  it("preserves the browser preference without an override", () => {
+    expect(resolveReducedMotion(true, true, "")).toBe(true);
+    expect(resolveReducedMotion(false, true, "")).toBe(false);
+  });
+
+  it("allows exact full motion only during development", () => {
+    expect(resolveReducedMotion(true, true, "?motion=full")).toBe(false);
+    expect(resolveReducedMotion(true, false, "?motion=full")).toBe(true);
+  });
+
+  it("rejects non-exact override values", () => {
+    expect(resolveReducedMotion(true, true, "?motion=true")).toBe(true);
+    expect(resolveReducedMotion(true, true, "?motion=FULL")).toBe(true);
+  });
+});
+
 describe("BackgroundCanvas", () => {
   let controller: BackgroundController;
   let resizeCallback: ResizeObserverCallback;
@@ -43,6 +60,7 @@ describe("BackgroundCanvas", () => {
   const disconnect = vi.fn();
 
   beforeEach(() => {
+    window.history.replaceState({}, "", "/");
     controller = createController();
     sceneMocks.createBackgroundScene.mockReset();
     sceneMocks.createBackgroundScene.mockReturnValue(controller);
@@ -121,6 +139,33 @@ describe("BackgroundCanvas", () => {
     expect(controller.renderStatic).toHaveBeenCalledOnce();
     expect(controller.start).not.toHaveBeenCalled();
     expect(controller.setPointer).not.toHaveBeenCalled();
+  });
+
+  it("runs full motion in development when the URL override is present", () => {
+    vi.mocked(window.matchMedia).mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as MediaQueryList);
+    window.history.replaceState({}, "", "/?motion=full");
+
+    render(<BackgroundCanvas theme="dark" />);
+    const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1_000,
+      height: 500,
+    } as DOMRect);
+    act(() => window.dispatchEvent(pointerMove(500, 250, 100)));
+
+    expect(sceneMocks.createBackgroundScene).toHaveBeenCalledWith(
+      canvas,
+      expect.objectContaining({ staticQuality: undefined }),
+    );
+    expect(controller.start).toHaveBeenCalledOnce();
+    expect(controller.renderStatic).not.toHaveBeenCalled();
+    expect(controller.setPointer).toHaveBeenCalledWith(0, 0, 0);
   });
 
   it("stops while hidden and restarts when visible", () => {

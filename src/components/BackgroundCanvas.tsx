@@ -35,6 +35,16 @@ type BackgroundCanvasProps = {
   theme: Theme;
 };
 
+export function resolveReducedMotion(
+  prefersReducedMotion: boolean,
+  isDevelopment: boolean,
+  search: string,
+): boolean {
+  const forcesFullMotion =
+    isDevelopment && new URLSearchParams(search).get("motion") === "full";
+  return prefersReducedMotion && !forcesFullMotion;
+}
+
 export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
@@ -49,8 +59,13 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       return;
     }
 
-    const reducedMotion =
+    const prefersReducedMotion =
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+    const reducedMotion = resolveReducedMotion(
+      prefersReducedMotion,
+      import.meta.env.DEV,
+      window.location.search,
+    );
     reducedMotionRef.current = reducedMotion;
 
     let controller: BackgroundController | null = null;
