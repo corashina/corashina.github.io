@@ -21,7 +21,7 @@ Result: exit code `0`.
 
 - Vitest: 14 test files passed; 98 tests passed; 0 failed.
 - TypeScript: `tsc -b --pretty false` completed without errors.
-- Vite: 76 modules transformed; the final production build completed in 734 ms.
+- Vite: 76 modules transformed; the post-review production build completed in 775 ms.
 - SPA fallback: `dist/404.html` exists and has the same SHA-256 hash as `dist/index.html`: `4B3517C95905E365A77CD71A500791324CC5D52956F1BF00675249D420790931`.
 - `git diff --check` reported no whitespace errors.
 - `git status --short` produced no output before report creation.
@@ -29,13 +29,13 @@ Result: exit code `0`.
 
 ## Browser Matrix
 
-The running worktree preview was exercised in the in-app browser. Screenshots were captured and visually inspected for desktop dark Home, desktop Works, desktop WebGL detail, desktop light Contact, and mobile dark Home. Each was readable, visually contained behind the content, and matched the expected original layout.
+The running worktree preview was exercised in the in-app browser. Contemporaneous manual visual observations were made for desktop dark Home, desktop Works, desktop WebGL detail, desktop light Contact, and mobile dark Home. Each was readable, visually contained behind the content, and matched the expected original layout. No screenshot artifacts are retained or committed with this report.
 
 ### Desktop: 1440x900
 
 - Home rendered the exact original headings, body copy, tool list, and footer copy. Computed body colors were `rgb(34, 34, 34)` and `rgb(204, 204, 204)` in the default dark theme. The shell had `max-width: 600px` with 24 px side padding, the canvas measured `1440x900`, exactly one semantic main was present after settling, and the document had no horizontal overflow.
-- Desktop exposed no mobile-menu toggle; the screenshot showed the original inline Home, Work, and Contact navigation.
-- Two forced-motion Home frames taken 500 ms apart measured 83,713 and 83,845 bytes; the comparison found 83,010 differing bytes. This proves the constellation was actively animating under `?motion=full`.
+- Desktop exposed no mobile-menu toggle; contemporaneous manual inspection showed the original inline Home, Work, and Contact navigation.
+- Two temporary forced-motion Home frame captures compared within the live session, 500 ms apart, measured 83,713 and 83,845 bytes; the comparison found 83,010 differing bytes. This proves the constellation was actively animating under `?motion=full`. The temporary captures were not retained as report artifacts.
 - Works rendered exactly seven project links in the required order. The shell had `max-width: 900px`, the grid computed to `284px 284px 284px`, and the first media item computed to `grayscale(1)`. All five videos reached `readyState === 4`; both images completed with `naturalWidth > 0`.
 - Every project detail route was opened: `/works/webgl-minecraft`, `/works/endless-city`, `/works/flappy-pixie`, `/works/civio`, `/works/particle-simulation`, `/works/fitmed`, and `/works/kiteprint`. Each showed the expected title, date, media, and source destination. Each used the 900 px work shell, approximately `578.656px / 289.344px` detail columns, and had no horizontal overflow.
 - Contact rendered the original destinations and flair. Switching to the light theme produced a `white` body, `rgb(255, 255, 255)` background, `rgb(0, 0, 0)` text, `color-scheme: light`, a `Switch to dark theme` control label, and a visible light-palette canvas.
@@ -47,19 +47,19 @@ The running worktree preview was exercised in the in-app browser. Screenshots we
 
 The browser's content width was 375 px because of its scrollbar.
 
-- Without the query override, `matchMedia("(prefers-reduced-motion: reduce)").matches` was `true`. The canvas measured `375x844`, the closed menu had `display: none` and `aria-expanded="false"`, the layout was 311 px wide, and document width was 375 px. Paired screenshots were byte-identical at 35,904 bytes with zero differing bytes, proving a static reduced-motion constellation.
+- Without the query override, `matchMedia("(prefers-reduced-motion: reduce)").matches` was `true`. The canvas measured `375x844`, the closed menu had `display: none` and `aria-expanded="false"`, the layout was 311 px wide, and document width was 375 px. Temporary paired frame captures compared within the live session were byte-identical at 35,904 bytes with zero differing bytes, proving a static reduced-motion constellation; the captures were not retained.
 - Opening the menu changed it to `display: block`, `aria-expanded="true"`, and the accessible label `Close navigation menu`, with all three links visible. Selecting Work closed the menu and restored `aria-expanded="false"`.
 - Works showed seven cards in one 311 px column with no horizontal overflow. A project detail used one 326 px column, with both its media and detail content measuring 326 px and no overflow.
-- With `?motion=full`, paired frames measured 33,690 and 33,523 bytes with 33,072 differing bytes, proving that the development override re-enabled animation at the mobile viewport.
+- With `?motion=full`, temporary paired frame captures compared within the live session measured 33,690 and 33,523 bytes with 33,072 differing bytes, proving that the development override re-enabled animation at the mobile viewport; the captures were not retained.
 
 ### Source- and Test-Backed Acceptance Evidence
 
 The following requirements were not directly quantified in the live browser and are reported separately from manual observations:
 
-- Typography and shell details: `src/styles/global.scss` imports Questrial and sets `font-family: "Questrial", sans-serif`; inspected screenshots visibly used that face. `src/styles/contrast.test.ts` covers the navigation bottom border, footer top border, 5rem navigation separation, widths, and 400 ms grayscale reveal contract.
+- Typography and shell details: source inspection shows that `src/styles/global.scss` imports Questrial and declares `font-family: "Questrial", sans-serif`; contemporaneous manual inspection showed typography consistent with that declaration. A focused follow-up browser recovery returned `No browser is available`, so `document.fonts.status`, `document.fonts.check("14px Questrial")`, and the computed body `fontFamily` were not measured. Source inspection shows the navigation bottom border at `src/styles/layout.module.scss:15` and footer top border at `src/styles/layout.module.scss:125`. `src/styles/contrast.test.ts` covers the 5rem navigation separation, widths, and 400 ms grayscale reveal contract; it does not cover those border declarations.
 - Pointer response: forced-motion animation was proven live, but cursor bending and autonomous return were not separately measured. Passing coverage in `src/three/particleShaders.test.ts`, `src/three/backgroundScene.test.ts`, and `src/components/BackgroundCanvas.test.tsx` verifies the pointer-reactive field/pulses, normalized and damped pointer input, capped velocity integration, and energy decay.
 - Touch scrolling: live scroll energy was not instrumented. The passing `BackgroundCanvas.test.tsx` case `keeps touch scrolling autonomous and resets the next mouse velocity sample` verifies that touch movement does not energize the field or pollute the next mouse sample.
-- Theme interpolation: the final light palette was visually inspected live; automated scene and AppShell coverage verifies coordinated particle/document theme application. The intermediate interpolation was not directly measured in the live browser.
+- Theme interpolation: the final light palette had a contemporaneous manual visual inspection; automated scene and AppShell coverage verifies coordinated particle/document theme application. The intermediate interpolation was not directly measured in the live browser.
 
 ### Media Interaction
 
@@ -80,4 +80,4 @@ None. The rapid PUSH/POP hardening item passed live, and the remaining acceptanc
 - The existing Vite main-chunk size advisory remains outside Task 5 scope.
 - The browser's operating preference is reduced motion, so live video hover playback was correctly suppressed; its normal-motion interaction lifecycle is covered by automated tests rather than a live playback observation.
 - Every route was inspected live in dark theme; light theme was inspected live on Contact rather than revisiting every route. Theme synchronization across the shell and particle scene is covered by automated tests.
-- Questrial, pointer bending/return, touch-scroll energy, and intermediate theme interpolation have source/automated evidence but were not separately instrumented in the manual browser session. These are manual-coverage limitations, not reproduced product defects.
+- Questrial, pointer bending/return, touch-scroll energy, and intermediate theme interpolation have source/automated evidence but were not separately instrumented in the manual browser session. In particular, the focused follow-up could not obtain FontFaceSet or computed-font values because no browser was available. These are manual-coverage limitations, not reproduced product defects.
