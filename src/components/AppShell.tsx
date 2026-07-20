@@ -3,6 +3,7 @@ import {
   createRef,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type JSX,
   type ReactElement,
@@ -23,25 +24,77 @@ import { Navigation } from "./Navigation";
 
 export type TransitionDirection = "forward" | "backward";
 
-export const resolveTransitionDirection = (
+type TransitionHistory = {
+  currentKey: string;
+  direction: TransitionDirection;
+  entries: string[];
+  index: number;
+};
+
+const createTransitionHistory = (locationKey: string): TransitionHistory => ({
+  currentKey: locationKey,
+  direction: "forward",
+  entries: [locationKey],
+  index: 0,
+});
+
+const resolveTransitionDirection = (
   navigationType: NavigationType,
   locationKey: string,
-): TransitionDirection =>
-  navigationType === "POP" && locationKey !== "default" ? "backward" : "forward";
+  history: TransitionHistory,
+): TransitionDirection => {
+  if (locationKey === history.currentKey) return history.direction;
+
+  if (navigationType === "PUSH") {
+    history.entries.splice(history.index + 1);
+    history.entries.push(locationKey);
+    history.index = history.entries.length - 1;
+    history.direction = "forward";
+  } else if (navigationType === "REPLACE") {
+    history.entries[history.index] = locationKey;
+    history.direction = "forward";
+  } else {
+    const knownIndex = history.entries.indexOf(locationKey);
+    if (knownIndex >= 0) {
+      history.direction = knownIndex < history.index ? "backward" : "forward";
+      history.index = knownIndex;
+    } else {
+      history.entries.splice(history.index, 0, locationKey);
+      history.direction = "backward";
+    }
+  }
+
+  history.currentKey = locationKey;
+  return history.direction;
+};
 
 export function AppShell(): JSX.Element {
   const location = useLocation();
   const navigationType = useNavigationType();
   const outlet = useOutlet();
   const nodeRef = useMemo(() => createRef<HTMLElement>(), [location.key]);
+  const transitionHistoryRef = useRef<TransitionHistory | null>(null);
   const [theme, setTheme] = useState<Theme>("dark");
+
+  if (transitionHistoryRef.current === null) {
+    transitionHistoryRef.current = createTransitionHistory(location.key);
+  }
 
   useEffect(() => {
     applyTheme(theme, document.body);
   }, [theme]);
 
+  useEffect(() => {
+    const path = location.pathname.split("/").filter((segment) => segment !== "").pop() ?? "Home";
+    document.title = path.charAt(0).toUpperCase() + path.slice(1);
+  }, [location.pathname]);
+
   const isWorkRoute = location.pathname === "/works" || location.pathname.startsWith("/works/");
-  const direction = resolveTransitionDirection(navigationType, location.key);
+  const direction = resolveTransitionDirection(
+    navigationType,
+    location.key,
+    transitionHistoryRef.current,
+  );
   const appearClasses: CSSTransitionClassNames = {
     appear: styles.forwardEnter,
     appearActive: styles.forwardEnterActive,

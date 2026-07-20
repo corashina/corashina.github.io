@@ -4,12 +4,41 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const readStyles = async () =>
-  Promise.all([
+const readStyles = async () => {
+  const sources = await Promise.all([
     readFile(resolve(process.cwd(), "src/styles/themes.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/layout.module.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/global.scss"), "utf8"),
+    readFile(resolve(process.cwd(), "src/styles/work.module.scss"), "utf8"),
   ]);
+  const [themes, layout, global, work] = sources.map((source) =>
+    source.replace(/\r\n/g, "\n"),
+  );
+  return { global, layout, themes, work };
+};
+
+const findBlock = (source: string, header: string): string => {
+  let headerIndex = source.indexOf(header);
+  let openingBrace = -1;
+  while (headerIndex >= 0) {
+    openingBrace = source.indexOf("{", headerIndex + header.length);
+    if (
+      openingBrace >= 0 &&
+      /^\s*$/.test(source.slice(headerIndex + header.length, openingBrace))
+    ) {
+      break;
+    }
+    headerIndex = source.indexOf(header, headerIndex + header.length);
+  }
+  if (headerIndex < 0 || openingBrace < 0) return "";
+  let depth = 1;
+  for (let index = openingBrace + 1; index < source.length; index += 1) {
+    if (source[index] === "{") depth += 1;
+    if (source[index] === "}") depth -= 1;
+    if (depth === 0) return source.slice(openingBrace + 1, index);
+  }
+  return "";
+};
 
 const readThemeVariables = (source: string, theme: "white" | "dark") => {
   const block = source.match(new RegExp(`body\\.${theme}\\s*\\{([^}]+)\\}`))?.[1] ?? "";
@@ -23,7 +52,7 @@ const readThemeVariables = (source: string, theme: "white" | "dark") => {
 
 describe("original style contracts", () => {
   it("keeps exactly the original five variables inside each theme block", async () => {
-    const [themes] = await readStyles();
+    const { themes } = await readStyles();
 
     expect(readThemeVariables(themes, "white")).toEqual({
       "--color-bg": "#fff",
@@ -42,7 +71,7 @@ describe("original style contracts", () => {
   });
 
   it("keeps each directional transform and 500ms easing contract", async () => {
-    const [, layout] = await readStyles();
+    const { layout } = await readStyles();
 
     expect(layout).toMatch(/\.forwardEnter,\s*\.backwardEnter\s*\{\s*opacity: 0;\s*\}/);
     expect(layout).toMatch(/\.forwardEnter\s*\{\s*transform: translateX\(50vw\);\s*\}/);
@@ -61,7 +90,7 @@ describe("original style contracts", () => {
   });
 
   it("disables every directional transform and duration for reduced motion", async () => {
-    const [, layout] = await readStyles();
+    const { layout } = await readStyles();
     const reducedMotion =
       layout.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]+)\}\s*$/)?.[1] ??
       "";
@@ -81,12 +110,89 @@ describe("original style contracts", () => {
     expect(reducedMotion).toMatch(/transform: none;\s*transition-duration: 0ms;/);
   });
 
-  it("keeps the original shell geometry and video reveal timing", async () => {
-    const [, layout, global] = await readStyles();
+  it("keeps the exact Questrial import, family, spacing, and breakpoints", async () => {
+    const { global, themes } = await readStyles();
+    const body = findBlock(global, "body");
 
-    expect(layout).toContain("max-width: 600px");
-    expect(layout).toContain("max-width: 900px");
-    expect(layout).toContain("margin-bottom: 5rem");
-    expect(global).toMatch(/video:hover\s*\{[^}]*transition: filter 400ms ease-in-out;/s);
+    expect(global).toMatch(
+      /^@import url\("https:\/\/fonts\.googleapis\.com\/css\?family=Questrial&display=swap"\);$/m,
+    );
+    expect(body).toMatch(/font-family: "Questrial", sans-serif;/);
+    expect(themes).toMatch(/^\$spacing: 1\.5rem;$/m);
+    expect(themes).toMatch(/^\$media-sm: 480px;$/m);
+    expect(themes).toMatch(/^\$media-md: 768px;$/m);
+  });
+
+  it("keeps borders, five-rem separation, and exact shell widths in their selectors", async () => {
+    const { layout } = await readStyles();
+    const shell = findBlock(layout, ".layout");
+    const workShell = findBlock(layout, ".workLayout");
+    const navigation = findBlock(layout, ".navigation");
+    const footer = findBlock(layout, ".footer");
+
+    expect(shell).toMatch(/max-width: 600px;/);
+    expect(workShell).toMatch(/max-width: 900px;/);
+    expect(navigation).toMatch(/border-bottom: 1px solid \$color-25;/);
+    expect(navigation).toMatch(/margin-bottom: 5rem;/);
+    expect(footer).toMatch(/border-top: 1px solid \$color-25;/);
+    expect(footer).toMatch(/margin-top: calc\(5rem - #\{\$spacing\}\);/);
+  });
+
+  it("keeps Works and detail grids at the exact breakpoints", async () => {
+    const { work } = await readStyles();
+    const baseGrid = findBlock(work, ".grid");
+    const baseDetail = findBlock(work, ".detail");
+    const smallViewport = findBlock(work, "@media (min-width: $media-sm)");
+    const mediumViewport = findBlock(work, "@media (min-width: $media-md)");
+
+    expect(baseGrid).toMatch(/grid-template-columns: 1fr;/);
+    expect(findBlock(smallViewport, ".grid")).toMatch(
+      /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+    );
+    expect(findBlock(mediumViewport, ".grid")).toMatch(
+      /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/,
+    );
+    expect(baseDetail).toMatch(/display: grid;/);
+    expect(baseDetail).not.toContain("grid-template-columns");
+    expect(findBlock(smallViewport, ".detail")).toMatch(/grid-template-columns: 2fr 1fr;/);
+  });
+
+  it("keeps exact card and detail tool geometry inside their selectors", async () => {
+    const { work } = await readStyles();
+    const card = findBlock(work, ".card");
+    const tool = findBlock(work, ".tools li");
+
+    expect(card).toMatch(/border: 1px solid \$color-25;/);
+    expect(card).toMatch(/padding: 5px;/);
+    expect(tool).toMatch(/border: 1px solid \$color-2;/);
+    expect(tool).toMatch(/padding: 0 calc\(#\{\$spacing\} \/ 10\);/);
+    expect(tool).toMatch(/margin-right: calc\(#\{\$spacing\} \/ 5\);/);
+    expect(tool).toMatch(/margin-bottom: calc\(#\{\$spacing\} \/ 5\);/);
+  });
+
+  it("reveals card and detail image or video color over 400ms", async () => {
+    const { work } = await readStyles();
+    const media = findBlock(work, ".media img,\n.media video");
+    const cardReveal = findBlock(
+      work,
+      ".card:hover .media img,\n.card:hover .media video,\n.card:focus-visible .media img,\n.card:focus-visible .media video",
+    );
+    const detailReveal = findBlock(
+      work,
+      ".detail .media:hover img,\n.detail .media:hover video",
+    );
+
+    expect(media).toMatch(/filter: grayscale\(1\);/);
+    expect(media).toMatch(/transition: filter 400ms ease-in-out;/);
+    expect(cardReveal).toMatch(/filter: grayscale\(0\);/);
+    expect(detailReveal).toMatch(/filter: grayscale\(0\);/);
+  });
+
+  it("suppresses the shared image and video transition for reduced motion", async () => {
+    const { work } = await readStyles();
+    const reducedMotion = findBlock(work, "@media (prefers-reduced-motion: reduce)");
+    const media = findBlock(reducedMotion, ".media img,\n  .media video");
+
+    expect(media).toMatch(/transition: none;/);
   });
 });

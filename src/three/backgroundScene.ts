@@ -4,6 +4,7 @@ import {
   lowerQuality,
   selectQualityTier,
   type ParticleBlendMode,
+  type ParticleFieldController,
   type ParticlePalette,
   type QualityTier,
 } from "./particleField";
@@ -30,6 +31,7 @@ export type BackgroundSceneDependencies = {
 };
 
 export type BackgroundSceneOptions = Partial<BackgroundSceneDependencies> & {
+  createField?: typeof createParticleField;
   hardwareConcurrency?: number;
   onFailure?(error: unknown): void;
   staticQuality?: QualityTier;
@@ -82,18 +84,28 @@ export function createBackgroundScene(
   const createRenderer = options.createRenderer ?? defaultDependencies.createRenderer;
   const requestFrame = options.requestFrame ?? defaultDependencies.requestFrame;
   const cancelFrame = options.cancelFrame ?? defaultDependencies.cancelFrame;
+  const createField = options.createField ?? createParticleField;
   const onFailure = options.onFailure ?? (() => undefined);
   const staticQuality = options.staticQuality;
   const hardwareConcurrency =
     options.hardwareConcurrency ??
     (typeof navigator === "undefined" ? 4 : navigator.hardwareConcurrency);
   const renderer = createRenderer(canvas);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(42, 1, 1, 4000);
-  camera.position.set(0, 0, 1050);
-
-  const field = createParticleField("high");
-  scene.add(field.group);
+  let field: ParticleFieldController | undefined;
+  let scene: THREE.Scene;
+  let camera: THREE.PerspectiveCamera;
+  try {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, 1, 1, 4000);
+    camera.position.set(0, 0, 1050);
+    field = createField("high");
+    scene.add(field.group);
+  } catch (error) {
+    field?.dispose();
+    renderer.dispose();
+    onFailure(error);
+    throw error;
+  }
   const pointer = new THREE.Vector2();
   const pointerTarget = new THREE.Vector2();
   let pointerSpeed = 0;

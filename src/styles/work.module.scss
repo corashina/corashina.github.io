@@ -56,6 +56,11 @@
   filter: grayscale(0);
 }
 
+.detail .media:hover img,
+.detail .media:hover video {
+  filter: grayscale(0);
+}
+
 .mediaFallback {
   border: 1px solid $color-25;
   box-sizing: border-box;

@@ -1,11 +1,16 @@
 import * as THREE from "three";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   capPixelRatio,
   createBackgroundScene,
   normalizePointer,
   normalizePointerSpeed,
 } from "./backgroundScene";
+import { createParticleField } from "./particleField";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function createSceneSetup(onFailure = vi.fn()) {
   const canvas = document.createElement("canvas");
@@ -114,6 +119,51 @@ describe("background scene helpers", () => {
 });
 
 describe("background scene controller", () => {
+  it("cleans up the renderer and reports a particle-field construction failure once", () => {
+    const setup = createSceneSetup();
+    const failure = new Error("particle field construction failed");
+    const createField = vi.fn(() => {
+      throw failure;
+    });
+
+    expect(() =>
+      createBackgroundScene(setup.canvas, {
+        ...setup.dependencies,
+        createField,
+      }),
+    ).toThrow(failure);
+
+    expect(createField).toHaveBeenCalledOnce();
+    expect(createField).toHaveBeenCalledWith("high");
+    expect(setup.onFailure).toHaveBeenCalledOnce();
+    expect(setup.onFailure).toHaveBeenCalledWith(failure);
+    expect(setup.renderer.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("disposes a constructed field when scene attachment fails", () => {
+    const setup = createSceneSetup();
+    const failure = new Error("scene attachment failed");
+    const field = createParticleField("high");
+    const fieldDispose = vi.spyOn(field, "dispose");
+    const createField = vi.fn(() => field);
+    vi.spyOn(THREE.Scene.prototype, "add").mockImplementationOnce(() => {
+      throw failure;
+    });
+
+    expect(() =>
+      createBackgroundScene(setup.canvas, {
+        ...setup.dependencies,
+        createField,
+      }),
+    ).toThrow(failure);
+
+    expect(createField).toHaveBeenCalledOnce();
+    expect(fieldDispose).toHaveBeenCalledOnce();
+    expect(setup.onFailure).toHaveBeenCalledOnce();
+    expect(setup.onFailure).toHaveBeenCalledWith(failure);
+    expect(setup.renderer.dispose).toHaveBeenCalledOnce();
+  });
+
   it("preflights shader compilation and disposes once when it fails", () => {
     const setup = createSceneSetup();
     setup.renderer.compile.mockImplementation(() => {

@@ -5,11 +5,9 @@ import {
   MemoryRouter,
   useNavigate,
   type NavigateFunction,
-  type NavigationType,
 } from "react-router-dom";
 import { App } from "../app/App";
 import styles from "../styles/layout.module.scss";
-import { resolveTransitionDirection } from "./AppShell";
 
 const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
@@ -126,14 +124,115 @@ describe("AppShell", () => {
     expect(themeButton).toHaveAccessibleName("Switch to dark theme");
   });
 
-  it("moves forward on initial and pushed routes and backward on later history pops", () => {
-    expect(resolveTransitionDirection("POP" as NavigationType, "default")).toBe("forward");
-    expect(resolveTransitionDirection("PUSH" as NavigationType, "pushed-location")).toBe(
-      "forward",
+  it.each([
+    ["/", "Home"],
+    ["/works", "Works"],
+    ["/contact", "Contact"],
+    ["/works/webgl-minecraft", "Webgl-minecraft"],
+    ["/works/particle-simulation", "Particle-simulation"],
+    ["/missing-page", "Missing-page"],
+  ])("derives the document title for %s from the final pathname segment", (path, title) => {
+    document.title = "stale title";
+
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>,
     );
-    expect(resolveTransitionDirection("POP" as NavigationType, "history-location")).toBe(
-      "backward",
+
+    expect(document.title).toBe(title);
+  });
+
+  it("updates the exact original document title after navigation", () => {
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <RouterHarness />
+      </MemoryRouter>,
     );
+    expect(document.title).toBe("Home");
+
+    act(() => navigate?.("/works/webgl-minecraft"));
+
+    expect(document.title).toBe("Webgl-minecraft");
+  });
+
+  it("uses backward classes for browser Back and forward classes for browser Forward", () => {
+    vi.useFakeTimers();
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <RouterHarness />
+      </MemoryRouter>,
+    );
+    act(() => vi.advanceTimersByTime(500));
+    act(() => navigate?.("/works"));
+    act(() => vi.advanceTimersByTime(500));
+    act(() => navigate?.("/contact"));
+    act(() => vi.advanceTimersByTime(500));
+
+    act(() => navigate?.(-1));
+
+    let mains = [...container.querySelectorAll("main")];
+    const contactExit = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const workEnter = mains.find((main) => main.textContent?.includes("my stuff"));
+    expect(contactExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
+    expect(workEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(500));
+    act(() => navigate?.(1));
+
+    mains = [...container.querySelectorAll("main")];
+    const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
+    expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+  });
+
+  it("uses forward classes for replace and a deterministic backward fallback for unknown pops", () => {
+    vi.useFakeTimers();
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/", "/works"]} initialIndex={1}>
+        <RouterHarness />
+      </MemoryRouter>,
+    );
+    act(() => vi.advanceTimersByTime(500));
+
+    act(() => navigate?.(-1));
+
+    let mains = [...container.querySelectorAll("main")];
+    const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
+    const homeEnter = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
+    expect(workExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
+    expect(homeEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(500));
+    act(() => navigate?.("/contact", { replace: true }));
+
+    mains = [...container.querySelectorAll("main")];
+    const homeExit = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    expect(homeExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
+    expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
 
   it("runs the initial forward appearance for 500ms", () => {
@@ -208,6 +307,40 @@ describe("AppShell", () => {
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: "Contact" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Work" })).toBeInTheDocument();
+  });
+
+  it("restores accessibility when a route re-enters before its PUSH exit settles", () => {
+    vi.useFakeTimers();
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <RouterHarness />
+      </MemoryRouter>,
+    );
+    act(() => vi.advanceTimersByTime(500));
+
+    act(() => navigate?.("/works"));
+    act(() => navigate?.(-1));
+
+    let restoredHome = [...container.querySelectorAll("main")].find((main) =>
+      main.textContent?.includes("Tomasz Zielinski"),
+    );
+    expect(restoredHome).toBeDefined();
+    expect(restoredHome).not.toHaveAttribute("aria-hidden");
+    expect(restoredHome).not.toHaveAttribute("inert");
+
+    act(() => vi.advanceTimersByTime(500));
+
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+    restoredHome = container.querySelector("main") ?? undefined;
+    expect(restoredHome).not.toHaveAttribute("aria-hidden");
+    expect(restoredHome).not.toHaveAttribute("inert");
   });
 
   it("retains the original contact destinations, flair, and footer", () => {

@@ -4,12 +4,83 @@ uniform vec3 uPointer;
 uniform float uPointerSpeed;
 uniform vec4 uContentMask;
 
+const float TAU = 6.28318530718;
+
+vec3 flowPotential(vec3 point, vec3 phase) {
+  return 0.5 * vec3(
+    sin(point.y + phase.x) + cos(point.z * 1.17 - phase.z),
+    sin(point.z + phase.y) + cos(point.x * 1.13 + phase.x),
+    sin(point.x + phase.z) + cos(point.y * 1.11 - phase.y)
+  );
+}
+
+vec3 curlFlow(vec3 samplePosition, vec3 phase) {
+  const float epsilon = 0.075;
+  vec3 xOffset = vec3(epsilon, 0.0, 0.0);
+  vec3 yOffset = vec3(0.0, epsilon, 0.0);
+  vec3 zOffset = vec3(0.0, 0.0, epsilon);
+  vec3 potentialXPlus = flowPotential(samplePosition + xOffset, phase);
+  vec3 potentialXMinus = flowPotential(samplePosition - xOffset, phase);
+  vec3 potentialYPlus = flowPotential(samplePosition + yOffset, phase);
+  vec3 potentialYMinus = flowPotential(samplePosition - yOffset, phase);
+  vec3 potentialZPlus = flowPotential(samplePosition + zOffset, phase);
+  vec3 potentialZMinus = flowPotential(samplePosition - zOffset, phase);
+  float inverseSpan = 0.5 / epsilon;
+  float dAzDy = (potentialYPlus.z - potentialYMinus.z) * inverseSpan;
+  float dAyDz = (potentialZPlus.y - potentialZMinus.y) * inverseSpan;
+  float dAxDz = (potentialZPlus.x - potentialZMinus.x) * inverseSpan;
+  float dAzDx = (potentialXPlus.z - potentialXMinus.z) * inverseSpan;
+  float dAyDx = (potentialXPlus.y - potentialXMinus.y) * inverseSpan;
+  float dAxDy = (potentialYPlus.x - potentialYMinus.x) * inverseSpan;
+  return vec3(dAzDy - dAyDz, dAxDz - dAzDx, dAyDx - dAxDy);
+}
+
+float clusterLifetime(vec4 seed) {
+  float clusterIdentity = floor(seed.w * 23.0 + 0.5) / 24.0;
+  float clusterCycle = fract(uTime * 0.018 + clusterIdentity);
+  float formation = smoothstep(0.0, 0.18, clusterCycle);
+  float dissolution = 1.0 - smoothstep(0.68, 1.0, clusterCycle);
+  return formation * dissolution;
+}
+
 vec3 displacedPosition(vec3 base, vec4 seed) {
-  float t = uTime * 0.22;
-  float clusterPhase = seed.w * 6.28318530718;
-  float clusterWave = sin(t + clusterPhase + seed.x * 18.0 + base.x * 0.0018);
-  float crossWave = cos(t * 0.73 + clusterPhase + seed.y * 15.0 + base.y * 0.0024);
-  vec3 drift = vec3(crossWave * 72.0, clusterWave * 58.0, sin(t + seed.x * 9.0) * 46.0);
+  float clusterIndex = floor(seed.w * 23.0 + 0.5);
+  float clusterPhase = clusterIndex / 24.0 * TAU;
+  float clusterAngle = clusterIndex / 24.0 * TAU;
+  float clusterRadius = 180.0 + mod(clusterIndex, 6.0) * 220.0;
+  vec2 clusterCenter = vec2(
+    cos(clusterAngle) * clusterRadius,
+    sin(clusterAngle) * clusterRadius * 0.58
+  );
+  float migrationTime = uTime * 0.035;
+  vec2 migratingCenter = clusterCenter + vec2(
+    sin(migrationTime + clusterPhase * 1.7) * 115.0,
+    cos(migrationTime * 0.83 + clusterPhase * 1.3) * 72.0
+  );
+  float clusterBreath = 0.82 + sin(uTime * 0.16 + clusterPhase) * 0.28;
+  float lifetime = clusterLifetime(seed);
+  vec3 clusteredPosition = base;
+  clusteredPosition.xy = migratingCenter + (base.xy - clusterCenter) * clusterBreath;
+  clusteredPosition.z = base.z * clusterBreath;
+
+  vec3 flowPhase = vec3(clusterPhase, clusterPhase + 2.1, clusterPhase + 4.2);
+  vec3 lowFlowPoint = base * 0.00115 + vec3(
+    migrationTime * 0.31,
+    -migrationTime * 0.23,
+    migrationTime * 0.19
+  );
+  vec3 detailFlowPoint = base * 0.00345 + vec3(
+    -migrationTime * 0.47,
+    migrationTime * 0.37,
+    migrationTime * 0.29
+  );
+  vec3 lowFrequencyCurl = curlFlow(lowFlowPoint, flowPhase);
+  vec3 detailCurl = curlFlow(
+    detailFlowPoint,
+    flowPhase.yzx + vec3(seed.x, seed.y, seed.x + seed.y) * 0.35
+  );
+  vec3 drift = lowFrequencyCurl * 66.0 + detailCurl * 24.0;
+  drift += (clusteredPosition - base) * lifetime;
   vec2 delta = base.xy + drift.xy - uPointer.xy;
   float pointerFalloff = exp(-dot(delta, delta) / 145000.0);
   vec2 tangent = normalize(vec2(-delta.y, delta.x) + vec2(0.0001));
@@ -37,7 +108,8 @@ void main() {
   vec4 clip = projectionMatrix * view;
   vec2 screen = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
   float tierAlpha = 1.0 - smoothstep(uQualityMix + 0.02, uQualityMix + 0.32, aLevel);
-  vAlpha = contentVisibility(screen) * tierAlpha * mix(0.35, 1.0, aSeed.y);
+  float lifetimeVisibility = clusterLifetime(aSeed);
+  vAlpha = contentVisibility(screen) * tierAlpha * lifetimeVisibility * mix(0.35, 1.0, aSeed.y);
   gl_PointSize = (1.25 + aSeed.z * 2.1) * clamp(900.0 / -view.z, 0.65, 2.4);
   gl_Position = clip;
 }`;
@@ -74,7 +146,8 @@ void main() {
   vec4 clip = projectionMatrix * (viewCenter + vec4(quad, 0.0, 0.0));
   vec2 screen = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
   vUv = uv;
-  vEnergy = pulse * tierAlpha * contentVisibility(screen);
+  float lifetimeVisibility = clusterLifetime(aSignalSeed);
+  vEnergy = pulse * tierAlpha * contentVisibility(screen) * lifetimeVisibility;
   vTrail = 0.12 + uPointerSpeed * 0.88;
   gl_Position = clip;
 }`;
@@ -112,9 +185,10 @@ void main() {
   float depthVisibility = mix(1.0, 0.35, aEdgeMeta.y);
   float clusterPhase = 0.5 + 0.5 * sin(uTime * 0.55 + aEdgeMeta.z * 6.28318530718);
   float signalActivity = mix(0.45, 1.0, aEdgeMeta.w) * mix(0.6, 1.0, clusterPhase);
+  float lifetimeVisibility = clusterLifetime(aEndpointSeed);
   vEndpointCoordinate = aEndpointCoordinate;
   vEdgePhase = aEdgePhase;
-  vVisibility = tierAlpha * contentVisibility(screen) * distanceVisibility * depthVisibility * signalActivity;
+  vVisibility = tierAlpha * contentVisibility(screen) * distanceVisibility * depthVisibility * signalActivity * lifetimeVisibility;
   gl_Position = clip;
 }`;
 
