@@ -90,7 +90,13 @@ export function createBackgroundScene(
   const hardwareConcurrency =
     options.hardwareConcurrency ??
     (typeof navigator === "undefined" ? 4 : navigator.hardwareConcurrency);
-  const renderer = createRenderer(canvas);
+  let renderer: THREE.WebGLRenderer;
+  try {
+    renderer = createRenderer(canvas);
+  } catch (error) {
+    onFailure(error);
+    throw error;
+  }
   let field: ParticleFieldController | undefined;
   let scene: THREE.Scene;
   let camera: THREE.PerspectiveCamera;

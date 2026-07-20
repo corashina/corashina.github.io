@@ -25,13 +25,24 @@ import { Navigation } from "./Navigation";
 export type TransitionDirection = "forward" | "backward";
 
 type TransitionHistory = {
+  browserIndex: number | null;
   currentKey: string;
   direction: TransitionDirection;
   entries: string[];
   index: number;
 };
 
-const createTransitionHistory = (locationKey: string): TransitionHistory => ({
+const readBrowserHistoryIndex = (): number | null => {
+  if (typeof window === "undefined") return null;
+  const index = (window.history.state as { idx?: unknown } | null)?.idx;
+  return typeof index === "number" && Number.isFinite(index) ? index : null;
+};
+
+const createTransitionHistory = (
+  locationKey: string,
+  browserIndex: number | null,
+): TransitionHistory => ({
+  browserIndex,
   currentKey: locationKey,
   direction: "forward",
   entries: [locationKey],
@@ -42,8 +53,12 @@ const resolveTransitionDirection = (
   navigationType: NavigationType,
   locationKey: string,
   history: TransitionHistory,
+  targetBrowserIndex: number | null,
 ): TransitionDirection => {
-  if (locationKey === history.currentKey) return history.direction;
+  if (locationKey === history.currentKey) {
+    history.browserIndex = targetBrowserIndex;
+    return history.direction;
+  }
 
   if (navigationType === "PUSH") {
     history.entries.splice(history.index + 1);
@@ -55,15 +70,29 @@ const resolveTransitionDirection = (
     history.direction = "forward";
   } else {
     const knownIndex = history.entries.indexOf(locationKey);
-    if (knownIndex >= 0) {
+    if (
+      history.browserIndex !== null &&
+      targetBrowserIndex !== null &&
+      targetBrowserIndex !== history.browserIndex
+    ) {
+      history.direction = targetBrowserIndex < history.browserIndex ? "backward" : "forward";
+    } else if (knownIndex >= 0) {
       history.direction = knownIndex < history.index ? "backward" : "forward";
+    } else {
+      history.direction = "backward";
+    }
+
+    if (knownIndex >= 0) {
       history.index = knownIndex;
+    } else if (history.direction === "forward") {
+      history.entries.splice(history.index + 1, 0, locationKey);
+      history.index += 1;
     } else {
       history.entries.splice(history.index, 0, locationKey);
-      history.direction = "backward";
     }
   }
 
+  history.browserIndex = targetBrowserIndex;
   history.currentKey = locationKey;
   return history.direction;
 };
@@ -77,7 +106,10 @@ export function AppShell(): JSX.Element {
   const [theme, setTheme] = useState<Theme>("dark");
 
   if (transitionHistoryRef.current === null) {
-    transitionHistoryRef.current = createTransitionHistory(location.key);
+    transitionHistoryRef.current = createTransitionHistory(
+      location.key,
+      readBrowserHistoryIndex(),
+    );
   }
 
   useEffect(() => {
@@ -94,6 +126,7 @@ export function AppShell(): JSX.Element {
     navigationType,
     location.key,
     transitionHistoryRef.current,
+    readBrowserHistoryIndex(),
   );
   const appearClasses: CSSTransitionClassNames = {
     appear: styles.forwardEnter,

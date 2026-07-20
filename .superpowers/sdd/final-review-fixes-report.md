@@ -242,7 +242,7 @@ The narrow `createField` option is the only new seam. Scene, camera, field, and 
 
 This is a documentation-only group, so no production RED/GREEN cycle applies. `.superpowers/sdd/hybrid-verification-report.md` now separates the fresh commands/results, names the coordinated theme test, scopes card and detail media interactions accurately, describes curl/lifetime behavior as source/test verified, clarifies browser chronology, and characterizes unretained byte comparisons only as contemporaneous observations.
 
-## Final Focused Verification
+## Initial Fix-Wave Focused Verification
 
 Command:
 
@@ -258,7 +258,7 @@ Tests  65 passed (65)
 Duration  2.32s
 ```
 
-## Complete Verification Gate
+## Initial Fix-Wave Complete Verification Gate
 
 Command:
 
@@ -355,3 +355,161 @@ M  src/three/particleShaders.ts
 - No new controllable browser session or retained visual artifact was available after the final-review corrections. Curl/lifetime behavior is therefore source/test verified, not claimed as a new browser observation.
 - The production build still emits the pre-existing main-chunk size advisory.
 - If `createParticleField` itself allocates resources and throws before returning, it must clean its own unreturned allocations; `backgroundScene` can dispose only a field it has acquired. This ownership boundary is unchanged and is not a reproduced leak.
+
+## Senior Re-review Follow-up
+
+Follow-up baseline: `bb2660be2fdbace6b69fe614cede7b7ce5182333`
+
+### Files Changed
+
+- `.superpowers/sdd/final-review-fixes-report.md`
+- `.superpowers/sdd/hybrid-verification-report.md`
+- `src/components/AppShell.test.tsx`
+- `src/components/AppShell.tsx`
+- `src/three/backgroundScene.test.ts`
+- `src/three/backgroundScene.ts`
+
+### Unknown Forward POP after reload/session restore
+
+RED command:
+
+```powershell
+npm.cmd test -- src/components/AppShell.test.tsx
+```
+
+Relevant output:
+
+```text
+src/components/AppShell.test.tsx (17 tests | 1 failed)
+× uses browser history indices for an unknown Forward POP from an initial middle entry
+Expected: forwardExit/forwardExitActive
+Received: backwardExit/backwardExitActive
+Test Files  1 failed (1)
+Tests  1 failed | 16 passed (17)
+```
+
+GREEN command:
+
+```powershell
+npm.cmd test -- src/components/AppShell.test.tsx
+```
+
+Relevant output:
+
+```text
+Test Files  1 passed (1)
+Tests  17 passed (17)
+```
+
+The transition tracker now stores a finite `window.history.state.idx` when available. POP compares finite prior and target browser indices first, so lower is backward and higher is forward even for unseen keys. Without comparable browser indices it uses known local-key ordering; only an unknown, otherwise undecidable POP takes the deterministic backward fallback. Unknown entries are inserted on the resolved side of the current local entry. Initial, PUSH, and REPLACE remain forward, and the existing known Back/Forward and rapid-reentry tests remain intact.
+
+### Renderer creation failure reporting
+
+RED command:
+
+```powershell
+npm.cmd test -- src/three/backgroundScene.test.ts
+```
+
+Relevant output:
+
+```text
+src/three/backgroundScene.test.ts (32 tests | 1 failed)
+× reports and rethrows renderer creation failures without disposing an unacquired renderer
+Expected onFailure to be called once; received 0 calls.
+Test Files  1 failed (1)
+Tests  1 failed | 31 passed (32)
+```
+
+GREEN command:
+
+```powershell
+npm.cmd test -- src/three/backgroundScene.test.ts
+```
+
+Relevant output:
+
+```text
+Test Files  1 passed (1)
+Tests  32 passed (32)
+```
+
+Renderer creation is now the first guarded acquisition. A factory error calls `onFailure` exactly once with the same error object and rethrows it. No renderer is disposed because none was acquired. All post-renderer field/setup, compilation, render, context-loss, and idempotent disposal tests continue to pass.
+
+### Follow-up focused verification
+
+Affected two-file command:
+
+```powershell
+npm.cmd test -- src/components/AppShell.test.tsx src/three/backgroundScene.test.ts
+```
+
+```text
+Test Files  2 passed (2)
+Tests  49 passed (49)
+```
+
+Required five-file command:
+
+```powershell
+npm.cmd test -- src/three/particleShaders.test.ts src/three/backgroundScene.test.ts src/components/AppShell.test.tsx src/styles/contrast.test.ts src/pages/ProjectPage.test.tsx
+```
+
+```text
+Test Files  5 passed (5)
+Tests  67 passed (67)
+Duration  3.09s
+```
+
+### Follow-up complete verification gate
+
+Command:
+
+```powershell
+npm.cmd run verify
+```
+
+Output:
+
+```text
+Test Files  14 passed (14)
+Tests  118 passed (118)
+TypeScript: tsc -b --pretty false (no errors)
+Vite 8.1.4: 76 modules transformed
+dist/index.html                   0.56 kB | gzip:   0.34 kB
+dist/assets/index-Dk54oX0J.css    6.74 kB | gzip:   1.85 kB
+dist/assets/index-BP7nKpiK.js   802.74 kB | gzip: 221.50 kB
+built in 562ms
+Exit code: 0
+```
+
+`dist/index.html` and `dist/404.html` both have SHA-256 `9F507031741A3F2E8663B730301D3E376DB04C6B965F905A8F5CA4F7785D000D`.
+
+### Follow-up self-review
+
+- Browser indices are used only when both prior and target values are finite and unequal; MemoryRouter/no-index behavior still relies on the tested local key ordering.
+- Unknown Forward insertion preserves future local ordering, while an undecidable unknown POP retains the documented backward fallback.
+- Existing initial/PUSH/REPLACE, known Back/Forward, captured outlet, 500 ms, and rapid accessibility semantics remain covered.
+- Renderer-factory failure preserves original error identity, one callback, one factory call, and zero disposal of an unacquired renderer.
+- The renderer/field transaction and all normal failure/disposal paths remain unchanged after successful renderer acquisition.
+- No visual, particle, style, content, or unrelated architecture changed in this follow-up.
+
+### Follow-up diff and status evidence
+
+Commands were run separately after the implementation and both report updates:
+
+```powershell
+git diff --check
+git status --short
+```
+
+`git diff --check` exited `0` with no whitespace errors; Git emitted only the repository's LF-to-CRLF working-copy notices. `git status --short` exited `0` with exactly this six-file follow-up scope:
+
+```text
+ M .superpowers/sdd/final-review-fixes-report.md
+ M .superpowers/sdd/hybrid-verification-report.md
+ M src/components/AppShell.test.tsx
+ M src/components/AppShell.tsx
+ M src/three/backgroundScene.test.ts
+ M src/three/backgroundScene.ts
+```

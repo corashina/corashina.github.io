@@ -47,6 +47,7 @@ describe("AppShell", () => {
 
   afterEach(() => {
     cleanup();
+    window.history.replaceState(null, "", window.location.href);
     if (vi.isFakeTimers()) {
       vi.runOnlyPendingTimers();
       vi.useRealTimers();
@@ -195,6 +196,35 @@ describe("AppShell", () => {
     act(() => navigate?.(1));
 
     mains = [...container.querySelectorAll("main")];
+    const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
+    expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+  });
+
+  it("uses browser history indices for an unknown Forward POP from an initial middle entry", () => {
+    vi.useFakeTimers();
+    window.history.replaceState({ idx: 11 }, "", window.location.href);
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/", "/works", "/contact"]} initialIndex={1}>
+        <RouterHarness />
+      </MemoryRouter>,
+    );
+    act(() => vi.advanceTimersByTime(500));
+
+    act(() => {
+      window.history.replaceState({ idx: 12 }, "", window.location.href);
+      navigate?.(1);
+    });
+
+    const mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
     const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
     expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);

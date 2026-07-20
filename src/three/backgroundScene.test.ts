@@ -119,6 +119,27 @@ describe("background scene helpers", () => {
 });
 
 describe("background scene controller", () => {
+  it("reports and rethrows renderer creation failures without disposing an unacquired renderer", () => {
+    const setup = createSceneSetup();
+    const failure = new Error("renderer creation failed");
+    const createRenderer = vi.fn(() => {
+      throw failure;
+    });
+
+    expect(() =>
+      createBackgroundScene(setup.canvas, {
+        ...setup.dependencies,
+        createRenderer,
+      }),
+    ).toThrow(failure);
+
+    expect(createRenderer).toHaveBeenCalledOnce();
+    expect(createRenderer).toHaveBeenCalledWith(setup.canvas);
+    expect(setup.onFailure).toHaveBeenCalledOnce();
+    expect(setup.onFailure).toHaveBeenCalledWith(failure);
+    expect(setup.renderer.dispose).not.toHaveBeenCalled();
+  });
+
   it("cleans up the renderer and reports a particle-field construction failure once", () => {
     const setup = createSceneSetup();
     const failure = new Error("particle field construction failed");

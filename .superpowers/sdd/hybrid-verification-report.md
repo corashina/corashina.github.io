@@ -16,7 +16,7 @@ Focused covering command:
 npm.cmd test -- src/three/particleShaders.test.ts src/three/backgroundScene.test.ts src/components/AppShell.test.tsx src/styles/contrast.test.ts src/pages/ProjectPage.test.tsx
 ```
 
-Result: exit code `0`; 5 test files passed, 65 tests passed, 0 failed.
+Result: exit code `0`; 5 test files passed, 67 tests passed, 0 failed.
 
 Complete gate command:
 
@@ -26,11 +26,11 @@ npm.cmd run verify
 
 Result: exit code `0`.
 
-- Vitest: 14 test files passed; 116 tests passed; 0 failed.
+- Vitest: 14 test files passed; 118 tests passed; 0 failed.
 - TypeScript: `tsc -b --pretty false` completed without errors.
-- Vite: 76 modules transformed; the production build completed in 460 ms.
-- SPA fallback: `dist/404.html` exists and has the same SHA-256 hash as `dist/index.html`: `2E88ABBD655864F9246EE86414EE75771E0FB2036E1339E8333B093C7E36CFFC`.
-- Advisory: Vite reported the existing main-chunk size warning (`802.35 kB`, `221.38 kB` gzip); this is non-blocking and outside the acceptance scope.
+- Vite: 76 modules transformed; the production build completed in 562 ms.
+- SPA fallback: `dist/404.html` exists and has the same SHA-256 hash as `dist/index.html`: `9F507031741A3F2E8663B730301D3E376DB04C6B965F905A8F5CA4F7785D000D`.
+- Advisory: Vite reported the existing main-chunk size warning (`802.74 kB`, `221.50 kB` gzip); this is non-blocking and outside the acceptance scope.
 
 Diff and status evidence is recorded separately in the final-review fix report so command success and the pre-commit file inventory are unambiguous.
 
@@ -81,7 +81,7 @@ Browser control was available for the main matrix. The deliverable tab was then 
 
 ## Source Corrections
 
-The final whole-branch review produced corrective RED/GREEN cycles for layered curl and zero-floor cluster lifetimes, known Back/Forward ordering plus deterministic unknown POP behavior, exact pathname-derived titles, detail image/video reveal and selector-scoped style locks, and transaction-safe renderer/field construction. The rapid PUSH/POP behavior that passed live is now protected by an automated accessibility regression. Exact commands and relevant RED/GREEN output are recorded in `.superpowers/sdd/final-review-fixes-report.md`.
+The final whole-branch review produced corrective RED/GREEN cycles for layered curl and zero-floor cluster lifetimes; known Back/Forward ordering; browser-indexed unknown POP direction with a deterministic backward fallback only when neither browser nor local ordering can decide; exact pathname-derived titles; detail image/video reveal and selector-scoped style locks; renderer-creation failure reporting; and transaction-safe renderer/field construction. The rapid PUSH/POP behavior that passed live is now protected by an automated accessibility regression. Exact commands and relevant RED/GREEN output are recorded in `.superpowers/sdd/final-review-fixes-report.md`.
 
 ## Concerns
 
