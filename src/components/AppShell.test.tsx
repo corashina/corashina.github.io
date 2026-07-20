@@ -1,8 +1,9 @@
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, type NavigationType } from "react-router-dom";
 import { App } from "../app/App";
+import { resolveTransitionDirection } from "./AppShell";
 
 const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
@@ -29,6 +30,7 @@ describe("AppShell", () => {
     document.body.className = "";
     document.body.style.colorScheme = "";
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
+    vi.stubGlobal("WebGLRenderingContext", class WebGLRenderingContextStub {});
     vi.stubGlobal(
       "ResizeObserver",
       class ResizeObserverStub {
@@ -77,8 +79,18 @@ describe("AppShell", () => {
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("switches and persists the theme", async () => {
-    localStorage.setItem("portfolio-theme", "dark");
+  it("always starts with the original dark theme", () => {
+    localStorage.setItem("portfolio-theme", "white");
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(document.body).toHaveClass("dark");
+  });
+
+  it("toggles page and particle themes together without persistence", async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -96,8 +108,22 @@ describe("AppShell", () => {
     expect(document.body).toHaveClass("white");
     expect(document.body).not.toHaveClass("dark");
     expect(document.body.style.colorScheme).toBe("light");
-    expect(localStorage.getItem("portfolio-theme")).toBe("white");
+    const controller = sceneMocks.createBackgroundScene.mock.results[0]?.value;
+    expect(controller.setTheme).toHaveBeenLastCalledWith(
+      expect.objectContaining({ background: "#ffffff" }),
+    );
+    expect(localStorage.getItem("portfolio-theme")).not.toBe("white");
     expect(themeButton).toHaveAccessibleName("Switch to dark theme");
+  });
+
+  it("moves forward on initial and pushed routes and backward on later history pops", () => {
+    expect(resolveTransitionDirection("POP" as NavigationType, "default")).toBe("forward");
+    expect(resolveTransitionDirection("PUSH" as NavigationType, "pushed-location")).toBe(
+      "forward",
+    );
+    expect(resolveTransitionDirection("POP" as NavigationType, "history-location")).toBe(
+      "backward",
+    );
   });
 
   it("retains the original contact destinations, flair, and footer", () => {
