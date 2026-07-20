@@ -1,8 +1,14 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { MemoryRouter, type NavigationType } from "react-router-dom";
+import {
+  MemoryRouter,
+  useNavigate,
+  type NavigateFunction,
+  type NavigationType,
+} from "react-router-dom";
 import { App } from "../app/App";
+import styles from "../styles/layout.module.scss";
 import { resolveTransitionDirection } from "./AppShell";
 
 const sceneMocks = vi.hoisted(() => ({
@@ -43,6 +49,10 @@ describe("AppShell", () => {
 
   afterEach(() => {
     cleanup();
+    if (vi.isFakeTimers()) {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
     vi.unstubAllGlobals();
   });
 
@@ -124,6 +134,80 @@ describe("AppShell", () => {
     expect(resolveTransitionDirection("POP" as NavigationType, "history-location")).toBe(
       "backward",
     );
+  });
+
+  it("runs the initial forward appearance for 500ms", () => {
+    vi.useFakeTimers();
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    const main = screen.getByRole("main");
+    expect(main).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(499));
+    expect(main).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(1));
+    expect(main).not.toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+  });
+
+  it("keeps captured outlets during push and back transitions while hiding outgoing mains", () => {
+    vi.useFakeTimers();
+    let navigate: NavigateFunction | undefined;
+
+    function RouterHarness() {
+      navigate = useNavigate();
+      return <App />;
+    }
+
+    const { container } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <RouterHarness />
+      </MemoryRouter>,
+    );
+    act(() => vi.advanceTimersByTime(500));
+
+    act(() => navigate?.("/works"));
+
+    let mains = [...container.querySelectorAll("main")];
+    expect(mains).toHaveLength(2);
+    const homeExit = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
+    const workEnter = mains.find((main) => main.textContent?.includes("my stuff"));
+    expect(homeExit).toHaveAttribute("aria-hidden", "true");
+    expect(homeExit).toHaveAttribute("inert");
+    expect(homeExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
+    expect(workEnter).not.toHaveAttribute("aria-hidden");
+    expect(workEnter).not.toHaveAttribute("inert");
+    expect(workEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(500));
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+    expect(screen.queryByRole("heading", { name: "Tomasz Zielinski" })).not.toBeInTheDocument();
+
+    act(() => navigate?.("/contact"));
+    act(() => vi.advanceTimersByTime(500));
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+
+    act(() => navigate?.(-1));
+
+    mains = [...container.querySelectorAll("main")];
+    expect(mains).toHaveLength(2);
+    const contactExit = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const workEnterBack = mains.find((main) => main.textContent?.includes("my stuff"));
+    expect(contactExit).toHaveAttribute("aria-hidden", "true");
+    expect(contactExit).toHaveAttribute("inert");
+    expect(contactExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
+    expect(workEnterBack).not.toHaveAttribute("aria-hidden");
+    expect(workEnterBack).not.toHaveAttribute("inert");
+    expect(workEnterBack).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
+
+    act(() => vi.advanceTimersByTime(500));
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+    expect(screen.queryByRole("heading", { name: "Contact" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Work" })).toBeInTheDocument();
   });
 
   it("retains the original contact destinations, flair, and footer", () => {

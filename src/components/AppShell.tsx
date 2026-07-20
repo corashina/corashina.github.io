@@ -42,20 +42,34 @@ export function AppShell(): JSX.Element {
 
   const isWorkRoute = location.pathname === "/works" || location.pathname.startsWith("/works/");
   const direction = resolveTransitionDirection(navigationType, location.key);
+  const appearClasses: CSSTransitionClassNames = {
+    appear: styles.forwardEnter,
+    appearActive: styles.forwardEnterActive,
+  };
   const transitionClasses: CSSTransitionClassNames =
     direction === "forward"
       ? {
+          ...appearClasses,
           enter: styles.forwardEnter,
           enterActive: styles.forwardEnterActive,
           exit: styles.forwardExit,
           exitActive: styles.forwardExitActive,
         }
       : {
+          ...appearClasses,
           enter: styles.backwardEnter,
           enterActive: styles.backwardEnterActive,
           exit: styles.backwardExit,
           exitActive: styles.backwardExitActive,
         };
+  const showRoute = (): void => {
+    nodeRef.current?.removeAttribute("aria-hidden");
+    nodeRef.current?.removeAttribute("inert");
+  };
+  const hideRoute = (): void => {
+    nodeRef.current?.setAttribute("aria-hidden", "true");
+    nodeRef.current?.setAttribute("inert", "");
+  };
 
   return (
     <div className={`${styles.layout} ${isWorkRoute ? styles.workLayout : ""}`}>
@@ -75,9 +89,12 @@ export function AppShell(): JSX.Element {
           }
         >
           <CSSTransition
+            appear
             classNames={transitionClasses}
             key={location.key}
             nodeRef={nodeRef}
+            onEnter={showRoute}
+            onExit={hideRoute}
             timeout={500}
             unmountOnExit
           >
