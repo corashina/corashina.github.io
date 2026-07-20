@@ -100,7 +100,7 @@ describe("AppShell", () => {
     expect(themeButton).toHaveAccessibleName("Switch to dark theme");
   });
 
-  it("retains the contact destinations and copyright", () => {
+  it("retains the original contact destinations, flair, and footer", () => {
     render(
       <MemoryRouter initialEntries={["/contact"]}>
         <App />
@@ -130,8 +130,16 @@ describe("AppShell", () => {
     );
     expect(within(links).getByRole("link", { name: /twitter/i })).toHaveAttribute(
       "href",
-      "https://twitter.com/corashina",
+      "http://twitter.com/corashina",
     );
+    const flair = screen.getByRole("link", { name: "Profile for corashina on Stack Exchange" });
+    expect(flair).toHaveAttribute("href", "https://stackexchange.com/users/9864859");
+    expect(within(flair).getByRole("img")).toHaveAttribute(
+      "src",
+      "https://stackexchange.com/users/flair/9864859.png?theme=default",
+    );
+    expect(within(flair).getByRole("img")).toHaveAttribute("width", "208");
+    expect(within(flair).getByRole("img")).toHaveAttribute("height", "58");
     expect(
       screen.getByText(`Copyright © ${new Date().getFullYear()} Tomasz Zielinski`),
     ).toBeInTheDocument();

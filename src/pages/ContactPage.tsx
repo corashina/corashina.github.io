@@ -47,7 +47,7 @@ export function ContactPage(): JSX.Element {
             </a>
           </li>
           <li>
-            <a href="https://twitter.com/corashina">
+            <a href="http://twitter.com/corashina">
               <FaTwitter aria-hidden="true" />
               twitter <span>twitter.com/corashina</span>
             </a>
