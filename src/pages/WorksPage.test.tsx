@@ -1,7 +1,6 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { projects } from "../data/projects";
 import { WorksPage } from "./WorksPage";
 
 const renderPage = () =>
@@ -25,27 +24,28 @@ afterEach(() => {
 });
 
 describe("WorksPage", () => {
-  it("renders exactly the eight approved projects as single semantic links", () => {
+  it("renders the original projects as single semantic links in order", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { level: 2, name: "selected projects" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "my stuff" })).toBeInTheDocument();
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(8);
+    expect(links).toHaveLength(7);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/works/webgl-minecraft",
+      "/works/endless-city",
+      "/works/flappy-pixie",
+      "/works/civio",
+      "/works/particle-simulation",
+      "/works/fitmed",
+      "/works/kiteprint",
+    ]);
 
-    for (const project of projects) {
-      const link = screen.getByRole("link", {
-        name: `${project.title}: ${project.summary}`,
-      });
-      expect(link).toHaveAttribute("href", `/works/${project.slug}`);
-      expect(within(link).getByRole("heading", { name: project.title })).toBeInTheDocument();
+    for (const link of links) {
       expect(within(link).queryByRole("link")).not.toBeInTheDocument();
+      expect(within(link).getByText(link.getAttribute("aria-label") ?? "")).toBeInTheDocument();
     }
-
-    expect(links[0]).toHaveAttribute("href", "/works/warehouse-manufacturing-workflows");
   });
 
   it("plays video previews from card hover and keyboard focus, then pauses and resets them", async () => {
@@ -56,9 +56,7 @@ describe("WorksPage", () => {
     const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
     renderPage();
 
-    const card = screen.getByRole("link", {
-      name: "Endless City: An infinite procedural WebGL city.",
-    });
+    const card = screen.getByRole("link", { name: "Endless-City" });
     const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
     Object.defineProperty(video, "currentTime", { configurable: true, value: 12, writable: true });
 
@@ -80,31 +78,49 @@ describe("WorksPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("does not play video previews when reduced motion is requested", () => {
+  it("plays video previews even when reduced motion is reported", async () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     renderPage();
 
-    const card = screen.getByRole("link", {
-      name: "Endless City: An infinite procedural WebGL city.",
-    });
+    const card = screen.getByRole("link", { name: "Endless-City" });
     fireEvent.mouseEnter(card);
     fireEvent.focus(card);
+    await Promise.resolve();
 
-    expect(play).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledTimes(2);
   });
 
-  it("shows the approved alt text when project media fails", () => {
+  it("removes video interactions immediately when the media falls back", () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const { unmount } = renderPage();
+    const card = screen.getByRole("link", { name: "Endless-City" });
+    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
+    const removeEventListener = vi.spyOn(card, "removeEventListener");
+
+    fireEvent.error(video);
+
+    expect(within(card).getByText("Infinite procedural WebGL city scene")).toBeInTheDocument();
+    expect(card.querySelector("video")).not.toBeInTheDocument();
+    expect(removeEventListener).toHaveBeenCalledTimes(4);
+
+    fireEvent.mouseEnter(card);
+    fireEvent.focus(card);
+    expect(play).not.toHaveBeenCalled();
+
+    unmount();
+    expect(removeEventListener).toHaveBeenCalledTimes(4);
+  });
+
+  it("shows the original alt text when project media fails", () => {
     renderPage();
 
-    const card = screen.getByRole("link", {
-      name: "Document AI: PDF intake, prompts, analysis, and JSON or text results.",
-    });
-    const image = within(card).getByRole("img", { name: "Document AI review interface" });
+    const card = screen.getByRole("link", { name: "Fitmed" });
+    const image = within(card).getByRole("img", { name: "Fitmed interface" });
 
     fireEvent.error(image);
 
-    expect(within(card).getByText("Document AI review interface")).toBeInTheDocument();
+    expect(within(card).getByText("Fitmed interface")).toBeInTheDocument();
     expect(within(card).queryByRole("img")).not.toBeInTheDocument();
   });
 });

@@ -12,8 +12,8 @@ type NavigationProps = {
 
 const links = [
   { label: "Home", to: "/", end: true },
-  { label: "Work", to: "/works", end: false },
-  { label: "Contact", to: "/contact", end: false },
+  { label: "Work", to: "/works", end: true },
+  { label: "Contact", to: "/contact", end: true },
 ] as const;
 
 export function Navigation({ theme, onToggleTheme }: NavigationProps): JSX.Element {

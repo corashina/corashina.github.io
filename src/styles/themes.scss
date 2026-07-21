@@ -7,8 +7,8 @@ $color-1: var(--color-1);
 $color-2: var(--color-2);
 $color-25: var(--color-25);
 $color-3: var(--color-3);
-$color-muted-text: var(--color-muted-text);
-$color-accent-text: var(--color-accent-text);
+$color-muted-text: var(--color-2);
+$color-accent-text: var(--color-3);
 
 body.white {
   --color-bg: #fff;
@@ -16,8 +16,6 @@ body.white {
   --color-2: #aaa;
   --color-25: #ccc;
   --color-3: #880000;
-  --color-muted-text: #767676;
-  --color-accent-text: #880000;
 }
 
 body.dark {
@@ -26,6 +24,4 @@ body.dark {
   --color-2: #666;
   --color-25: #444;
   --color-3: #f44263;
-  --color-muted-text: #9a9a9a;
-  --color-accent-text: #ff5270;
 }

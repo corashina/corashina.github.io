@@ -312,13 +312,24 @@ describe("constellation shaders", () => {
     expect(signalVertexShader).toContain("uPointerSpeed");
     expect(signalFragmentShader).toContain("vEnergy");
     expect(signalFragmentShader).toContain("vTrail");
+    expect(signalFragmentShader).toContain("1.0 - smoothstep(0.0, 0.52, vUv.x)");
+    expect(signalFragmentShader).not.toContain("smoothstep(0.52, 0.0, vUv.x)");
   });
 
   it("moves and pulses bounded connection endpoints", () => {
     expect(connectionVertexShader).toContain("attribute vec3 aEndpoint");
     expect(connectionVertexShader).toContain("attribute vec4 aEndpointSeed");
     expect(connectionVertexShader).toContain("attribute float aEdgePhase");
+    expect(connectionVertexShader).toContain("varying float vVisibility");
+    expect(connectionVertexShader).toContain("vSignal = pulse");
+    expect(connectionVertexShader).toContain(
+      "vVisibility = tierAlpha * contentVisibility(screen)",
+    );
     expect(connectionFragmentShader).toContain("vSignal");
+    expect(connectionFragmentShader).toContain("varying float vVisibility");
+    expect(connectionFragmentShader).toContain(
+      "(0.025 + vSignal * 0.16) * vVisibility",
+    );
   });
 });
 ```
@@ -429,7 +440,7 @@ varying float vTrail;
 void main() {
   vec2 centered = vUv - 0.5;
   float radial = 1.0 - smoothstep(0.02, 0.5, length(centered));
-  float trail = exp(-abs(centered.y) * 18.0) * smoothstep(0.52, 0.0, vUv.x) * vTrail;
+  float trail = exp(-abs(centered.y) * 18.0) * (1.0 - smoothstep(0.0, 0.52, vUv.x)) * vTrail;
   gl_FragColor = vec4(uSignalColor, (radial * (0.28 + vEnergy * 0.72) + trail * 0.3) * vEnergy);
 }`;
 
@@ -440,6 +451,7 @@ attribute float aEdgePhase;
 attribute float aLevel;
 uniform float uQualityMix;
 varying float vSignal;
+varying float vVisibility;
 ${motionChunk}
 void main() {
   vec3 moved = displacedPosition(aEndpoint, aEndpointSeed);
@@ -447,15 +459,17 @@ void main() {
   float tierAlpha = 1.0 - smoothstep(uQualityMix + 0.02, uQualityMix + 0.32, aLevel);
   vec4 clip = projectionMatrix * modelViewMatrix * vec4(moved, 1.0);
   vec2 screen = clip.xy / max(clip.w, 0.0001) * 0.5 + 0.5;
-  vSignal = pulse * tierAlpha * contentVisibility(screen);
+  vSignal = pulse;
+  vVisibility = tierAlpha * contentVisibility(screen);
   gl_Position = clip;
 }`;
 
 export const connectionFragmentShader = `
 uniform vec3 uConnectionColor;
 varying float vSignal;
+varying float vVisibility;
 void main() {
-  gl_FragColor = vec4(uConnectionColor, 0.025 + vSignal * 0.16);
+  gl_FragColor = vec4(uConnectionColor, (0.025 + vSignal * 0.16) * vVisibility);
 }`;
 ```
 
@@ -504,10 +518,17 @@ describe("particle render field", () => {
 
   it("applies exact draw budgets for each quality tier", () => {
     const field = createParticleField("high");
+    const ambient = field.group.children[0] as THREE.Points;
+    const signals = field.group.children[1] as THREE.Mesh<THREE.InstancedBufferGeometry>;
+    const connections = field.group.children[2] as THREE.LineSegments;
     field.setQuality("medium");
-    expect(field.getDrawCounts()).toEqual({ particles: 6_000, signalNodes: 80, connections: 1_800 });
+    expect(ambient.geometry.drawRange.count).toBe(6_000);
+    expect(signals.geometry.instanceCount).toBe(80);
+    expect(connections.geometry.drawRange.count).toBe(3_600);
     field.setQuality("low");
-    expect(field.getDrawCounts()).toEqual({ particles: 3_000, signalNodes: 48, connections: 900 });
+    expect(ambient.geometry.drawRange.count).toBe(3_000);
+    expect(signals.geometry.instanceCount).toBe(48);
+    expect(connections.geometry.drawRange.count).toBe(1_800);
     field.dispose();
   });
 
@@ -518,10 +539,11 @@ describe("particle render field", () => {
     field.setQualityMix(1.4);
     field.setColors({ particle: "#aaaaaa", signal: "#ffffff", connection: "#777777" });
     field.setBlendMode("normal");
-    expect(field.inspectUniforms()).toMatchObject({ time: 4.5, pointerSpeed: 0.7, qualityMix: 1.4 });
-    expect(((field.group.children[0] as THREE.Points).material as THREE.ShaderMaterial).blending).toBe(
-      THREE.NormalBlending,
-    );
+    const material = (field.group.children[0] as THREE.Points).material as THREE.ShaderMaterial;
+    expect(material.uniforms.uTime.value).toBe(4.5);
+    expect(material.uniforms.uPointerSpeed.value).toBe(0.7);
+    expect(material.uniforms.uQualityMix.value).toBe(1.4);
+    expect(material.blending).toBe(THREE.NormalBlending);
     field.dispose();
   });
 
@@ -567,8 +589,6 @@ export type ParticleFieldController = {
   setBlendMode(mode: ParticleBlendMode): void;
   setQuality(tier: QualityTier): void;
   setQualityMix(value: number): void;
-  getDrawCounts(): QualityProfile;
-  inspectUniforms(): { time: number; pointerSpeed: number; qualityMix: number };
   dispose(): void;
 };
 ```
@@ -708,16 +728,14 @@ Finish the function with one controller that owns the active profile and all res
 
 ```ts
   const materials = [ambientMaterial, signalMaterial, connectionMaterial];
-  let currentProfile = QUALITY_PROFILES[initialTier];
   let disposed = false;
 
   const applyQuality = (profile: QualityProfile): void => {
     ambientGeometry.setDrawRange(0, profile.particles);
     signalGeometry.instanceCount = profile.signalNodes;
     connectionGeometry.setDrawRange(0, profile.connections * 2);
-    currentProfile = profile;
   };
-  applyQuality(currentProfile);
+  applyQuality(QUALITY_PROFILES[initialTier]);
 
   return {
     group,
@@ -735,12 +753,6 @@ Finish the function with one controller that owns the active profile and all res
     },
     setQuality: (tier) => applyQuality(QUALITY_PROFILES[tier]),
     setQualityMix: (value) => { qualityMix.value = value; },
-    getDrawCounts: () => ({ ...currentProfile }),
-    inspectUniforms: () => ({
-      time: time.value,
-      pointerSpeed: pointerSpeed.value,
-      qualityMix: qualityMix.value,
-    }),
     dispose: () => {
       if (disposed) return;
       disposed = true;

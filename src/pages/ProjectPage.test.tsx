@@ -1,7 +1,6 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { afterEach, describe, expect, it } from "vitest";
-import { projects } from "../data/projects";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProjectPage } from "./ProjectPage";
 
 const renderProject = (slug: string) =>
@@ -13,64 +12,68 @@ const renderProject = (slug: string) =>
     </MemoryRouter>,
   );
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe("ProjectPage", () => {
-  it("keeps private Document AI work free of source links", () => {
-    renderProject("document-ai");
+  it("renders the original project fields", () => {
+    renderProject("webgl-minecraft");
 
-    expect(screen.getByRole("heading", { level: 1, name: "Document AI" })).toBeInTheDocument();
-    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "WebGL-Minecraft" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 4, name: "April 2018" })).toBeInTheDocument();
+    expect(screen.getByText("Primitive minecraft clone made with three.js")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      "javascript",
+      "three.js",
+      "webgl",
+    ]);
+    expect(screen.getByRole("link", { name: "github →" })).toHaveAttribute(
+      "href",
+      "https://github.com/corashina/WebGL-Minecraft",
+    );
   });
 
-  it("links Endless City to its approved public repository", () => {
+  it("plays detail video media on hover, then pauses and resets it", async () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches: false }),
+    );
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
     renderProject("endless-city");
 
-    expect(screen.getByRole("link", { name: "GitHub" })).toHaveAttribute(
-      "href",
-      "https://github.com/corashina/Endless-City",
-    );
+    const video = screen.getByLabelText("Infinite procedural WebGL city scene");
+    const media = video.parentElement;
+    expect(media).not.toBeNull();
+    Object.defineProperty(video, "currentTime", { configurable: true, value: 12, writable: true });
+
+    fireEvent.mouseEnter(media!);
+    await Promise.resolve();
+    expect(play).toHaveBeenCalledTimes(1);
+
+    fireEvent.mouseLeave(media!);
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("renders source links only for the three approved public projects", () => {
-    const approvedSources = new Map([
-      ["endless-city", "https://github.com/corashina/Endless-City"],
-      ["particle-simulation", "https://github.com/corashina/Particle-Simulation"],
-      ["civio", "https://github.com/corashina/Civio"],
-    ]);
-
-    for (const project of projects) {
-      const { unmount } = renderProject(project.slug);
-      const sourceLink = screen.queryByRole("link");
-      const expectedSource = approvedSources.get(project.slug);
-
-      if (expectedSource) {
-        expect(sourceLink).toHaveAttribute("href", expectedSource);
-      } else {
-        expect(sourceLink).not.toBeInTheDocument();
-      }
-
-      unmount();
-    }
-  });
-
-  it("renders approved overview, contribution, technology, and media content", () => {
-    const project = projects[0];
-    renderProject(project.slug);
-
-    expect(screen.getByText(project.overview)).toBeInTheDocument();
-    const contributions = screen.getByRole("region", { name: "Selected contribution" });
-    expect(within(contributions).getAllByRole("listitem")).toHaveLength(
-      project.contributions.length,
+  it("plays detail video media when reduced motion is reported", async () => {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches: true }),
     );
-    const technologies = screen.getByRole("region", { name: "Technologies" });
-    expect(within(technologies).getAllByRole("listitem")).toHaveLength(
-      project.technologies.length,
-    );
-    expect(screen.getByRole("img", { name: project.media.alt })).toHaveAttribute(
-      "src",
-      project.media.src,
-    );
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    renderProject("endless-city");
+
+    const video = screen.getByLabelText("Infinite procedural WebGL city scene");
+    fireEvent.mouseEnter(video.parentElement!);
+    await Promise.resolve();
+
+    expect(play).toHaveBeenCalledTimes(1);
   });
 
   it("renders the not-found page for an unknown project slug", () => {

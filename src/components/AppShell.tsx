@@ -1,44 +1,194 @@
-import { useEffect, useState, type JSX } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import styles from "../styles/layout.module.scss";
 import {
-  applyTheme,
-  getLocalStorage,
-  persistTheme,
-  readInitialTheme,
-  type Theme,
-} from "../theme/theme";
+  cloneElement,
+  createRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+  type ReactElement,
+} from "react";
+import {
+  useLocation,
+  useNavigationType,
+  useOutlet,
+  type NavigationType,
+} from "react-router-dom";
+import { CSSTransition, TransitionGroup } from "react-transition-group";
+import type { CSSTransitionClassNames } from "react-transition-group/CSSTransition";
+import styles from "../styles/layout.module.scss";
+import { applyTheme, type Theme } from "../theme/theme";
 import { BackgroundCanvas } from "./BackgroundCanvas";
 import { Footer } from "./Footer";
 import { Navigation } from "./Navigation";
 
+export type TransitionDirection = "forward" | "backward";
+
+type TransitionHistory = {
+  browserIndex: number | null;
+  currentKey: string;
+  direction: TransitionDirection;
+  entries: string[];
+  index: number;
+};
+
+const readBrowserHistoryIndex = (): number | null => {
+  if (typeof window === "undefined") return null;
+  const index = (window.history.state as { idx?: unknown } | null)?.idx;
+  return typeof index === "number" && Number.isFinite(index) ? index : null;
+};
+
+const createTransitionHistory = (
+  locationKey: string,
+  browserIndex: number | null,
+): TransitionHistory => ({
+  browserIndex,
+  currentKey: locationKey,
+  direction: "forward",
+  entries: [locationKey],
+  index: 0,
+});
+
+const resolveTransitionDirection = (
+  navigationType: NavigationType,
+  locationKey: string,
+  history: TransitionHistory,
+  targetBrowserIndex: number | null,
+): TransitionDirection => {
+  if (locationKey === history.currentKey) {
+    history.browserIndex = targetBrowserIndex;
+    return history.direction;
+  }
+
+  if (navigationType === "PUSH") {
+    history.entries.splice(history.index + 1);
+    history.entries.push(locationKey);
+    history.index = history.entries.length - 1;
+    history.direction = "forward";
+  } else if (navigationType === "REPLACE") {
+    history.entries[history.index] = locationKey;
+    history.direction = "forward";
+  } else {
+    const knownIndex = history.entries.indexOf(locationKey);
+    if (
+      history.browserIndex !== null &&
+      targetBrowserIndex !== null &&
+      targetBrowserIndex !== history.browserIndex
+    ) {
+      history.direction = targetBrowserIndex < history.browserIndex ? "backward" : "forward";
+    } else if (knownIndex >= 0) {
+      history.direction = knownIndex < history.index ? "backward" : "forward";
+    } else {
+      history.direction = "backward";
+    }
+
+    if (knownIndex >= 0) {
+      history.index = knownIndex;
+    } else if (history.direction === "forward") {
+      history.entries.splice(history.index + 1, 0, locationKey);
+      history.index += 1;
+    } else {
+      history.entries.splice(history.index, 0, locationKey);
+    }
+  }
+
+  history.browserIndex = targetBrowserIndex;
+  history.currentKey = locationKey;
+  return history.direction;
+};
+
 export function AppShell(): JSX.Element {
   const location = useLocation();
-  const [storage] = useState(() => getLocalStorage(window));
-  const [theme, setTheme] = useState<Theme>(() =>
-    readInitialTheme(
-      storage,
-      window.matchMedia?.("(prefers-color-scheme: light)").matches ?? false,
-    ),
-  );
+  const navigationType = useNavigationType();
+  const outlet = useOutlet();
+  const nodeRef = useMemo(() => createRef<HTMLElement>(), [location.key]);
+  const transitionHistoryRef = useRef<TransitionHistory | null>(null);
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  if (transitionHistoryRef.current === null) {
+    transitionHistoryRef.current = createTransitionHistory(
+      location.key,
+      readBrowserHistoryIndex(),
+    );
+  }
 
   useEffect(() => {
     applyTheme(theme, document.body);
-    persistTheme(storage, theme);
-  }, [storage, theme]);
+  }, [theme]);
 
-  const isWorkRoute = location.pathname === "/works" || location.pathname.startsWith("/works/");
+  useEffect(() => {
+    const path = location.pathname.split("/").filter((segment) => segment !== "").pop() ?? "Home";
+    document.title = path.charAt(0).toUpperCase() + path.slice(1);
+  }, [location.pathname]);
+
+  const direction = resolveTransitionDirection(
+    navigationType,
+    location.key,
+    transitionHistoryRef.current,
+    readBrowserHistoryIndex(),
+  );
+  const appearClasses: CSSTransitionClassNames = {
+    appear: styles.forwardEnter,
+    appearActive: styles.forwardEnterActive,
+  };
+  const transitionClasses: CSSTransitionClassNames =
+    direction === "forward"
+      ? {
+          ...appearClasses,
+          enter: styles.forwardEnter,
+          enterActive: styles.forwardEnterActive,
+          exit: styles.forwardExit,
+          exitActive: styles.forwardExitActive,
+        }
+      : {
+          ...appearClasses,
+          enter: styles.backwardEnter,
+          enterActive: styles.backwardEnterActive,
+          exit: styles.backwardExit,
+          exitActive: styles.backwardExitActive,
+        };
+  const showRoute = (): void => {
+    nodeRef.current?.removeAttribute("aria-hidden");
+    nodeRef.current?.removeAttribute("inert");
+  };
+  const hideRoute = (): void => {
+    nodeRef.current?.setAttribute("aria-hidden", "true");
+    nodeRef.current?.setAttribute("inert", "");
+  };
 
   return (
-    <div className={`${styles.layout} ${isWorkRoute ? styles.workLayout : ""}`}>
+    <div className={styles.layout}>
       <BackgroundCanvas theme={theme} />
       <Navigation
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "white" : "dark"))}
         theme={theme}
       />
-      <main className={styles.route} key={location.pathname}>
-        <Outlet />
-      </main>
+      <div className={styles.routeStage}>
+        <TransitionGroup
+          component={null}
+          childFactory={(child) =>
+            cloneElement(
+              child as ReactElement<{ classNames?: CSSTransitionClassNames }>,
+              { classNames: transitionClasses },
+            )
+          }
+        >
+          <CSSTransition
+            appear
+            classNames={transitionClasses}
+            key={location.key}
+            nodeRef={nodeRef}
+            onEnter={showRoute}
+            onExit={hideRoute}
+            timeout={500}
+            unmountOnExit
+          >
+            <main className={styles.route} ref={nodeRef}>
+              {outlet}
+            </main>
+          </CSSTransition>
+        </TransitionGroup>
+      </div>
       <Footer />
     </div>
   );

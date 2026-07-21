@@ -3,19 +3,32 @@ import styles from "../styles/canvas.module.scss";
 import {
   createBackgroundScene,
   normalizePointer,
+  normalizePointerSpeed,
   type BackgroundController,
   type SceneTheme,
 } from "../three/backgroundScene";
 import type { Theme } from "../theme/theme";
 
 const sceneThemes: Record<Theme, SceneTheme> = {
-  dark: { wire: "#555555", background: "#222222" },
-  white: { wire: "#b7b7b7", background: "#ffffff" },
+  dark: {
+    background: "#222222",
+    blendMode: "additive",
+    particle: "#aeb4ba",
+    signal: "#f4f6f7",
+    connection: "#697078",
+  },
+  white: {
+    background: "#ffffff",
+    blendMode: "normal",
+    particle: "#7d848a",
+    signal: "#272b2e",
+    connection: "#a2a7ac",
+  },
 };
 
 const canvasOpacities: Record<Theme, string> = {
-  dark: "0.42",
-  white: "0.28",
+  dark: "0.58",
+  white: "0.38",
 };
 
 type BackgroundCanvasProps = {
@@ -25,7 +38,6 @@ type BackgroundCanvasProps = {
 export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
-  const reducedMotionRef = useRef(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -36,30 +48,41 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       return;
     }
 
-    const reducedMotion =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    reducedMotionRef.current = reducedMotion;
-
     let controller: BackgroundController | null = null;
     let resizeObserver: ResizeObserver | null = null;
-    let listenersAttached = false;
+    let pointerListenerAttached = false;
+    let visibilityListenerAttached = false;
     let closed = false;
     let controllerDisposed = false;
+    let previousPointer: { x: number; y: number; time: number } | null = null;
 
     const onPointerMove = (event: PointerEvent): void => {
-      if (closed || reducedMotion || !controller) return;
+      if (closed) return;
+      if (event.pointerType === "touch") {
+        previousPointer = null;
+        return;
+      }
+      if (!controller) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const pointer = normalizePointer(event.clientX, event.clientY, rect);
-      controller.setPointer(pointer.x, pointer.y);
+      const speed = previousPointer
+        ? normalizePointerSpeed(
+            event.clientX - previousPointer.x,
+            event.clientY - previousPointer.y,
+            event.timeStamp - previousPointer.time,
+            rect,
+          )
+        : 0;
+      previousPointer = { x: event.clientX, y: event.clientY, time: event.timeStamp };
+      controller.setPointer(pointer.x, pointer.y, speed);
     };
 
     const onVisibilityChange = (): void => {
       if (closed || !controller) return;
       if (document.visibilityState === "hidden") {
+        previousPointer = null;
         controller.stop();
-      } else if (reducedMotion) {
-        controller.renderStatic();
       } else {
         controller.start();
       }
@@ -67,13 +90,29 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     const teardown = (): void => {
       closed = true;
-      resizeObserver?.disconnect();
+      previousPointer = null;
+      try {
+        resizeObserver?.disconnect();
+      } catch {
+        // Continue releasing the controller if observer cleanup fails.
+      }
       resizeObserver = null;
 
-      if (listenersAttached) {
-        window.removeEventListener("pointermove", onPointerMove);
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-        listenersAttached = false;
+      if (pointerListenerAttached) {
+        pointerListenerAttached = false;
+        try {
+          window.removeEventListener("pointermove", onPointerMove);
+        } catch {
+          // Continue tearing down the remaining integration.
+        }
+      }
+      if (visibilityListenerAttached) {
+        visibilityListenerAttached = false;
+        try {
+          document.removeEventListener("visibilitychange", onVisibilityChange);
+        } catch {
+          // Continue tearing down the remaining integration.
+        }
       }
 
       const activeController = controller;
@@ -81,20 +120,25 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       if (controllerRef.current === activeController) controllerRef.current = null;
       if (activeController && !controllerDisposed) {
         controllerDisposed = true;
-        activeController.dispose();
+        try {
+          activeController.dispose();
+        } catch {
+          // The integration is already closed and must stay in fallback mode.
+        }
       }
+    };
+
+    const failIntegration = (): void => {
+      setFailed(true);
+      teardown();
     };
 
     try {
       controller = createBackgroundScene(canvas, {
-        onFailure: () => {
-          setFailed(true);
-          teardown();
-        },
+        onFailure: failIntegration,
       });
     } catch {
-      setFailed(true);
-      teardown();
+      failIntegration();
       return teardown;
     }
 
@@ -105,19 +149,31 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     controllerRef.current = controller;
 
-    resizeObserver = new ResizeObserver(([entry]) => {
-      if (closed || !controller || !entry) return;
-      controller.resize(entry.contentRect.width, entry.contentRect.height, window.devicePixelRatio);
-      if (reducedMotion) controller.renderStatic();
-    });
+    try {
+      resizeObserver = new ResizeObserver(([entry]) => {
+        if (closed || !controller || !entry) return;
+        try {
+          controller.resize(
+            entry.contentRect.width,
+            entry.contentRect.height,
+            window.devicePixelRatio,
+          );
+        } catch {
+          failIntegration();
+        }
+      });
 
-    resizeObserver.observe(canvas);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    listenersAttached = true;
+      resizeObserver.observe(canvas);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      pointerListenerAttached = true;
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      visibilityListenerAttached = true;
 
-    if (!reducedMotion && document.visibilityState !== "hidden") {
-      controller.start();
+      if (document.visibilityState !== "hidden") {
+        controller.start();
+      }
+    } catch {
+      failIntegration();
     }
 
     return teardown;
@@ -127,7 +183,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     const controller = controllerRef.current;
     if (!controller) return;
     controller.setTheme(sceneThemes[theme]);
-    if (reducedMotionRef.current) controller.renderStatic();
   }, [theme]);
 
   return (
