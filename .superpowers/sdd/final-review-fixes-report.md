@@ -513,3 +513,149 @@ git status --short
  M src/three/backgroundScene.test.ts
  M src/three/backgroundScene.ts
 ```
+
+## 2026-07-21 Consolidated Unified-Width Final Review Fix Wave
+
+### Scope and approved behavior
+
+This wave addressed every Important and Minor item in `final-review-fixes-2026-07-21.md`. It preserves the approved single fluid 900px shell; always-on particle, route, and media motion without `?motion=full` or reduced-motion suppression; project-video play on hover/focus and pause/reset on leave/blur; and existing responsive, theme, visibility, and fallback behavior.
+
+### Finding 1: Time-based damping — Important
+
+RED command:
+
+```powershell
+npm.cmd test -- src/three/backgroundScene.test.ts
+```
+
+Observed RED: exit code `1`; 1 failed and 32 passed. Equal one-second convergence at 30 Hz and 120 Hz differed as expected under per-frame damping (`uPointer.x` approximately `601.744` versus `887.921`).
+
+Minimal fix: replaced fixed per-frame `applyTargets(0.035)` with `1 - exp(-rate * cappedDeltaSeconds)`. The rate is calibrated from the former 0.035 coefficient at 60 Hz. The first callback uses a defined 1/60-second damping interval while simulated elapsed time retains its prior zero-delta first-frame semantics. Tests now compare equal elapsed-time pointer/palette convergence across 30 Hz and 120 Hz and retain first-frame pointer/theme interpolation coverage without encoding one frame coefficient.
+
+GREEN command: same as RED.
+
+Observed GREEN: exit code `0`; 1 file and all 33 tests passed.
+
+### Finding 2: Exact navigation state — Important
+
+RED command:
+
+```powershell
+npm.cmd test -- src/components/AppShell.test.tsx
+```
+
+Observed RED: exit code `1`; 2 failed and 18 passed. Work incorrectly had `aria-current="page"` on `/works/webgl-minecraft`, and Contact incorrectly had it on `/contact/missing`.
+
+Minimal fix: set Work and Contact `NavLink` entries to exact matching with `end: true`.
+
+GREEN command: same as RED.
+
+Observed GREEN: exit code `0`; 1 file and all 20 tests passed.
+
+### Finding 3: Transactional canvas integration — Important
+
+RED command:
+
+```powershell
+npm.cmd test -- src/components/BackgroundCanvas.test.tsx
+```
+
+Observed RED: exit code `1`; 3 failed and 14 passed. `ResizeObserver` construction and `observe()` errors escaped the effect, and a controller resize error escaped the observer callback instead of entering fallback.
+
+Minimal fix: made every post-controller setup step part of one guarded transaction. Observer construction, observation, pointer/visibility listener attachment, and initial start now route synchronous failures through hidden fallback and idempotent teardown. Pointer and visibility listeners are tracked independently for partial-attachment cleanup. Resize callback failures enter the same path. Teardown continues across observer/listener/disposal cleanup errors and disposes the acquired controller at most once.
+
+GREEN command: same as RED.
+
+Observed GREEN: exit code `0`; 1 file and all 17 tests passed. The three required fault injections assert hidden fallback, contained errors, listener/observer cleanup where acquired, and exactly-once disposal after unmount.
+
+### Finding 4: Video fallback listener cleanup — Minor
+
+RED command:
+
+```powershell
+npm.cmd test -- src/pages/WorksPage.test.tsx
+```
+
+Observed RED: exit code `1`; 1 failed and 4 passed. A video error rendered fallback but removed none of the four hover/focus listeners.
+
+Minimal fix: added a synchronous, idempotent interaction cleanup invoked by the media error handler. It removes all four listeners, clears its cleanup ref, and assigns `null` to the captured video reference before fallback renders. Later effect cleanup is a no-op.
+
+GREEN command: same as RED.
+
+Observed GREEN: exit code `0`; 1 file and all 5 tests passed. Hover/focus after fallback no longer calls `play()`, and unmount does not repeat listener cleanup.
+
+### Finding 5: Current documentation — Minor
+
+- Added and committed `docs/superpowers/plans/2026-07-21-unified-width-always-on-motion.md` with every completed implementation step checked.
+- Appended the clearly dated 2026-07-21 addendum to the tracked hybrid verification report. It retains all historical observations while explicitly superseding the 600px, reduced-motion, and `?motion=full` policy with the approved 900px always-on policy.
+- Recorded the fresh final verification command and exact 121-test/build result in that addendum.
+
+### Covering focused verification
+
+Command:
+
+```powershell
+npm.cmd test -- src/three/backgroundScene.test.ts src/components/AppShell.test.tsx src/components/BackgroundCanvas.test.tsx src/pages/WorksPage.test.tsx src/pages/ProjectPage.test.tsx
+```
+
+Result: exit code `0`; 5 test files and all 79 tests passed.
+
+### Fresh final verification gate
+
+Command:
+
+```powershell
+npm.cmd run verify
+```
+
+Result: exit code `0`.
+
+```text
+Test Files  14 passed (14)
+Tests       121 passed (121)
+TypeScript  tsc -b --pretty false (no errors)
+Vite 8.1.4 76 modules transformed
+dist/index.html                   0.56 kB | gzip:   0.33 kB
+dist/assets/index-CxpaTgoW.css    6.20 kB | gzip:   1.75 kB
+dist/assets/index-BhcyD2VB.js   802.52 kB | gzip: 221.42 kB
+built in 500ms
+```
+
+Vite emitted the existing non-blocking advisory for a minified chunk over 500 kB. SPA fallback generation completed.
+
+Final whitespace command:
+
+```powershell
+git diff --check
+```
+
+Result: exit code `0`; Git emitted only the repository's LF-to-CRLF working-copy advisories, with no whitespace errors. The staged form also passed `git diff --cached --check` before commit.
+
+### Files changed and commit
+
+Committed files:
+
+- `.superpowers/sdd/hybrid-verification-report.md`
+- `docs/superpowers/plans/2026-07-21-unified-width-always-on-motion.md`
+- `src/components/AppShell.test.tsx`
+- `src/components/BackgroundCanvas.test.tsx`
+- `src/components/BackgroundCanvas.tsx`
+- `src/components/Navigation.tsx`
+- `src/components/ProjectMedia.tsx`
+- `src/pages/WorksPage.test.tsx`
+- `src/three/backgroundScene.test.ts`
+- `src/three/backgroundScene.ts`
+
+Commit: `b1fc249 fix: harden always-on portfolio integration`
+
+This report was appended after the implementation commit so it could record the actual hash, then committed separately as durable review evidence.
+
+### Self-review
+
+- Re-read all five findings against the final diff and verified each requested production path and regression is present.
+- Confirmed the implementation does not reintroduce a Work-only shell class, `?motion=full`, reduced-motion suppression, static canvas branching, or disabled video playback.
+- Confirmed time damping is based on capped elapsed seconds and first-frame pointer/palette state advances with a finite coefficient while elapsed-time accounting remains unchanged.
+- Confirmed observer construction, observation, partial listener attachment, initial start, and resize callback failures all converge on one idempotent fallback/teardown path.
+- Confirmed video error cleanup removes listeners synchronously, releases the captured detached node, blocks later playback, and remains idempotent on unmount.
+- Independent read-only final review reported no Critical or Important issues. Its sole Minor item was the missing current report append, resolved by this section.
+- Only the existing Vite large-chunk advisory remains; it is non-blocking and outside this fix-wave scope.
