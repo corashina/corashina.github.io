@@ -11,20 +11,20 @@ const interaction: InteractionSnapshot = {
 
 type Harness = ReturnType<typeof makeHarness>;
 
-function makeHarness(overrides: Partial<ShowcaseAppFactories> = {}) {
+function makeHarness(overrides: Partial<ShowcaseAppFactories> = {}, dimensions = { width: 900, height: 500 }) {
   const calls: string[] = [];
   const frameCallbacks = new Map<number, FrameRequestCallback>();
   let frameId = 0;
   const canvas = document.createElement("canvas");
-  Object.defineProperty(canvas, "clientWidth", { value: 900, configurable: true });
-  Object.defineProperty(canvas, "clientHeight", { value: 500, configurable: true });
+  Object.defineProperty(canvas, "clientWidth", { value: dimensions.width, configurable: true });
+  Object.defineProperty(canvas, "clientHeight", { value: dimensions.height, configurable: true });
   const renderer = { setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn(), forceContextLoss: vi.fn() };
   const scene = { add: vi.fn(), remove: vi.fn() };
   const camera = { aspect: 1, updateProjectionMatrix: vi.fn(), position: { set: vi.fn() } };
   const particles = { object: {}, update: vi.fn(() => calls.push("particles.update")), getPositionTexture: vi.fn(() => ({})), setQuality: vi.fn(), dispose: vi.fn(() => calls.push("particles.dispose")) };
   const protoStar = { object: {}, update: vi.fn(() => calls.push("proto.update")), setQuality: vi.fn(), getShadowMaterials: vi.fn(() => []), dispose: vi.fn(() => calls.push("proto.dispose")) };
   const membrane = { object: {}, update: vi.fn(() => calls.push("membrane.update")), setQuality: vi.fn(), getShadowMaterials: vi.fn(() => []), dispose: vi.fn(() => calls.push("membrane.dispose")) };
-  const nebula = { setInteraction: vi.fn(() => calls.push("nebula.interaction")), setQuality: vi.fn(), dispose: vi.fn(() => calls.push("nebula.dispose")) };
+  const nebula = { setInteraction: vi.fn(() => calls.push("nebula.interaction")), setElapsedTime: vi.fn(), setQuality: vi.fn(), dispose: vi.fn(() => calls.push("nebula.dispose")) };
   const pipeline = { render: vi.fn(() => calls.push("pipeline.render")), resize: vi.fn(), setQuality: vi.fn(), dispose: vi.fn(() => calls.push("pipeline.dispose")) };
   const sampled = { ...interaction };
   const clock = { advance: vi.fn((_: number, step: () => void) => { step(); return 0; }), pause: vi.fn(), resume: vi.fn() };
@@ -77,6 +77,8 @@ describe("ShowcaseApp", () => {
     expect(h.calls.slice(-6, -1)).toEqual(["particles.update", "proto.update", "membrane.update", "nebula.interaction", "camera.update"]);
     expect(h.pipeline.render).toHaveBeenCalledAfter(h.cameraController.update);
     expect(h.membrane.update).toHaveBeenCalledWith(expect.objectContaining({ interaction: expect.objectContaining({ pointerWorld: [4, 5, 6] }) }), expect.anything());
+    expect(h.nebula.setInteraction.mock.calls[0]).toEqual([expect.any(Object)]);
+    expect(h.nebula.setElapsedTime).toHaveBeenCalledWith(1 / 60);
     expect(h.root.dataset.showcaseReady).toBe("true");
     h.app.dispose();
   });
@@ -93,12 +95,50 @@ describe("ShowcaseApp", () => {
     h.app.dispose();
   });
 
+  it("records start intent while hidden but only schedules after visibility returns", () => {
+    const h = makeHarness();
+    Object.defineProperty(document, "hidden", { value: true, configurable: true });
+    h.app.start();
+    expect(h.frameCallbacks.size).toBe(0);
+    Object.defineProperty(document, "hidden", { value: false, configurable: true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(h.frameCallbacks.size).toBe(1);
+    h.app.dispose();
+  });
+
+  it("keeps an explicitly stopped app stopped after a hidden-to-visible transition", () => {
+    const h = makeHarness();
+    h.app.start(); h.app.stop();
+    Object.defineProperty(document, "hidden", { value: true, configurable: true }); document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "hidden", { value: false, configurable: true }); document.dispatchEvent(new Event("visibilitychange"));
+    expect(h.frameCallbacks.size).toBe(0);
+    h.app.dispose();
+  });
+
   it("clamps resize through the pipeline and propagates selected quality exactly once to every GPU system", () => {
     const h = makeHarness();
     h.app.setQualityMode("low");
-    for (const system of [h.particles, h.protoStar, h.membrane, h.nebula, h.pipeline]) expect(system.setQuality).toHaveBeenCalledTimes(1);
+    for (const system of [h.particles, h.protoStar, h.membrane, h.pipeline]) expect(system.setQuality).toHaveBeenCalledTimes(1);
     window.dispatchEvent(new Event("resize"));
     expect(h.pipeline.resize).toHaveBeenLastCalledWith(900, 500, expect.any(Number));
+    h.app.dispose();
+  });
+
+  it("lets the pipeline own concrete nebula quality so a forwarded call is not duplicated", () => {
+    const h = makeHarness();
+    h.pipeline.setQuality.mockImplementation((profile) => h.nebula.setQuality(profile));
+    h.app.setQualityMode("low");
+    expect(h.nebula.setQuality).toHaveBeenCalledOnce();
+    h.app.dispose();
+  });
+
+  it("uses a one-pixel viewport for a zero-sized canvas and caps the renderer DPR", () => {
+    const originalDpr = window.devicePixelRatio;
+    Object.defineProperty(window, "devicePixelRatio", { value: 3, configurable: true });
+    const h = makeHarness({}, { width: 0, height: 0 });
+    expect(h.renderer.setSize).toHaveBeenCalledWith(1, 1, false);
+    expect(h.renderer.setPixelRatio).toHaveBeenCalledWith(1.5);
+    Object.defineProperty(window, "devicePixelRatio", { value: originalDpr, configurable: true });
     h.app.dispose();
   });
 
@@ -111,12 +151,14 @@ describe("ShowcaseApp", () => {
 
   it("reconstructs GPU systems after one context restoration", () => {
     const h = makeHarness();
-    h.app.start();
+    h.app.start(); h.runFrame();
+    expect(h.root.dataset.showcaseReady).toBe("true");
     const lost = new Event("webglcontextlost", { cancelable: true }); h.canvas.dispatchEvent(lost);
-    expect(lost.defaultPrevented).toBe(true); expect(h.root.dataset.showcaseState).toBe("recovering");
+    expect(lost.defaultPrevented).toBe(true); expect(h.root.dataset.showcaseState).toBe("recovering"); expect(h.root.dataset.showcaseReady).toBeUndefined();
     h.canvas.dispatchEvent(new Event("webglcontextrestored"));
     expect(h.factories.createParticles).toHaveBeenCalledTimes(2);
     expect(h.root.dataset.showcaseState).toBe("loading");
+    h.runFrame(); expect(h.root.dataset.showcaseState).toBe("ready"); expect(h.root.dataset.showcaseReady).toBe("true");
     h.app.dispose();
   });
 
@@ -148,7 +190,7 @@ describe("ShowcaseApp", () => {
     const particles = { object: {}, update: vi.fn(), getPositionTexture: vi.fn(), setQuality: vi.fn(), dispose: vi.fn() };
     const protoStar = { object: {}, update: vi.fn(), setQuality: vi.fn(), getShadowMaterials: vi.fn(() => []), dispose: vi.fn() };
     const membrane = { object: {}, update: vi.fn(), setQuality: vi.fn(), getShadowMaterials: vi.fn(() => []), dispose: vi.fn() };
-    const nebula = { setInteraction: vi.fn(), setQuality: vi.fn(), dispose: vi.fn() };
+    const nebula = { setInteraction: vi.fn(), setElapsedTime: vi.fn(), setQuality: vi.fn(), dispose: vi.fn() };
     const factories = {
       now: () => 0, requestFrame: () => 1, cancelFrame: vi.fn(), createRenderer: () => renderer,
       createScene: () => ({ add: vi.fn(), remove: vi.fn() }), createCamera: () => ({ aspect: 1, updateProjectionMatrix: vi.fn() }), createLights: vi.fn(),

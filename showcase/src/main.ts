@@ -3,7 +3,7 @@ import { detectCapabilities } from "./app/capabilities";
 import type { QualityMode } from "./quality/qualityProfiles";
 import "./styles.css";
 
-type AppControls = Pick<ShowcaseApp, "start" | "setQualityMode" | "resetView" | "dispose">;
+type AppControls = Pick<ShowcaseApp, "start" | "setQualityMode" | "resetView" | "dispose"> & { registerCleanup?: (cleanup: () => void) => void };
 export type BootstrapOptions = {
   document?: Document;
   media?: typeof window.matchMedia;
@@ -19,23 +19,35 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
 
   const media = options.media ?? window.matchMedia.bind(window);
   const capabilities = detectCapabilities(canvas, media);
-  if (!capabilities.webgl2) {
+  const showFallback = (message: string, app?: AppControls): null => {
+    try { app?.dispose(); } catch { /* preserve the original failure state */ }
+    delete root.dataset.showcaseReady;
     root.dataset.showcaseState = "fallback";
+    root.dataset.showcaseError = message;
     return null;
-  }
+  };
+  if (!capabilities.webgl2) return showFallback("WebGL 2 is unavailable.");
 
   root.dataset.showcaseState = "loading";
-  const app = (options.createApp ?? ((appOptions) => new ShowcaseApp(appOptions)))({
-    canvas, root, capabilities,
-    onStateChange: (state, message) => {
-      root.dataset.showcaseState = state;
-      if (message === undefined) delete root.dataset.showcaseError;
-      else root.dataset.showcaseError = message;
-    },
-  });
+  let app: AppControls;
+  try {
+    app = (options.createApp ?? ((appOptions) => new ShowcaseApp(appOptions)))({
+      canvas, root, capabilities,
+      onStateChange: (state, message) => {
+        root.dataset.showcaseState = state;
+        if (message === undefined) delete root.dataset.showcaseError;
+        else root.dataset.showcaseError = message;
+      },
+    });
+  } catch (error) {
+    return showFallback(error instanceof Error ? error.message : "The interactive scene could not be created.");
+  }
   const quality = activeDocument.querySelector<HTMLSelectElement>("select[aria-label='Rendering quality']");
-  quality?.addEventListener("change", () => app.setQualityMode(quality.value as QualityMode));
-  activeDocument.querySelector<HTMLButtonElement>("button[type='button']")?.addEventListener("click", () => app.resetView());
+  const reset = activeDocument.querySelector<HTMLButtonElement>("button[type='button']");
+  const onQualityChange = (): void => { try { app.setQualityMode(quality!.value as QualityMode); } catch (error) { showFallback(error instanceof Error ? error.message : "Quality selection failed.", app); } };
+  const onReset = (): void => { try { app.resetView(); } catch (error) { showFallback(error instanceof Error ? error.message : "View reset failed.", app); } };
+  quality?.addEventListener("change", onQualityChange);
+  reset?.addEventListener("click", onReset);
 
   const hint = activeDocument.querySelector<HTMLElement>(".interaction-hint");
   const hideHint = (): void => { if (hint !== null) hint.hidden = true; };
@@ -44,7 +56,12 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   canvas.addEventListener("pointerdown", clearHint, { once: true });
   canvas.addEventListener("touchstart", clearHint, { once: true });
   window.addEventListener("keydown", clearHint, { once: true });
-  app.start();
+  app.registerCleanup?.(() => {
+    quality?.removeEventListener("change", onQualityChange); reset?.removeEventListener("click", onReset);
+    canvas.removeEventListener("pointerdown", clearHint); canvas.removeEventListener("touchstart", clearHint);
+    window.removeEventListener("keydown", clearHint); window.clearTimeout(hintTimer);
+  });
+  try { app.start(); } catch (error) { return showFallback(error instanceof Error ? error.message : "The interactive scene could not start.", app); }
   return app;
 }
 

@@ -35,4 +35,29 @@ describe("bootstrapShowcase", () => {
     canvas.dispatchEvent(new Event("pointerdown"));
     expect(hint.hidden).toBe(true);
   });
+
+  it("enters fallback instead of leaking construction and quality-control errors", () => {
+    page();
+    expect(() => bootstrapShowcase({ createApp: () => { throw new Error("allocation failed"); }, media: () => ({ matches: false }) as MediaQueryList })).not.toThrow();
+    expect(document.documentElement.dataset.showcaseState).toBe("fallback");
+
+    const { select } = page();
+    const app = { start: vi.fn(), setQualityMode: vi.fn(() => { throw new Error("quality failed"); }), resetView: vi.fn(), dispose: vi.fn() };
+    bootstrapShowcase({ createApp: () => app, media: () => ({ matches: false }) as MediaQueryList });
+    expect(() => { select.value = "low"; select.dispatchEvent(new Event("change")); }).not.toThrow();
+    expect(document.documentElement.dataset.showcaseState).toBe("fallback"); expect(app.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("registers shell listeners and timers for app-owned disposal", () => {
+    vi.useFakeTimers();
+    const { canvas, select, reset, hint } = page();
+    const cleanups: Array<() => void> = [];
+    const app = { start: vi.fn(), setQualityMode: vi.fn(), resetView: vi.fn(), dispose: vi.fn(() => cleanups.splice(0).forEach((cleanup) => cleanup())), registerCleanup: vi.fn((cleanup: () => void) => cleanups.push(cleanup)) };
+    bootstrapShowcase({ createApp: () => app, media: () => ({ matches: false }) as MediaQueryList });
+    expect(app.registerCleanup).toHaveBeenCalled();
+    app.dispose(); app.dispose();
+    select.value = "low"; select.dispatchEvent(new Event("change")); reset.click(); canvas.dispatchEvent(new Event("pointerdown")); window.dispatchEvent(new Event("keydown")); vi.advanceTimersByTime(6_000);
+    expect(app.setQualityMode).not.toHaveBeenCalled(); expect(app.resetView).not.toHaveBeenCalled(); expect(hint.hidden).toBe(false);
+    vi.useRealTimers();
+  });
 });

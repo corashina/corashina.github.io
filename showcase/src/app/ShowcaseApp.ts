@@ -28,7 +28,7 @@ type Camera = { aspect: number; updateProjectionMatrix(): void };
 type ParticleSystem = QualitySystem & { object: unknown; update(frame: FrameContext): void; getPositionTexture(): unknown };
 type ProtoSystem = QualitySystem & { object: unknown; update(frame: FrameContext): void; getShadowMaterials(): THREE.Material[] };
 type MembraneSystem = QualitySystem & { object: unknown; update(frame: FrameContext, particleTexture: unknown): void; getShadowMaterials(): THREE.Material[] };
-type NebulaSystem = QualitySystem & { setInteraction(interaction: InteractionSnapshot, elapsedSeconds?: number): void };
+type NebulaSystem = QualitySystem & { setInteraction(interaction: InteractionSnapshot): void; setElapsedTime(elapsedSeconds: number): void };
 type Pipeline = QualitySystem & { render(frame: Pick<FrameContext, "deltaSeconds">): void; resize(width: number, height: number, dpr: number): void };
 type Clock = { advance(nowMs: number, step: () => void): number; pause(): void; resume(nowMs: number): void };
 type QualityController = { setMode(mode: QualityMode): QualityTier; getProfile(): QualityProfile; sample(frameMs: number, nowMs: number): QualityTier | null; getTransition(nowMs: number): unknown };
@@ -129,6 +129,7 @@ export class ShowcaseApp {
   private profile: QualityProfile;
   private rafId: number | null = null;
   private running = false;
+  private desiredRunning = false;
   private disposed = false;
   private recovering = false;
   private contextLosses = 0;
@@ -137,6 +138,7 @@ export class ShowcaseApp {
   private frame: FrameContext;
   private qualityTransition: unknown = null;
   private firstFrame = true;
+  private readonly cleanups = new Set<() => void>();
 
   constructor(private readonly options: ShowcaseAppOptions) {
     try {
@@ -165,13 +167,26 @@ export class ShowcaseApp {
   }
 
   start(): void {
-    if (this.disposed || this.running || this.recovering) return;
+    if (this.disposed) return;
+    this.desiredRunning = true;
+    if (this.running || this.recovering || document.hidden) return;
     this.running = true;
     this.lastFrameNowMs = this.factories.now();
     this.scheduleFrame();
   }
 
   stop(): void {
+    this.desiredRunning = false;
+    this.pauseFrameLoop();
+  }
+
+  /** Registers page-shell cleanup with the app lifecycle. */
+  registerCleanup(cleanup: () => void): void {
+    if (this.disposed) { cleanup(); return; }
+    this.cleanups.add(cleanup);
+  }
+
+  private pauseFrameLoop(): void {
     this.running = false;
     if (this.rafId !== null) this.factories.cancelFrame(this.rafId);
     this.rafId = null;
@@ -200,6 +215,8 @@ export class ShowcaseApp {
     this.options.canvas.removeEventListener("webglcontextrestored", this.onContextRestored);
     window.removeEventListener("resize", this.onResize);
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    for (const cleanup of this.cleanups) cleanup();
+    this.cleanups.clear();
     this.disposeGpuSystems();
     this.cameraController.dispose?.(); this.interactionController.dispose(); this.renderer.dispose();
   }
@@ -274,7 +291,8 @@ export class ShowcaseApp {
     this.systems.particles.update(frame);
     this.systems.protoStar.update(frame);
     this.systems.membrane.update(frame, this.systems.particles.getPositionTexture());
-    this.systems.nebula.setInteraction(interaction, this.elapsedSeconds);
+    this.systems.nebula.setInteraction(interaction);
+    this.systems.nebula.setElapsedTime(this.elapsedSeconds);
     this.cameraController.update(frame);
     this.frame = frame;
   }
@@ -282,15 +300,15 @@ export class ShowcaseApp {
   private applyQuality(profile: QualityProfile): void {
     this.profile = profile;
     this.systems.particles.setQuality(profile); this.systems.protoStar.setQuality(profile); this.systems.membrane.setQuality(profile);
-    this.systems.nebula.setQuality(profile); this.systems.pipeline.setQuality(profile); this.resize();
+    this.systems.pipeline.setQuality(profile); this.resize();
   }
 
   private readonly onVisibilityChange = (): void => {
     if (this.disposed) return;
-    if (document.hidden) { this.clock.pause(); this.stop(); return; }
+    if (document.hidden) { this.clock.pause(); this.pauseFrameLoop(); return; }
     this.clock.resume(this.factories.now());
     this.lastFrameNowMs = this.factories.now();
-    this.start();
+    if (this.desiredRunning) this.start();
   };
 
   private readonly onResize = (): void => this.resize();
@@ -304,14 +322,14 @@ export class ShowcaseApp {
   }
 
   private viewport(): { width: number; height: number; dpr: number } {
-    return { width: Math.max(1, this.options.canvas.clientWidth || window.innerWidth), height: Math.max(1, this.options.canvas.clientHeight || window.innerHeight), dpr: Math.max(1, window.devicePixelRatio || 1) };
+    return { width: Math.max(1, this.options.canvas.clientWidth), height: Math.max(1, this.options.canvas.clientHeight), dpr: Math.max(1, window.devicePixelRatio || 1) };
   }
 
   private readonly onContextLost = (event: Event): void => {
     event.preventDefault();
     this.contextLosses += 1;
     if (this.contextLosses > 1) { this.showFallback("WebGL context was lost more than once."); return; }
-    this.recovering = true; this.stop(); this.setState("recovering");
+    this.recovering = true; this.pauseFrameLoop(); this.firstFrame = true; delete this.root.dataset.showcaseReady; this.setState("recovering");
   };
 
   private readonly onContextRestored = (): void => {
@@ -319,7 +337,7 @@ export class ShowcaseApp {
     try {
       this.disposeGpuSystems();
       this.systems = this.createGpuSystems(this.profile);
-      this.resize(); this.recovering = false; this.setState("loading"); this.start();
+      this.resize(); this.recovering = false; this.setState("loading"); if (this.desiredRunning) this.start();
     } catch (error) {
       this.showFallback(error instanceof Error ? error.message : "WebGL recovery failed.");
     }
