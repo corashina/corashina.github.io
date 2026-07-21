@@ -50,7 +50,8 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     let controller: BackgroundController | null = null;
     let resizeObserver: ResizeObserver | null = null;
-    let listenersAttached = false;
+    let pointerListenerAttached = false;
+    let visibilityListenerAttached = false;
     let closed = false;
     let controllerDisposed = false;
     let previousPointer: { x: number; y: number; time: number } | null = null;
@@ -90,13 +91,28 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     const teardown = (): void => {
       closed = true;
       previousPointer = null;
-      resizeObserver?.disconnect();
+      try {
+        resizeObserver?.disconnect();
+      } catch {
+        // Continue releasing the controller if observer cleanup fails.
+      }
       resizeObserver = null;
 
-      if (listenersAttached) {
-        window.removeEventListener("pointermove", onPointerMove);
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-        listenersAttached = false;
+      if (pointerListenerAttached) {
+        pointerListenerAttached = false;
+        try {
+          window.removeEventListener("pointermove", onPointerMove);
+        } catch {
+          // Continue tearing down the remaining integration.
+        }
+      }
+      if (visibilityListenerAttached) {
+        visibilityListenerAttached = false;
+        try {
+          document.removeEventListener("visibilitychange", onVisibilityChange);
+        } catch {
+          // Continue tearing down the remaining integration.
+        }
       }
 
       const activeController = controller;
@@ -104,20 +120,25 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       if (controllerRef.current === activeController) controllerRef.current = null;
       if (activeController && !controllerDisposed) {
         controllerDisposed = true;
-        activeController.dispose();
+        try {
+          activeController.dispose();
+        } catch {
+          // The integration is already closed and must stay in fallback mode.
+        }
       }
+    };
+
+    const failIntegration = (): void => {
+      setFailed(true);
+      teardown();
     };
 
     try {
       controller = createBackgroundScene(canvas, {
-        onFailure: () => {
-          setFailed(true);
-          teardown();
-        },
+        onFailure: failIntegration,
       });
     } catch {
-      setFailed(true);
-      teardown();
+      failIntegration();
       return teardown;
     }
 
@@ -128,18 +149,31 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     controllerRef.current = controller;
 
-    resizeObserver = new ResizeObserver(([entry]) => {
-      if (closed || !controller || !entry) return;
-      controller.resize(entry.contentRect.width, entry.contentRect.height, window.devicePixelRatio);
-    });
+    try {
+      resizeObserver = new ResizeObserver(([entry]) => {
+        if (closed || !controller || !entry) return;
+        try {
+          controller.resize(
+            entry.contentRect.width,
+            entry.contentRect.height,
+            window.devicePixelRatio,
+          );
+        } catch {
+          failIntegration();
+        }
+      });
 
-    resizeObserver.observe(canvas);
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    listenersAttached = true;
+      resizeObserver.observe(canvas);
+      window.addEventListener("pointermove", onPointerMove, { passive: true });
+      pointerListenerAttached = true;
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      visibilityListenerAttached = true;
 
-    if (document.visibilityState !== "hidden") {
-      controller.start();
+      if (document.visibilityState !== "hidden") {
+        controller.start();
+      }
+    } catch {
+      failIntegration();
     }
 
     return teardown;

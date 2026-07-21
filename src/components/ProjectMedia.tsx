@@ -10,11 +10,12 @@ type ProjectMediaProps = {
 export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Element {
   const containerRef = useRef<HTMLSpanElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cleanupInteractionsRef = useRef<(() => void) | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
-    const video = videoRef.current;
+    let video = videoRef.current;
 
     if (!interactive || !container || !video) {
       return;
@@ -22,25 +23,41 @@ export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Ele
 
     const target = container.closest("a") ?? container;
     const play = () => {
-      video.play()?.catch(() => {});
+      video?.play()?.catch(() => {});
     };
     const reset = () => {
+      if (!video) return;
       video.pause();
       video.currentTime = 0;
+    };
+    let cleaned = false;
+
+    const cleanupInteractions = () => {
+      if (cleaned) return;
+      cleaned = true;
+      target.removeEventListener("mouseenter", play);
+      target.removeEventListener("mouseleave", reset);
+      target.removeEventListener("focus", play);
+      target.removeEventListener("blur", reset);
+      video = null;
+      if (cleanupInteractionsRef.current === cleanupInteractions) {
+        cleanupInteractionsRef.current = null;
+      }
     };
 
     target.addEventListener("mouseenter", play);
     target.addEventListener("mouseleave", reset);
     target.addEventListener("focus", play);
     target.addEventListener("blur", reset);
+    cleanupInteractionsRef.current = cleanupInteractions;
 
-    return () => {
-      target.removeEventListener("mouseenter", play);
-      target.removeEventListener("mouseleave", reset);
-      target.removeEventListener("focus", play);
-      target.removeEventListener("blur", reset);
-    };
+    return cleanupInteractions;
   }, [interactive, media.kind]);
+
+  const handleError = () => {
+    cleanupInteractionsRef.current?.();
+    setFailed(true);
+  };
 
   if (failed) {
     return (
@@ -53,13 +70,13 @@ export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Ele
   return (
     <span className={styles.media} ref={containerRef}>
       {media.kind === "image" ? (
-        <img alt={media.alt} onError={() => setFailed(true)} src={media.src} />
+        <img alt={media.alt} onError={handleError} src={media.src} />
       ) : (
         <video
           aria-label={media.alt}
           loop
           muted
-          onError={() => setFailed(true)}
+          onError={handleError}
           playsInline
           preload="metadata"
           ref={videoRef}

@@ -91,6 +91,27 @@ describe("WorksPage", () => {
     expect(play).toHaveBeenCalledTimes(2);
   });
 
+  it("removes video interactions immediately when the media falls back", () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const { unmount } = renderPage();
+    const card = screen.getByRole("link", { name: "Endless-City" });
+    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
+    const removeEventListener = vi.spyOn(card, "removeEventListener");
+
+    fireEvent.error(video);
+
+    expect(within(card).getByText("Infinite procedural WebGL city scene")).toBeInTheDocument();
+    expect(card.querySelector("video")).not.toBeInTheDocument();
+    expect(removeEventListener).toHaveBeenCalledTimes(4);
+
+    fireEvent.mouseEnter(card);
+    fireEvent.focus(card);
+    expect(play).not.toHaveBeenCalled();
+
+    unmount();
+    expect(removeEventListener).toHaveBeenCalledTimes(4);
+  });
+
   it("shows the original alt text when project media fails", () => {
     renderPage();
 

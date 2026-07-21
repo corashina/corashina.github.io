@@ -322,6 +322,42 @@ describe("background scene controller", () => {
     expect(decayedSpeed).toBeLessThan(initialSpeed);
   });
 
+  it("converges equally after the same elapsed time at different frame rates", () => {
+    const runForOneSecond = (frameCount: number, deltaMs: number) => {
+      const { callbacks, controller, renderer } = createHarness();
+      controller.setPointer(1, -1, 0.8);
+      controller.setTheme({
+        particle: "#555555",
+        signal: "#333333",
+        connection: "#777777",
+        background: "#ffffff",
+        blendMode: "normal",
+      });
+      controller.start();
+      callbacks.get(1)?.(1_000);
+      advanceFrames(callbacks, frameCount, deltaMs, 2);
+
+      const field = renderedField(renderer);
+      const material = field.children[0] as THREE.Points<
+        THREE.BufferGeometry,
+        THREE.ShaderMaterial
+      >;
+      return {
+        color: (material.material.uniforms.uParticleColor.value as THREE.Color).clone(),
+        pointer: (material.material.uniforms.uPointer.value as THREE.Vector3).clone(),
+      };
+    };
+
+    const at30Hz = runForOneSecond(30, 1_000 / 30);
+    const at120Hz = runForOneSecond(120, 1_000 / 120);
+
+    expect(at30Hz.pointer.x).toBeCloseTo(at120Hz.pointer.x, 5);
+    expect(at30Hz.pointer.y).toBeCloseTo(at120Hz.pointer.y, 5);
+    expect(at30Hz.color.r).toBeCloseTo(at120Hz.color.r, 5);
+    expect(at30Hz.color.g).toBeCloseTo(at120Hz.color.g, 5);
+    expect(at30Hz.color.b).toBeCloseTo(at120Hz.color.b, 5);
+  });
+
   it("caps a multi-second visible gap for elapsed time and pointer decay", () => {
     const { callbacks, controller, renderer } = createHarness();
 
@@ -369,18 +405,14 @@ describe("background scene controller", () => {
     const intermediateClear = (
       renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color
     ).clone();
-    expect(intermediateParticle).toEqual(
-      new THREE.Color("#aeb4ba").lerp(new THREE.Color("#555555"), 0.035),
-    );
-    expect(intermediateSignal).toEqual(
-      new THREE.Color("#f4f6f7").lerp(new THREE.Color("#333333"), 0.035),
-    );
-    expect(intermediateConnection).toEqual(
-      new THREE.Color("#697078").lerp(new THREE.Color("#777777"), 0.035),
-    );
-    expect(intermediateClear).toEqual(
-      new THREE.Color("#222222").lerp(new THREE.Color("#ffffff"), 0.035),
-    );
+    expect(intermediateParticle.getHexString()).not.toBe("aeb4ba");
+    expect(intermediateParticle.getHexString()).not.toBe("555555");
+    expect(intermediateSignal.getHexString()).not.toBe("f4f6f7");
+    expect(intermediateSignal.getHexString()).not.toBe("333333");
+    expect(intermediateConnection.getHexString()).not.toBe("697078");
+    expect(intermediateConnection.getHexString()).not.toBe("777777");
+    expect(intermediateClear.getHexString()).not.toBe("222222");
+    expect(intermediateClear.getHexString()).not.toBe("ffffff");
 
     controller.renderStatic();
 

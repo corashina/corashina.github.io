@@ -265,6 +265,74 @@ describe("BackgroundCanvas", () => {
     expect(observe).not.toHaveBeenCalled();
   });
 
+  it("falls back and disposes once when ResizeObserver construction fails", () => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class ResizeObserverConstructionFailure {
+        constructor() {
+          throw new Error("ResizeObserver construction failed");
+        }
+      },
+    );
+
+    const { unmount } = render(<BackgroundCanvas theme="dark" />);
+
+    expect(screen.getByTestId("background-canvas")).not.toBeVisible();
+    expect(controller.start).not.toHaveBeenCalled();
+    expect(controller.dispose).toHaveBeenCalledOnce();
+
+    unmount();
+    expect(controller.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("falls back and disposes once when observing the canvas fails", () => {
+    observe.mockImplementationOnce(() => {
+      throw new Error("observe failed");
+    });
+
+    const { unmount } = render(<BackgroundCanvas theme="dark" />);
+
+    expect(screen.getByTestId("background-canvas")).not.toBeVisible();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(controller.start).not.toHaveBeenCalled();
+    expect(controller.dispose).toHaveBeenCalledOnce();
+
+    unmount();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(controller.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("contains resize failures and tears down the running integration once", () => {
+    const removeWindowListener = vi.spyOn(window, "removeEventListener");
+    const removeDocumentListener = vi.spyOn(document, "removeEventListener");
+    vi.mocked(controller.resize).mockImplementationOnce(() => {
+      throw new Error("resize failed");
+    });
+    const { unmount } = render(<BackgroundCanvas theme="dark" />);
+
+    expect(() => {
+      act(() => {
+        resizeCallback(
+          [{ contentRect: { width: 900, height: 600 } } as ResizeObserverEntry],
+          {} as ResizeObserver,
+        );
+      });
+    }).not.toThrow();
+
+    expect(screen.getByTestId("background-canvas")).not.toBeVisible();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(removeWindowListener).toHaveBeenCalledWith("pointermove", expect.any(Function));
+    expect(removeDocumentListener).toHaveBeenCalledWith(
+      "visibilitychange",
+      expect.any(Function),
+    );
+    expect(controller.dispose).toHaveBeenCalledOnce();
+
+    unmount();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(controller.dispose).toHaveBeenCalledOnce();
+  });
+
   it("tears down every scene integration after an asynchronous failure", () => {
     const removeWindowListener = vi.spyOn(window, "removeEventListener");
     const removeDocumentListener = vi.spyOn(document, "removeEventListener");

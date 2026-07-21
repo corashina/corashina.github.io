@@ -88,6 +88,24 @@ describe("AppShell", () => {
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
   });
 
+  it.each([
+    ["/works/webgl-minecraft", "Work"],
+    ["/contact/missing", "Contact"],
+  ])("does not mark %s parent navigation as current", (path, linkName) => {
+    render(
+      <MemoryRouter initialEntries={[path]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    const navigation = screen.getByRole("navigation", {
+      name: "Primary navigation",
+    });
+    expect(within(navigation).getByRole("link", { name: linkName })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
   it("always starts with the original dark theme", () => {
     localStorage.setItem("portfolio-theme", "white");
     render(

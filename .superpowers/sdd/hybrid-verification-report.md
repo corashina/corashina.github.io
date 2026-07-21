@@ -89,3 +89,21 @@ The final whole-branch review produced corrective RED/GREEN cycles for layered c
 - The browser's operating preference is reduced motion, so live video hover playback was correctly suppressed; its normal-motion interaction lifecycle is covered by automated tests rather than a live playback observation.
 - Every route was inspected live in dark theme; light theme was inspected live on Contact rather than revisiting every route. Theme synchronization across the shell and particle scene is covered by automated tests.
 - Questrial, pointer bending/return, touch-scroll energy, intermediate theme interpolation, and the post-review curl/lifetime corrections have source/automated evidence but were not separately instrumented in a new manual browser session. In particular, the focused follow-up could not obtain FontFaceSet or computed-font values because no browser was available. These are manual-coverage limitations, not reproduced product defects.
+
+## 2026-07-21 Addendum: Approved Unified Width and Always-On Motion Policy
+
+The earlier observations in this report describing a 600px Home/Contact shell, reduced-motion suppression, static reduced-motion frames, and the `?motion=full` override are historical evidence only and are superseded by the approved current policy. Every route now uses one fluid shell capped at 900px. Particle animation, pointer response, route/media transitions, and project video hover/focus playback are always on without a query parameter and are not suppressed by `prefers-reduced-motion`. Existing responsive, theme, visibility, fallback, and media pause/reset behavior remains in force.
+
+Fresh final verification command:
+
+```powershell
+npm.cmd run verify
+```
+
+Result on 2026-07-21: exit code `0`; Vitest passed 14 test files and 121 tests with 0 failures; `tsc -b --pretty false` completed without errors; Vite transformed 76 modules and completed the production build in 500 ms; SPA fallback generation completed. Vite emitted the existing non-blocking main-chunk size advisory (`802.52 kB`, `221.42 kB` gzip).
+
+```powershell
+git diff --check
+```
+
+Result: exit code `0`; only LF-to-CRLF working-copy advisories were emitted, with no whitespace errors.

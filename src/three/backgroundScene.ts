@@ -75,6 +75,8 @@ const SLOW_FRAME_MS = 22;
 const REQUIRED_SLOW_FRAMES = 45;
 const QUALITY_FADE_SECONDS = 0.4;
 const MAX_SIMULATION_DELTA_MS = 50;
+const INITIAL_FRAME_DELTA_SECONDS = 1 / 60;
+const TARGET_DAMPING_RATE = -Math.log(1 - 0.035) * 60;
 const QUALITY_MIX = { low: 0, medium: 1, high: 2 } as const;
 
 export function createBackgroundScene(
@@ -255,13 +257,17 @@ export function createBackgroundScene(
     const deltaMs =
       previousTimestamp === null ? 0 : Math.max(timestamp - previousTimestamp, 0);
     const simulationDeltaMs = Math.min(deltaMs, MAX_SIMULATION_DELTA_MS);
+    const dampingDeltaSeconds =
+      previousTimestamp === null
+        ? INITIAL_FRAME_DELTA_SECONDS
+        : simulationDeltaMs * 0.001;
     elapsedTime += simulationDeltaMs * 0.001;
     previousTimestamp = timestamp;
     samplePerformance(deltaMs);
     updateQualityTransition(simulationDeltaMs * 0.001);
     pointerSpeedTarget *= Math.exp(-simulationDeltaMs * 0.001 * 3.2);
     try {
-      applyTargets(0.035);
+      applyTargets(1 - Math.exp(-TARGET_DAMPING_RATE * dampingDeltaSeconds));
       field.setTime(elapsedTime);
       renderer.render(scene, camera);
     } catch (error) {
