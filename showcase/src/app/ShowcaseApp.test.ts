@@ -53,7 +53,7 @@ function makeHarness(overrides: Partial<ShowcaseAppFactories> = {}, dimensions =
     createPipeline: vi.fn(() => { calls.push("pipeline"); return pipeline; }),
     ...overrides,
   };
-  const app = new ShowcaseApp({ canvas, root, capabilities: { webgl2: true, reducedMotion: false }, factories });
+  const app = new ShowcaseApp({ canvas, root, capabilities: { webgl2: true, reducedMotion: false }, factories, testMode: true });
   const runFrame = (now = 116) => {
     const callback = [...frameCallbacks.values()][0];
     expect(callback).toBeDefined();

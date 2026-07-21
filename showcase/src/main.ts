@@ -8,6 +8,7 @@ export type BootstrapOptions = {
   document?: Document;
   media?: typeof window.matchMedia;
   createApp?: (options: ShowcaseAppOptions) => AppControls;
+  testMode?: boolean;
 };
 
 /** Connects the static shell to the interactive scene after WebGL capability detection. */
@@ -18,6 +19,8 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   if (canvas === null) return null;
 
   const media = options.media ?? window.matchMedia.bind(window);
+  const query = new URLSearchParams(activeDocument.defaultView?.location.search ?? window.location.search);
+  const testMode = options.testMode ?? query.get("test") === "1";
   const capabilities = detectCapabilities(canvas, media);
   const showFallback = (message: string, app?: AppControls): null => {
     try { app?.dispose(); } catch { /* preserve the original failure state */ }
@@ -32,7 +35,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   let app: AppControls;
   try {
     app = (options.createApp ?? ((appOptions) => new ShowcaseApp(appOptions)))({
-      canvas, root, capabilities,
+      canvas, root, capabilities, testMode,
       onStateChange: (state, message) => {
         root.dataset.showcaseState = state;
         if (message === undefined) delete root.dataset.showcaseError;
@@ -48,6 +51,11 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const onReset = (): void => { try { app.resetView(); } catch (error) { showFallback(error instanceof Error ? error.message : "View reset failed.", app); } };
   quality?.addEventListener("change", onQualityChange);
   reset?.addEventListener("click", onReset);
+  const requestedQuality = query.get("quality") as QualityMode | null;
+  if (testMode && requestedQuality !== null && ["auto", "ultra", "high", "medium", "low"].includes(requestedQuality)) {
+    if (quality !== null) quality.value = requestedQuality;
+    onQualityChange();
+  }
 
   const hint = activeDocument.querySelector<HTMLElement>(".interaction-hint");
   const hideHint = (): void => { if (hint !== null) hint.hidden = true; };

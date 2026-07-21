@@ -14,7 +14,7 @@
     "build:portfolio": "npm run typecheck && vite build --outDir ../public/showcase --emptyOutDir",
     "preview": "vite preview",
     "capture:fallback": "node scripts/capture-fallback.mjs",
-    "verify": "npm run test && npm run build && npm run test:browser"
+    "verify": "npm run test && npm run build && npm run test:browser -- --project=chromium"
   },
   "dependencies": { "three": "0.185.1" },
   "devDependencies": {

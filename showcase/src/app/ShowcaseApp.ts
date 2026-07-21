@@ -58,6 +58,8 @@ export type ShowcaseAppOptions = {
   canvas: HTMLCanvasElement;
   root?: HTMLElement;
   capabilities: CapabilityReport;
+  /** Limited browser-test instrumentation. Never enable from production UI. */
+  testMode?: boolean;
   factories?: Partial<ShowcaseAppFactories>;
   onStateChange?: (state: "loading" | "ready" | "recovering" | "fallback", message?: string) => void;
   onFirstFrame?: () => void;
@@ -85,7 +87,8 @@ function setPosition(object: unknown, x: number, y: number, z: number): void {
 const productionFactories: ShowcaseAppFactories = {
   now: () => performance.now(), requestFrame: (callback) => requestAnimationFrame(callback), cancelFrame: (id) => cancelAnimationFrame(id),
   createRenderer: (canvas) => {
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
+    const capture = new URLSearchParams(window.location.search).get("capture") === "1";
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: capture });
     renderer.shadowMap.enabled = true;
     return renderer;
   },
@@ -139,10 +142,12 @@ export class ShowcaseApp {
   private qualityTransition: unknown = null;
   private firstFrame = true;
   private readonly cleanups = new Set<() => void>();
+  private readonly testMode: boolean;
 
   constructor(private readonly options: ShowcaseAppOptions) {
     try {
       this.root = options.root ?? document.documentElement;
+      this.testMode = options.testMode === true;
       this.factories = { ...productionFactories, ...options.factories };
       this.renderer = this.factories.createRenderer(options.canvas);
       this.scene = this.factories.createScene();
@@ -151,8 +156,10 @@ export class ShowcaseApp {
       this.interactionController = this.factories.createInteractionController({ canvas: options.canvas, reducedMotion: options.capabilities.reducedMotion });
       this.cameraController = this.factories.createCameraController({ camera: this.camera, reducedMotion: options.capabilities.reducedMotion });
       this.clock = this.factories.createClock();
-      this.qualityManager = this.factories.createQualityManager(initialTier(options.capabilities));
+      const tier = initialTier(options.capabilities);
+      this.qualityManager = this.factories.createQualityManager(tier);
       this.profile = this.qualityManager.getProfile();
+      this.setTestQualityTier(tier);
       this.systems = this.createGpuSystems(this.profile);
       this.frame = { deltaSeconds: 0, elapsedSeconds: 0, interaction: { ...EMPTY_INTERACTION, reducedMotion: options.capabilities.reducedMotion } };
       this.resize();
@@ -194,8 +201,9 @@ export class ShowcaseApp {
 
   setQualityMode(mode: QualityMode): void {
     if (this.disposed) return;
-    this.qualityManager.setMode(mode);
+    const tier = this.qualityManager.setMode(mode);
     this.applyQuality(this.qualityManager.getProfile());
+    this.setTestQualityTier(tier);
   }
 
   resetView(): void {
@@ -273,10 +281,18 @@ export class ShowcaseApp {
       const frameMs = Math.max(0, nowMs - previous);
       this.lastFrameNowMs = nowMs;
       this.clock.advance(nowMs, () => this.step());
-      if (this.qualityManager.sample(frameMs, nowMs) !== null) this.applyQuality(this.qualityManager.getProfile());
+      const sampledTier = this.qualityManager.sample(frameMs, nowMs);
+      if (sampledTier !== null) {
+        this.applyQuality(this.qualityManager.getProfile());
+        this.setTestQualityTier(sampledTier);
+      }
       this.qualityTransition = this.qualityManager.getTransition(nowMs);
       this.systems.pipeline.render(this.frame);
-      if (this.firstFrame) { this.firstFrame = false; this.root.dataset.showcaseReady = "true"; this.setState("ready"); this.options.onFirstFrame?.(); }
+      if (this.firstFrame) {
+        this.firstFrame = false;
+        if (this.testMode) this.root.dataset.showcaseReady = "true";
+        this.setState("ready"); this.options.onFirstFrame?.();
+      }
       this.scheduleFrame();
     } catch (error) {
       this.showFallback(error instanceof Error ? error.message : "The interactive scene could not be rendered.");
@@ -295,6 +311,10 @@ export class ShowcaseApp {
     this.systems.nebula.setElapsedTime(this.elapsedSeconds);
     this.cameraController.update(frame);
     this.frame = frame;
+    if (this.testMode) {
+      this.root.dataset.lastPulse = String(interaction.pulseId);
+      if (interaction.resetRequested) this.root.dataset.lastReset = "1";
+    }
   }
 
   private applyQuality(profile: QualityProfile): void {
@@ -329,7 +349,9 @@ export class ShowcaseApp {
     event.preventDefault();
     this.contextLosses += 1;
     if (this.contextLosses > 1) { this.showFallback("WebGL context was lost more than once."); return; }
-    this.recovering = true; this.pauseFrameLoop(); this.firstFrame = true; delete this.root.dataset.showcaseReady; this.setState("recovering");
+    this.recovering = true; this.pauseFrameLoop(); this.firstFrame = true;
+    if (this.testMode) delete this.root.dataset.showcaseReady;
+    this.setState("recovering");
   };
 
   private readonly onContextRestored = (): void => {
@@ -348,6 +370,10 @@ export class ShowcaseApp {
     if (message === undefined) delete this.root.dataset.showcaseError;
     else this.root.dataset.showcaseError = message;
     this.options.onStateChange?.(state, message);
+  }
+
+  private setTestQualityTier(tier: QualityTier): void {
+    if (this.testMode) this.root.dataset.qualityTier = tier;
   }
 
   private showFallback(message: string): void {
