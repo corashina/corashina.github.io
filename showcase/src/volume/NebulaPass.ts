@@ -2,12 +2,11 @@ import * as THREE from "three";
 import { FullScreenQuad, Pass } from "three/addons/postprocessing/Pass.js";
 import type { InteractionSnapshot } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
-import { copyFragmentShader, nebulaFragmentShader, nebulaVertexShader, temporalFragmentShader } from "./nebulaShader";
+import { copyFragmentShader, depthCopyFragmentShader, nebulaFragmentShader, nebulaVertexShader, temporalFragmentShader } from "./nebulaShader";
 import { createNoiseVolume } from "./noiseVolume";
 
 const VOLUME_CENTER = new THREE.Vector3(0, 0, 0);
 const VOLUME_HALF_EXTENT = new THREE.Vector3(9, 6, 9);
-const IDENTITY = new THREE.Matrix4();
 
 function scaleFor(profile: QualityProfile): number {
   switch (profile.volumeSteps) {
@@ -56,21 +55,24 @@ export type NebulaPassOptions = {
 export class NebulaPass extends Pass {
   readonly densityTexture: THREE.Data3DTexture;
   readonly material: THREE.ShaderMaterial;
+  readonly compositeMaterial: THREE.ShaderMaterial;
   readonly quad: FullScreenQuad;
   renderTarget: THREE.WebGLRenderTarget;
 
   private readonly temporalMaterial: THREE.ShaderMaterial;
-  private readonly copyMaterial: THREE.ShaderMaterial;
+  private readonly depthCopyMaterial: THREE.ShaderMaterial;
   private readonly fallbackTexture = createFallbackTexture();
   private readonly previousViewProjection = new THREE.Matrix4();
   private readonly currentViewProjection = new THREE.Matrix4();
   private readonly cameraPosition = new THREE.Vector3();
   private historyTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
+  private historyDepthTargets: [THREE.WebGLRenderTarget, THREE.WebGLRenderTarget];
   private historyIndex = 0;
   private width = 1;
   private height = 1;
   private scale: number;
   private historyValid = false;
+  private hasDepth = false;
   private frame = 0;
   private disposed = false;
 
@@ -81,12 +83,12 @@ export class NebulaPass extends Pass {
     this.scale = scaleFor(profile);
     this.densityTexture = createNoiseVolume(options.noiseSize ?? 32, options.noiseSeed ?? 0xc051c);
     this.material = createShaderMaterial(nebulaFragmentShader, {
-      tDiffuse: { value: this.fallbackTexture },
       uSceneDepth: { value: this.fallbackTexture },
       uSceneNormal: { value: this.fallbackTexture },
       uDensityVolume: { value: this.densityTexture },
       uProjectionInverse: { value: new THREE.Matrix4() },
       uCameraWorldMatrix: { value: new THREE.Matrix4() },
+      uCameraWorldMatrixInverse: { value: new THREE.Matrix4() },
       uCameraPosition: { value: new THREE.Vector3() },
       uVolumeCenter: { value: VOLUME_CENTER.clone() },
       uVolumeHalfExtent: { value: VOLUME_HALF_EXTENT.clone() },
@@ -102,16 +104,23 @@ export class NebulaPass extends Pass {
       tCurrent: { value: this.fallbackTexture },
       tHistory: { value: this.fallbackTexture },
       uSceneDepth: { value: this.fallbackTexture },
+      uPreviousDepth: { value: this.fallbackTexture },
       uProjectionInverse: { value: new THREE.Matrix4() },
       uCameraWorldMatrix: { value: new THREE.Matrix4() },
       uPreviousViewProjection: { value: new THREE.Matrix4() },
+      uHasDepth: { value: 0 },
       uHistoryValid: { value: 0 },
       uHistoryWeight: { value: 0.88 },
     });
-    this.copyMaterial = createShaderMaterial(copyFragmentShader, { tDiffuse: { value: this.fallbackTexture } });
+    this.depthCopyMaterial = createShaderMaterial(depthCopyFragmentShader, { uSceneDepth: { value: this.fallbackTexture } });
+    this.compositeMaterial = createShaderMaterial(copyFragmentShader, {
+      tScene: { value: this.fallbackTexture },
+      tVolume: { value: this.fallbackTexture },
+    });
     this.quad = new FullScreenQuad(this.material);
     this.renderTarget = createTarget(1, 1);
     this.historyTargets = [createTarget(1, 1), createTarget(1, 1)];
+    this.historyDepthTargets = [createTarget(1, 1), createTarget(1, 1)];
   }
 
   setQuality(profile: QualityProfile): void {
@@ -125,7 +134,10 @@ export class NebulaPass extends Pass {
     if (this.disposed) return;
     this.material.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
     this.temporalMaterial.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
+    this.depthCopyMaterial.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
     this.material.uniforms.uHasDepth!.value = texture === null ? 0 : 1;
+    this.temporalMaterial.uniforms.uHasDepth!.value = texture === null ? 0 : 1;
+    this.hasDepth = texture !== null;
     this.invalidateHistory();
   }
 
@@ -141,6 +153,7 @@ export class NebulaPass extends Pass {
     const projectionInverse = camera.projectionMatrixInverse;
     this.material.uniforms.uProjectionInverse!.value.copy(projectionInverse);
     this.material.uniforms.uCameraWorldMatrix!.value.copy(camera.matrixWorld);
+    this.material.uniforms.uCameraWorldMatrixInverse!.value.copy(camera.matrixWorldInverse);
     camera.getWorldPosition(this.cameraPosition);
     this.material.uniforms.uCameraPosition!.value.copy(this.cameraPosition);
     this.temporalMaterial.uniforms.uProjectionInverse!.value.copy(projectionInverse);
@@ -183,7 +196,6 @@ export class NebulaPass extends Pass {
     if (this.disposed) return;
     if (renderer.capabilities.isWebGL2 === false) throw new Error("NebulaPass requires WebGL2 for 3D volume sampling");
 
-    this.material.uniforms.tDiffuse!.value = readBuffer.texture;
     this.material.uniforms.uFrame!.value = this.frame;
     renderer.setRenderTarget(this.renderTarget);
     this.quad.material = this.material;
@@ -192,20 +204,28 @@ export class NebulaPass extends Pass {
     const nextHistory = 1 - this.historyIndex as 0 | 1;
     this.temporalMaterial.uniforms.tCurrent!.value = this.renderTarget.texture;
     this.temporalMaterial.uniforms.tHistory!.value = this.historyTargets[this.historyIndex]!.texture;
+    this.temporalMaterial.uniforms.uPreviousDepth!.value = this.historyDepthTargets[this.historyIndex]!.texture;
     this.temporalMaterial.uniforms.uPreviousViewProjection!.value.copy(this.previousViewProjection);
     this.temporalMaterial.uniforms.uHistoryValid!.value = this.historyValid ? 1 : 0;
     renderer.setRenderTarget(this.historyTargets[nextHistory]);
     this.quad.material = this.temporalMaterial;
     this.quad.render(renderer);
 
-    this.copyMaterial.uniforms.tDiffuse!.value = this.historyTargets[nextHistory].texture;
+    if (this.hasDepth) {
+      renderer.setRenderTarget(this.historyDepthTargets[nextHistory]);
+      this.quad.material = this.depthCopyMaterial;
+      this.quad.render(renderer);
+    }
+
+    this.compositeMaterial.uniforms.tScene!.value = readBuffer.texture;
+    this.compositeMaterial.uniforms.tVolume!.value = this.historyTargets[nextHistory].texture;
     renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer);
-    this.quad.material = this.copyMaterial;
+    this.quad.material = this.compositeMaterial;
     this.quad.render(renderer);
     this.quad.material = this.material;
 
     this.historyIndex = nextHistory;
-    this.historyValid = true;
+    this.historyValid = this.hasDepth;
     this.previousViewProjection.copy(this.currentViewProjection);
     this.frame += 1;
   }
@@ -217,7 +237,8 @@ export class NebulaPass extends Pass {
     this.fallbackTexture.dispose();
     this.material.dispose();
     this.temporalMaterial.dispose();
-    this.copyMaterial.dispose();
+    this.depthCopyMaterial.dispose();
+    this.compositeMaterial.dispose();
     this.quad.dispose();
     this.releaseTargets();
   }
@@ -236,6 +257,7 @@ export class NebulaPass extends Pass {
     this.releaseTargets();
     this.renderTarget = createTarget(targetWidth, targetHeight);
     this.historyTargets = [createTarget(targetWidth, targetHeight), createTarget(targetWidth, targetHeight)];
+    this.historyDepthTargets = [createTarget(targetWidth, targetHeight), createTarget(targetWidth, targetHeight)];
     this.historyIndex = 0;
     this.historyValid = false;
   }
@@ -244,5 +266,7 @@ export class NebulaPass extends Pass {
     this.renderTarget.dispose();
     this.historyTargets[0].dispose();
     this.historyTargets[1].dispose();
+    this.historyDepthTargets[0].dispose();
+    this.historyDepthTargets[1].dispose();
   }
 }

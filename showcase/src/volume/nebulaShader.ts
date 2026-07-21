@@ -1,4 +1,4 @@
-export const nebulaVertexShader = /* glsl */ `#version 300 es
+export const nebulaVertexShader = /* glsl */ `
 in vec3 position;
 in vec2 uv;
 out vec2 vUv;
@@ -8,19 +8,19 @@ void main() {
   gl_Position = vec4(position, 1.0);
 }`;
 
-export const nebulaFragmentShader = /* glsl */ `#version 300 es
+export const nebulaFragmentShader = /* glsl */ `
 precision highp float;
 precision highp sampler3D;
 
 in vec2 vUv;
 out vec4 fragColor;
 
-uniform sampler2D tDiffuse;
 uniform sampler2D uSceneDepth;
 uniform sampler2D uSceneNormal;
 uniform sampler3D uDensityVolume;
 uniform mat4 uProjectionInverse;
 uniform mat4 uCameraWorldMatrix;
+uniform mat4 uCameraWorldMatrixInverse;
 uniform vec3 uCameraPosition;
 uniform vec3 uVolumeCenter;
 uniform vec3 uVolumeHalfExtent;
@@ -44,7 +44,7 @@ vec3 reconstructWorldPosition(vec2 uv, float depth) {
 }
 
 vec2 rayBoxIntersection(vec3 rayOrigin, vec3 rayDirection) {
-  vec3 safeDirection = sign(rayDirection) * max(abs(rayDirection), vec3(0.0001));
+  vec3 safeDirection = mix(vec3(-1.0), vec3(1.0), step(vec3(0.0), rayDirection)) * max(abs(rayDirection), vec3(0.0001));
   vec3 minimum = uVolumeCenter - uVolumeHalfExtent;
   vec3 maximum = uVolumeCenter + uVolumeHalfExtent;
   vec3 first = (minimum - rayOrigin) / safeDirection;
@@ -55,8 +55,8 @@ vec2 rayBoxIntersection(vec3 rayOrigin, vec3 rayDirection) {
 }
 
 void main() {
-  vec3 sceneColor = texture(tDiffuse, vUv).rgb;
   vec3 rayDirection = normalize(reconstructWorldPosition(vUv, 1.0) - uCameraPosition);
+  vec3 viewRayDirection = normalize(mat3(uCameraWorldMatrixInverse) * rayDirection);
   vec2 hit = rayBoxIntersection(uCameraPosition, rayDirection);
   float rayStart = max(hit.x, 0.0);
   float rayEnd = hit.y;
@@ -69,14 +69,14 @@ void main() {
   }
 
   if (rayEnd <= rayStart) {
-    fragColor = vec4(sceneColor, 1.0);
+    fragColor = vec4(0.0, 0.0, 0.0, 1.0);
     return;
   }
 
   float normalSoftness = 1.0;
   if (uHasNormal > 0.5) {
     vec3 viewNormal = normalize(texture(uSceneNormal, vUv).xyz * 2.0 - 1.0);
-    normalSoftness = smoothstep(0.04, 0.35, abs(dot(viewNormal, rayDirection)));
+    normalSoftness = smoothstep(0.04, 0.35, abs(dot(viewNormal, viewRayDirection)));
   }
 
   float stepLength = (rayEnd - rayStart) / float(uMaxSteps);
@@ -90,7 +90,10 @@ void main() {
     vec3 worldPosition = uCameraPosition + rayDirection * travel;
     vec3 volumeUv = (worldPosition - uVolumeCenter) / (uVolumeHalfExtent * 2.0) + 0.5;
     float density = texture(uDensityVolume, volumeUv).r;
-    float pulseClear = smoothstep(uPulseRadius * 0.65, uPulseRadius, distance(worldPosition, uPulsePosition));
+    float pulseClear = 1.0;
+    if (uPulseRadius > 0.0) {
+      pulseClear = smoothstep(uPulseRadius * 0.65, uPulseRadius, distance(worldPosition, uPulsePosition));
+    }
     density *= pulseClear * normalSoftness;
     if (density < 0.015) {
       travel += stepLength;
@@ -110,10 +113,10 @@ void main() {
     travel += stepLength;
   }
 
-  fragColor = vec4(sceneColor * transmittance + scatteredLight, 1.0);
+  fragColor = vec4(scatteredLight, transmittance);
 }`;
 
-export const temporalFragmentShader = /* glsl */ `#version 300 es
+export const temporalFragmentShader = /* glsl */ `
 precision highp float;
 
 in vec2 vUv;
@@ -122,9 +125,11 @@ out vec4 fragColor;
 uniform sampler2D tCurrent;
 uniform sampler2D tHistory;
 uniform sampler2D uSceneDepth;
+uniform sampler2D uPreviousDepth;
 uniform mat4 uProjectionInverse;
 uniform mat4 uCameraWorldMatrix;
 uniform mat4 uPreviousViewProjection;
+uniform float uHasDepth;
 uniform float uHistoryValid;
 uniform float uHistoryWeight;
 
@@ -135,25 +140,44 @@ vec3 reconstructWorldPosition(vec2 uv, float depth) {
   return (uCameraWorldMatrix * viewPosition).xyz;
 }
 
-vec2 reprojectUv(vec2 uv) {
-  vec3 worldPosition = reconstructWorldPosition(uv, texture(uSceneDepth, uv).x);
-  vec4 previousClip = uPreviousViewProjection * vec4(worldPosition, 1.0);
-  return previousClip.xy / max(previousClip.w, 0.00001) * 0.5 + 0.5;
-}
-
 void main() {
-  vec3 current = texture(tCurrent, vUv).rgb;
-  vec2 historyUv = reprojectUv(vUv);
-  bool insideHistory = all(greaterThanEqual(historyUv, vec2(0.0))) && all(lessThanEqual(historyUv, vec2(1.0)));
-  vec3 history = texture(tHistory, clamp(historyUv, 0.0, 1.0)).rgb;
-  float weight = uHistoryValid * float(insideHistory) * uHistoryWeight;
-  fragColor = vec4(mix(current, history, weight), 1.0);
+  vec4 current = texture(tCurrent, vUv);
+  if (uHasDepth < 0.5) {
+    fragColor = current;
+    return;
+  }
+  float currentDepth = texture(uSceneDepth, vUv).x;
+  vec3 worldPosition = reconstructWorldPosition(vUv, currentDepth);
+  vec4 previousClip = uPreviousViewProjection * vec4(worldPosition, 1.0);
+  bool forwardProjection = previousClip.w > 0.0;
+  vec3 previousNdc = previousClip.xyz / max(previousClip.w, 0.00001);
+  bool insideNdc = all(greaterThanEqual(previousNdc, vec3(-1.0))) && all(lessThanEqual(previousNdc, vec3(1.0)));
+  vec2 historyUv = previousNdc.xy * 0.5 + 0.5;
+  float expectedPreviousDepth = previousNdc.z * 0.5 + 0.5;
+  float previousDepth = texture(uPreviousDepth, clamp(historyUv, 0.0, 1.0)).x;
+  float depthAgreement = step(abs(expectedPreviousDepth - previousDepth), 0.003);
+  float historyAllowed = uHasDepth * uHistoryValid * float(forwardProjection && insideNdc) * depthAgreement;
+  vec4 history = texture(tHistory, clamp(historyUv, 0.0, 1.0));
+  fragColor = mix(current, history, historyAllowed * uHistoryWeight);
 }`;
 
-export const copyFragmentShader = /* glsl */ `#version 300 es
+export const depthCopyFragmentShader = /* glsl */ `
 precision highp float;
 in vec2 vUv;
 out vec4 fragColor;
-uniform sampler2D tDiffuse;
-void main() { fragColor = texture(tDiffuse, vUv); }
+uniform sampler2D uSceneDepth;
+void main() { fragColor = vec4(vec3(texture(uSceneDepth, vUv).x), 1.0); }
+`;
+
+export const copyFragmentShader = /* glsl */ `
+precision highp float;
+in vec2 vUv;
+out vec4 fragColor;
+uniform sampler2D tScene;
+uniform sampler2D tVolume;
+void main() {
+  vec4 scene = texture(tScene, vUv);
+  vec4 volume = texture(tVolume, vUv);
+  fragColor = vec4(scene.rgb * volume.a + volume.rgb, scene.a);
+}
 `;
