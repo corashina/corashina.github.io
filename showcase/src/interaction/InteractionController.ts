@@ -122,8 +122,8 @@ export class InteractionController {
     this.handledPointerMoves.add(event);
     if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
       this.touchPointers.set(event.pointerId, [event.clientX, event.clientY]);
-      this.updatePointer(event);
       if (this.touchPointers.size >= 2) {
+        this.updatePointer(event);
         this.updatePinch();
         return;
       }

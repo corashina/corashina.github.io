@@ -33,6 +33,16 @@ describe("InteractionController", () => {
     expect(interaction.pointerVelocity[1]).toBe(0);
   });
 
+  it("retains velocity after a single touch pointer moves", () => {
+    const canvas = createCanvas();
+    const controller = new InteractionController({ canvas, eventTarget: window, reducedMotion: false });
+
+    canvas.dispatchEvent(pointerEvent("pointerdown", 30, 50, "touch", 1));
+    canvas.dispatchEvent(pointerEvent("pointermove", 60, 50, "touch", 1));
+
+    expect(controller.sample(1 / 60).pointerVelocity[0]).not.toBe(0);
+  });
+
   it("emits one pulse for a short click and Space", () => {
     const canvas = createCanvas();
     const controller = new InteractionController({ canvas, eventTarget: window, reducedMotion: false });
