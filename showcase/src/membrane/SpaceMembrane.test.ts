@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { FrameContext, InteractionSnapshot } from "../app/contracts";
 import { QUALITY_PROFILES } from "../quality/qualityProfiles";
 import { SpaceMembrane, type MembraneComputeFactory, type MembraneComputeVariable } from "./SpaceMembrane";
+import { getMembraneShaderUniforms } from "./membraneShaders";
 
 type FakeCompute = {
   computeCalls: number;
@@ -64,14 +65,17 @@ describe("SpaceMembrane", () => {
 
     const compute = created[0]!;
     const variable = compute.variables[0]!;
-    const mesh = membrane.object.children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+    const mesh = membrane.object.children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial>;
+    const renderUniforms = getMembraneShaderUniforms(mesh.material);
     expect(compute.computeCalls).toBe(1);
     expect(compute.dependencies.get("textureHeight")).toEqual(["textureHeight"]);
     expect(mesh.geometry.getAttribute("position").count).toBe(96 * 96);
     expect(mesh.geometry.drawRange).toEqual({ start: 0, count: mesh.geometry.index!.count });
     expect(mesh.frustumCulled).toBe(false);
+    expect(mesh.receiveShadow).toBe(true);
+    expect(mesh.material).toBeInstanceOf(THREE.MeshPhysicalMaterial);
     expect(mesh.userData.renderChannels).toEqual(["low-energy", "low-roughness"]);
-    expect(mesh.material.uniforms.uWorldTexel!.value).toBeCloseTo(16 / 95);
+    expect(renderUniforms.uWorldTexel.value).toBeCloseTo(16 / 95);
     expect(variable.material.uniforms.uDelta!.value).toBe(1 / 60);
     expect(variable.material.uniforms.uTime!.value).toBe(2);
     expect(variable.material.uniforms.uPointerUv!.value).toEqual(new THREE.Vector2(9 / 16, 11 / 16));
@@ -79,7 +83,7 @@ describe("SpaceMembrane", () => {
     expect(variable.material.uniforms.uParticleTexture!.value).toBe(particles);
     expect(variable.material.uniforms.uMembraneY!.value).toBe(-2.2);
     expect(variable.material.uniforms.uParticleSamples!.value).toHaveLength(8);
-    expect(mesh.material.uniforms.uHeightTexture!.value).toBe(compute.textures[1]);
+    expect(renderUniforms.uHeightTexture.value).toBe(compute.textures[1]);
   });
 
   it("does not allocate an orphan particle placeholder before the first fixed step", () => {
@@ -141,6 +145,7 @@ describe("SpaceMembrane", () => {
     expect(membrane.getShadowMaterials()).toHaveLength(1);
     expect(membrane.getShadowMaterials()[0]!.transparent).toBe(false);
     expect(membrane.getShadowMaterials()[0]!.depthWrite).toBe(true);
+    expect(membrane.getShadowMaterials()[0]!.opacity).toBe(1);
   });
 
   it("cleans up failed initialization and disposes every live resource only once", () => {
@@ -151,7 +156,7 @@ describe("SpaceMembrane", () => {
 
     const created: FakeCompute[] = [];
     const membrane = new SpaceMembrane({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
-    const mesh = membrane.object.children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+    const mesh = membrane.object.children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial>;
     const geometryDispose = vi.spyOn(mesh.geometry, "dispose");
     const materialDispose = vi.spyOn(mesh.material, "dispose");
     membrane.dispose();

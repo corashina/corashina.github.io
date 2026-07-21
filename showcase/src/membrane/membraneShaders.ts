@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export const membraneComputeShader = /* glsl */ `
 uniform float uDelta;
 uniform float uTime;
@@ -49,52 +51,153 @@ void main() {
 }
 `;
 
-export const membraneVertexShader = /* glsl */ `
+type Uniform<T> = { value: T };
+
+export type MembraneShaderUniforms = {
+  uHeightTexture: Uniform<THREE.Texture>;
+  uTexel: Uniform<THREE.Vector2>;
+  uWorldTexel: Uniform<number>;
+  uHeightScale: Uniform<number>;
+  uDetailStrength: Uniform<number>;
+};
+
+type PhysicalShader = {
+  uniforms: Record<string, { value: unknown }>;
+  vertexShader: string;
+  fragmentShader: string;
+};
+
+const PROGRAM_KEY = "cosmic-genesis-membrane-physical-v2";
+
+const vertexDeclarations = /* glsl */ `
 uniform sampler2D uHeightTexture;
 uniform vec2 uTexel;
 uniform float uWorldTexel;
 uniform float uHeightScale;
-varying vec3 vWorldNormal;
-varying vec3 vWorldPosition;
-varying float vCurvature;
+varying float vMembraneCurvature;
+varying vec3 vMembraneWorldPosition;
+`;
 
-float membraneHeight(vec2 uv) { return texture2D(uHeightTexture, uv).r * uHeightScale; }
+const fragmentDeclarations = /* glsl */ `
+uniform float uDetailStrength;
+varying float vMembraneCurvature;
+varying vec3 vMembraneWorldPosition;
 
-void main() {
-  float height = membraneHeight(uv);
-  float heightEast = membraneHeight(uv + vec2(uTexel.x, 0.0));
-  float heightWest = membraneHeight(uv - vec2(uTexel.x, 0.0));
-  float heightNorth = membraneHeight(uv + vec2(0.0, uTexel.y));
-  float heightSouth = membraneHeight(uv - vec2(0.0, uTexel.y));
-  vec3 displaced = position + vec3(0.0, 0.0, height);
-  vec3 tangentX = normalize(vec3(2.0 * uWorldTexel, 0.0, heightEast - heightWest));
-  vec3 tangentZ = normalize(vec3(0.0, 2.0 * uWorldTexel, heightNorth - heightSouth));
-  vec3 membraneNormal = normalize(cross(tangentX, tangentZ));
-  vCurvature = abs(heightEast + heightWest + heightNorth + heightSouth - 4.0 * height);
-  vec4 worldPosition = modelMatrix * vec4(displaced, 1.0);
-  vWorldPosition = worldPosition.xyz;
-  vWorldNormal = normalize(mat3(modelMatrix) * membraneNormal);
-  gl_Position = projectionMatrix * viewMatrix * worldPosition;
+float membraneDetailField(vec3 worldPosition) {
+  float primary = sin(worldPosition.x * 18.0 + worldPosition.z * 3.0) * sin(worldPosition.z * 21.0 - worldPosition.x * 2.0);
+  float secondary = sin((worldPosition.x + worldPosition.z) * 37.0) * 0.35;
+  return primary + secondary;
+}
+
+vec3 membranePerturbNormal(vec3 surfacePosition, vec3 surfaceNormal, float height) {
+  vec3 sigmaX = dFdx(surfacePosition);
+  vec3 sigmaY = dFdy(surfacePosition);
+  vec3 responseX = cross(sigmaY, surfaceNormal);
+  vec3 responseY = cross(surfaceNormal, sigmaX);
+  float determinant = dot(sigmaX, responseX);
+  vec2 gradient = vec2(dFdx(height), dFdy(height));
+  return normalize(abs(determinant) * surfaceNormal - sign(determinant) * (gradient.x * responseX + gradient.y * responseY));
 }
 `;
 
-export const membraneFragmentShader = /* glsl */ `
-uniform vec3 uEnvironmentColor;
-uniform float uOpacity;
-uniform float roughness;
-varying vec3 vWorldNormal;
-varying vec3 vWorldPosition;
-varying float vCurvature;
-
-void main() {
-  vec3 normal = normalize(vWorldNormal);
-  vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-  float fresnel = pow(1.0 - max(dot(normal, viewDirection), 0.0), 4.0);
-  float curvature = smoothstep(0.002, 0.16, vCurvature);
-  vec3 cyan = vec3(0.08, 0.92, 1.0);
-  vec3 environment = uEnvironmentColor * (0.42 + 0.58 * max(normal.y, 0.0));
-  vec3 physical = mix(environment * (1.0 - roughness), cyan, curvature * 0.72);
-  vec3 color = physical + cyan * fresnel * (0.24 + curvature * 0.76);
-  gl_FragColor = vec4(color, uOpacity);
+function injectAfterCommon(source: string, declarations: string): string {
+  const anchor = "#include <common>";
+  if (!source.includes(anchor)) return `${declarations}\n${source}`;
+  return source.replace(anchor, `${anchor}\n${declarations}`);
 }
-`;
+
+function augmentPhysicalShader(shader: PhysicalShader, uniforms: MembraneShaderUniforms): void {
+  Object.assign(shader.uniforms, uniforms);
+  shader.vertexShader = injectAfterCommon(shader.vertexShader, vertexDeclarations)
+    .replace(
+      "#include <beginnormal_vertex>",
+      /* glsl */ `
+        #include <beginnormal_vertex>
+        float membraneHeight = texture2D(uHeightTexture, uv).r * uHeightScale;
+        float heightEast = texture2D(uHeightTexture, uv + vec2(uTexel.x, 0.0)).r * uHeightScale;
+        float heightWest = texture2D(uHeightTexture, uv - vec2(uTexel.x, 0.0)).r * uHeightScale;
+        float heightNorth = texture2D(uHeightTexture, uv + vec2(0.0, uTexel.y)).r * uHeightScale;
+        float heightSouth = texture2D(uHeightTexture, uv - vec2(0.0, uTexel.y)).r * uHeightScale;
+        vec3 membraneTangentX = vec3(2.0 * uWorldTexel, 0.0, heightEast - heightWest);
+        vec3 membraneTangentY = vec3(0.0, 2.0 * uWorldTexel, heightNorth - heightSouth);
+        objectNormal = normalize(cross(membraneTangentX, membraneTangentY));
+        vMembraneCurvature = abs(heightEast + heightWest + heightNorth + heightSouth - 4.0 * membraneHeight);
+      `,
+    )
+    .replace(
+      "#include <begin_vertex>",
+      /* glsl */ `
+        #include <begin_vertex>
+        transformed += vec3(0.0, 0.0, membraneHeight);
+      `,
+    )
+    .replace(
+      "#include <project_vertex>",
+      /* glsl */ `
+        #include <project_vertex>
+        vMembraneWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
+      `,
+    );
+
+  shader.fragmentShader = injectAfterCommon(shader.fragmentShader, fragmentDeclarations)
+    .replace(
+      "#include <normal_fragment_maps>",
+      /* glsl */ `
+        #include <normal_fragment_maps>
+        float membraneFineDetail = membraneDetailField(vMembraneWorldPosition) * uDetailStrength;
+        normal = membranePerturbNormal(-vViewPosition, normal, membraneFineDetail);
+      `,
+    )
+    .replace(
+      "#include <lights_physical_fragment>",
+      /* glsl */ `
+        #include <lights_physical_fragment>
+        float membraneCurvature = smoothstep(0.002, 0.16, vMembraneCurvature);
+        vec3 membraneCyan = vec3(0.08, 0.92, 1.0);
+        material.diffuseColor = mix(material.diffuseColor, membraneCyan, membraneCurvature * 0.28);
+        material.diffuseContribution = material.diffuseColor * (1.0 - material.metalness);
+        material.specularColorBlended = mix(material.specularColor, material.diffuseColor, material.metalness);
+      `,
+    )
+    .replace(
+      "#include <opaque_fragment>",
+      /* glsl */ `
+        float membraneFresnel = pow(1.0 - saturate(dot(normalize(normal), normalize(vViewPosition))), 4.0);
+        outgoingLight += membraneCyan * (membraneCurvature * 0.12 + membraneFresnel * 0.055);
+        #include <opaque_fragment>
+      `,
+    );
+}
+
+export function getMembraneShaderUniforms(material: THREE.MeshPhysicalMaterial): MembraneShaderUniforms {
+  return material.userData.membraneShaderUniforms as MembraneShaderUniforms;
+}
+
+/** Builds a physical surface and limits custom shader work to displacement and local response. */
+export function createMembraneMaterial(
+  resolution: number,
+  worldSize: number,
+  heightTexture: THREE.Texture,
+): THREE.MeshPhysicalMaterial {
+  const uniforms: MembraneShaderUniforms = {
+    uHeightTexture: { value: heightTexture },
+    uTexel: { value: new THREE.Vector2(1 / resolution, 1 / resolution) },
+    uWorldTexel: { value: worldSize / (resolution - 1) },
+    uHeightScale: { value: 1 },
+    uDetailStrength: { value: 0.018 },
+  };
+  const material = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color("#07141d"),
+    roughness: 0.12,
+    metalness: 0.08,
+    clearcoat: 0.32,
+    clearcoatRoughness: 0.18,
+    envMapIntensity: 1.25,
+    transparent: false,
+    depthWrite: true,
+  });
+  material.userData.membraneShaderUniforms = uniforms;
+  material.customProgramCacheKey = () => PROGRAM_KEY;
+  material.onBeforeCompile = (shader) => augmentPhysicalShader(shader as PhysicalShader, uniforms);
+  return material;
+}

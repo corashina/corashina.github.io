@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer.js";
 import type { FrameContext } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
-import { membraneComputeShader, membraneFragmentShader, membraneVertexShader } from "./membraneShaders";
+import { createMembraneMaterial, getMembraneShaderUniforms, membraneComputeShader } from "./membraneShaders";
 
 type Uniform = { value: unknown };
 
@@ -28,7 +28,7 @@ export type SpaceMembraneOptions = { computeFactory?: MembraneComputeFactory };
 type Runtime = {
   compute: MembraneComputeRenderer;
   height: MembraneComputeVariable;
-  mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial>;
   resolution: QualityProfile["membrane"];
   disposed: boolean;
 };
@@ -55,24 +55,6 @@ function createHeightSeed(size: number): THREE.DataTexture {
   const texture = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
   texture.needsUpdate = true;
   return texture;
-}
-
-function makeMaterial(resolution: number, heightTexture: THREE.Texture): THREE.ShaderMaterial {
-  return new THREE.ShaderMaterial({
-    transparent: false,
-    depthWrite: true,
-    uniforms: {
-      uHeightTexture: { value: heightTexture },
-      uTexel: { value: new THREE.Vector2(1 / resolution, 1 / resolution) },
-      uWorldTexel: { value: MEMBRANE_SIZE / (resolution - 1) },
-      uHeightScale: { value: 1 },
-      uEnvironmentColor: { value: new THREE.Color("#203a52") },
-      uOpacity: { value: 1 },
-      roughness: { value: 0.12 },
-    },
-    vertexShader: membraneVertexShader,
-    fragmentShader: membraneFragmentShader,
-  });
 }
 
 /** A height-field membrane simulated by a GPU ping-pong texture. */
@@ -148,7 +130,7 @@ export class SpaceMembrane {
     this.transition = { outgoing: this.current, incoming, elapsed: 0 };
   }
 
-  getShadowMaterials(): THREE.ShaderMaterial[] {
+  getShadowMaterials(): THREE.MeshPhysicalMaterial[] {
     if (this.transition === null) return [this.current.mesh.material];
     return [this.transition.outgoing.mesh.material, this.transition.incoming.mesh.material];
   }
@@ -170,8 +152,8 @@ export class SpaceMembrane {
     let compute: MembraneComputeRenderer | null = null;
     let computeOwnsSeed = false;
     let geometry: THREE.PlaneGeometry | null = null;
-    let material: THREE.ShaderMaterial | null = null;
-    let mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> | null = null;
+    let material: THREE.MeshPhysicalMaterial | null = null;
+    let mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial> | null = null;
     try {
       compute = this.computeFactory(resolution, this.renderer);
       const height = compute.addVariable("textureHeight", membraneComputeShader, seed);
@@ -182,7 +164,7 @@ export class SpaceMembrane {
       if (error !== null) throw new Error(`Membrane GPU computation could not initialize: ${error}`);
       geometry = new THREE.PlaneGeometry(MEMBRANE_SIZE, MEMBRANE_SIZE, resolution - 1, resolution - 1);
       geometry.setDrawRange(0, geometry.index?.count ?? geometry.getAttribute("position").count);
-      material = makeMaterial(resolution, compute.getCurrentRenderTarget(height).texture);
+      material = createMembraneMaterial(resolution, MEMBRANE_SIZE, compute.getCurrentRenderTarget(height).texture);
       mesh = new THREE.Mesh(geometry, material);
       mesh.rotation.x = -Math.PI / 2;
       mesh.frustumCulled = false;
@@ -228,12 +210,12 @@ export class SpaceMembrane {
     setUniform(runtime.height, "uMembraneY", membraneY);
     setUniform(runtime.height, "uParticleTexture", particleTexture);
     runtime.compute.compute();
-    runtime.mesh.material.uniforms.uHeightTexture!.value = runtime.compute.getCurrentRenderTarget(runtime.height).texture;
+    getMembraneShaderUniforms(runtime.mesh.material).uHeightTexture.value = runtime.compute.getCurrentRenderTarget(runtime.height).texture;
   }
 
   private setTransitionOpacity(runtime: Runtime, opacity: number): void {
     const material = runtime.mesh.material;
-    material.uniforms.uOpacity!.value = THREE.MathUtils.clamp(opacity, 0, 1);
+    material.opacity = THREE.MathUtils.clamp(opacity, 0, 1);
     if (!material.transparent || material.depthWrite) {
       material.transparent = true;
       material.depthWrite = false;
@@ -243,7 +225,7 @@ export class SpaceMembrane {
 
   private restoreOpaque(runtime: Runtime): void {
     const material = runtime.mesh.material;
-    material.uniforms.uOpacity!.value = 1;
+    material.opacity = 1;
     if (material.transparent || !material.depthWrite) {
       material.transparent = false;
       material.depthWrite = true;
