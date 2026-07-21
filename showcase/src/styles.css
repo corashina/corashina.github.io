@@ -42,3 +42,8 @@ html[data-showcase-state="ready"] .showcase-fallback,
 html[data-showcase-state="fallback"] #showcase-canvas {
   display: none;
 }
+
+html[data-showcase-state="recovering"] .showcase-controls,
+html[data-showcase-state="fallback"] .showcase-controls {
+  display: none;
+}
