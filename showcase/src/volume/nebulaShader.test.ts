@@ -23,6 +23,8 @@ describe("nebulaFragmentShader", () => {
 
     expect(pass.material.glslVersion).toBe(THREE.GLSL3);
     expect(sources.every((source) => !source.includes("#version"))).toBe(true);
+    expect(nebulaVertexShader).not.toContain("in vec3 position");
+    expect(nebulaVertexShader).not.toContain("in vec2 uv");
     expect(nebulaVertexShader).toContain("out vec2 vUv");
     expect(nebulaFragmentShader).toContain("in vec2 vUv");
     expect(nebulaFragmentShader).toContain("out vec4 fragColor");
