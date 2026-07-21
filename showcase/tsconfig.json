@@ -9,6 +9,7 @@
     "verbatimModuleSyntax": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
     "types": ["vite/client"],
     "noEmit": true
   },
