@@ -123,15 +123,14 @@ describe("original style contracts", () => {
     expect(themes).toMatch(/^\$media-md: 768px;$/m);
   });
 
-  it("keeps borders, five-rem separation, and exact shell widths in their selectors", async () => {
+  it("keeps borders, five-rem separation, and the shared shell width in their selectors", async () => {
     const { layout } = await readStyles();
     const shell = findBlock(layout, ".layout");
-    const workShell = findBlock(layout, ".workLayout");
     const navigation = findBlock(layout, ".navigation");
     const footer = findBlock(layout, ".footer");
 
-    expect(shell).toMatch(/max-width: 600px;/);
-    expect(workShell).toMatch(/max-width: 900px;/);
+    expect(shell).toMatch(/max-width: 900px;/);
+    expect(layout).not.toMatch(/\.workLayout\s*\{/);
     expect(navigation).toMatch(/border-bottom: 1px solid \$color-25;/);
     expect(navigation).toMatch(/margin-bottom: 5rem;/);
     expect(footer).toMatch(/border-top: 1px solid \$color-25;/);

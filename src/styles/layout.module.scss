@@ -3,12 +3,8 @@
 .layout {
   display: grid;
   margin: auto;
-  max-width: 600px;
-  padding: 0 $spacing;
-}
-
-.workLayout {
   max-width: 900px;
+  padding: 0 $spacing;
 }
 
 .navigation {
@@ -155,15 +151,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .forwardEnter,
-  .forwardEnterActive,
-  .forwardExit,
-  .forwardExitActive,
-  .backwardEnter,
-  .backwardEnterActive,
-  .backwardExit,
-  .backwardExitActive {
-    transform: none;
-    transition-duration: 0ms;
+  .layout {
+    .forwardEnter,
+    .forwardEnterActive,
+    .forwardExit,
+    .forwardExitActive,
+    .backwardEnter,
+    .backwardEnterActive,
+    .backwardExit,
+    .backwardExitActive {
+      transform: none;
+      transition-duration: 0ms;
+    }
   }
 }

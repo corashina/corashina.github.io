@@ -99,6 +99,21 @@ describe("AppShell", () => {
     expect(document.body).toHaveClass("dark");
   });
 
+  it("keeps the shared shell class stable between Home and Work", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <App />
+      </MemoryRouter>,
+    );
+    const initialClassName = container.firstElementChild?.className;
+
+    await user.click(screen.getByRole("link", { name: "Work" }));
+
+    expect(container.firstElementChild).toHaveClass(styles.layout);
+    expect(container.firstElementChild?.className).toBe(initialClassName);
+  });
+
   it("toggles page and particle themes together without persistence", async () => {
     const user = userEvent.setup();
     render(

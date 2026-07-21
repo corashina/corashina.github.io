@@ -121,7 +121,6 @@ export function AppShell(): JSX.Element {
     document.title = path.charAt(0).toUpperCase() + path.slice(1);
   }, [location.pathname]);
 
-  const isWorkRoute = location.pathname === "/works" || location.pathname.startsWith("/works/");
   const direction = resolveTransitionDirection(
     navigationType,
     location.key,
@@ -158,7 +157,7 @@ export function AppShell(): JSX.Element {
   };
 
   return (
-    <div className={`${styles.layout} ${isWorkRoute ? styles.workLayout : ""}`}>
+    <div className={styles.layout}>
       <BackgroundCanvas theme={theme} />
       <Navigation
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "white" : "dark"))}
