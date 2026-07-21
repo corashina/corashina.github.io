@@ -18,6 +18,13 @@ type Transition = {
   elapsed: number;
 };
 
+export type ProtoStarEffectFactory = (resolution: QualityProfile["marchingCubes"], material: THREE.MeshPhysicalMaterial) => MarchingCubes;
+
+export type ProtoStarOptions = {
+  createMaterial?: () => THREE.MeshPhysicalMaterial;
+  createEffect?: ProtoStarEffectFactory;
+};
+
 const TRANSITION_DURATION = 0.45;
 
 function fieldInterval(resolution: QualityProfile["marchingCubes"]): number {
@@ -28,6 +35,13 @@ function fieldInterval(resolution: QualityProfile["marchingCubes"]): number {
 
 function clampUnit(value: number): number {
   return Math.min(1, Math.max(0, value));
+}
+
+function createMarchingCubes(
+  resolution: QualityProfile["marchingCubes"],
+  material: THREE.MeshPhysicalMaterial,
+): MarchingCubes {
+  return new MarchingCubes(resolution, material, false, true, 120000);
 }
 
 /** A physical, pulsating Marching Cubes proto-star with quality-aware replacement. */
@@ -41,9 +55,13 @@ export class ProtoStar {
   private energy = 0;
   private release = false;
   private profile: QualityProfile;
+  private readonly materialFactory: () => THREE.MeshPhysicalMaterial;
+  private readonly effectFactory: ProtoStarEffectFactory;
 
-  constructor(profile: QualityProfile) {
+  constructor(profile: QualityProfile, options: ProtoStarOptions = {}) {
     this.profile = profile;
+    this.materialFactory = options.createMaterial ?? createProtoStarMaterial;
+    this.effectFactory = options.createEffect ?? createMarchingCubes;
     this.current = this.createRuntime(profile);
     this.object.add(this.current.effect);
   }
@@ -97,27 +115,24 @@ export class ProtoStar {
         return;
       }
 
-      this.object.remove(this.transition.incoming.effect);
-      this.disposeRuntime(this.transition.incoming);
-      this.restoreOpaque(this.transition.outgoing);
-      this.current = this.transition.outgoing;
+      const replacement = this.createRuntime(profile);
+      const previousTransition = this.transition;
+      this.object.remove(previousTransition.incoming.effect);
+      this.disposeRuntime(previousTransition.incoming);
+      this.restoreOpaque(previousTransition.outgoing);
+      this.current = previousTransition.outgoing;
       this.transition = null;
+      this.beginTransition(profile, replacement);
+      return;
     }
 
-    this.profile = profile;
-    this.fieldAccumulator = 0;
-    if (profile.marchingCubes === this.current.resolution) return;
+    if (profile.marchingCubes === this.current.resolution) {
+      this.profile = profile;
+      return;
+    }
 
     const incoming = this.createRuntime(profile);
-    incoming.effect.position.copy(this.current.effect.position);
-    incoming.effect.quaternion.copy(this.current.effect.quaternion);
-    incoming.effect.scale.copy(this.current.effect.scale);
-    this.setRuntimeState(incoming);
-    this.applyField(incoming);
-    this.setTransitionOpacity(incoming, 0);
-    this.setTransitionOpacity(this.current, 1);
-    this.object.add(incoming.effect);
-    this.transition = { outgoing: this.current, incoming, elapsed: 0 };
+    this.beginTransition(profile, incoming);
   }
 
   getShadowMaterials(): THREE.MeshPhysicalMaterial[] {
@@ -136,17 +151,39 @@ export class ProtoStar {
     this.object.clear();
   }
 
+  private beginTransition(profile: QualityProfile, incoming: Runtime): void {
+    this.profile = profile;
+    this.fieldAccumulator = 0;
+    incoming.effect.position.copy(this.current.effect.position);
+    incoming.effect.quaternion.copy(this.current.effect.quaternion);
+    incoming.effect.scale.copy(this.current.effect.scale);
+    this.setRuntimeState(incoming);
+    this.applyField(incoming);
+    this.setTransitionOpacity(incoming, 0);
+    this.setTransitionOpacity(this.current, 1);
+    this.object.add(incoming.effect);
+    this.transition = { outgoing: this.current, incoming, elapsed: 0 };
+  }
+
   private createRuntime(profile: QualityProfile): Runtime {
-    const material = createProtoStarMaterial();
-    const effect = new MarchingCubes(profile.marchingCubes, material, false, true, 120000);
-    effect.castShadow = true;
-    effect.receiveShadow = true;
-    effect.frustumCulled = false;
-    effect.userData.renderChannels = ["energy", "roughness"];
-    const runtime = { effect, material, resolution: profile.marchingCubes, disposed: false };
-    this.setRuntimeState(runtime);
-    this.applyField(runtime);
-    return runtime;
+    let material: THREE.MeshPhysicalMaterial | null = null;
+    let effect: MarchingCubes | null = null;
+    try {
+      material = this.materialFactory();
+      effect = this.effectFactory(profile.marchingCubes, material);
+      effect.castShadow = true;
+      effect.receiveShadow = true;
+      effect.frustumCulled = false;
+      effect.userData.renderChannels = ["energy", "roughness"];
+      const runtime = { effect, material, resolution: profile.marchingCubes, disposed: false };
+      this.setRuntimeState(runtime);
+      this.applyField(runtime);
+      return runtime;
+    } catch (error) {
+      effect?.geometry.dispose();
+      material?.dispose();
+      throw error;
+    }
   }
 
   private setRuntimeState(runtime: Runtime): void {

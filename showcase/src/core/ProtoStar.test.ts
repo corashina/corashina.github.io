@@ -3,7 +3,7 @@ import { MarchingCubes } from "three/addons/objects/MarchingCubes.js";
 import { describe, expect, it, vi } from "vitest";
 import type { FrameContext, InteractionSnapshot } from "../app/contracts";
 import { QUALITY_PROFILES } from "../quality/qualityProfiles";
-import { getProtoStarShaderUniforms } from "./protoStarMaterial";
+import { createProtoStarMaterial, getProtoStarShaderUniforms } from "./protoStarMaterial";
 import { ProtoStar } from "./ProtoStar";
 
 function frame(overrides: Partial<InteractionSnapshot> = {}): FrameContext {
@@ -91,5 +91,68 @@ describe("ProtoStar", () => {
     expect(geometryDispose).toHaveBeenCalledTimes(1);
     expect(materialDispose).toHaveBeenCalledTimes(1);
     expect(star.object.children).toHaveLength(0);
+  });
+
+  it("rethrows material creation failures before attempting to create a marching effect", () => {
+    const cause = new Error("material creation failed");
+    const createEffect = vi.fn();
+
+    expect(() => new ProtoStar(QUALITY_PROFILES.low, {
+      createMaterial: () => { throw cause; },
+      createEffect,
+    })).toThrow(cause);
+
+    expect(createEffect).not.toHaveBeenCalled();
+  });
+
+  it("disposes an already-created material when the marching effect factory fails", () => {
+    const material = createProtoStarMaterial();
+    const materialDispose = vi.spyOn(material, "dispose");
+    const cause = new Error("marching effect creation failed");
+
+    expect(() => new ProtoStar(QUALITY_PROFILES.low, {
+      createMaterial: () => material,
+      createEffect: () => { throw cause; },
+    })).toThrow(cause);
+
+    expect(materialDispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("disposes the initial effect and material when its first bounds update fails", () => {
+    const material = createProtoStarMaterial();
+    const effect = new MarchingCubes(QUALITY_PROFILES.low.marchingCubes, material, false, true, 120000);
+    const geometryDispose = vi.spyOn(effect.geometry, "dispose");
+    const materialDispose = vi.spyOn(material, "dispose");
+    const cause = new Error("bounds failed");
+    vi.spyOn(effect.geometry, "computeBoundingSphere").mockImplementation(() => { throw cause; });
+
+    expect(() => new ProtoStar(QUALITY_PROFILES.low, {
+      createMaterial: () => material,
+      createEffect: () => effect,
+    })).toThrow(cause);
+
+    expect(geometryDispose).toHaveBeenCalledTimes(1);
+    expect(materialDispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves the active runtime intact when a quality replacement cannot be created", () => {
+    let attempts = 0;
+    const star = new ProtoStar(QUALITY_PROFILES.low, {
+      createEffect: (resolution, material) => {
+        attempts += 1;
+        if (attempts === 2) throw new Error("quality replacement failed");
+        return new MarchingCubes(resolution, material, false, true, 120000);
+      },
+    });
+    const active = star.object.children[0] as MarchingCubes;
+    const activeUpdate = vi.spyOn(active, "update");
+
+    expect(() => star.setQuality(QUALITY_PROFILES.medium)).toThrow("quality replacement failed");
+    for (let index = 0; index < 3; index += 1) star.update(frame());
+
+    expect(star.object.children).toEqual([active]);
+    expect(star.getShadowMaterials()).toEqual([active.material]);
+    expect(activeUpdate).toHaveBeenCalledTimes(1);
+    star.dispose();
   });
 });

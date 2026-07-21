@@ -28,6 +28,22 @@ describe("createProtoStarMaterial", () => {
     expect(material.customProgramCacheKey()).toBe(material.customProgramCacheKey());
     expect(uniforms).toMatchObject({ uTime: { value: 0 }, uEnergy: { value: 0 }, uRelease: { value: 0 } });
   });
+
+  it("declares every proto-star uniform in the realistic vertex shader stage that uses it", () => {
+    const material = createProtoStarMaterial();
+    const shader = {
+      uniforms: {},
+      vertexShader: "#define STANDARD\n#include <common>\nvoid main() {\n  #include <begin_vertex>\n}",
+      fragmentShader: "#include <common>\n#include <emissivemap_fragment>",
+    };
+
+    material.onBeforeCompile(shader as never, {} as never);
+
+    for (const uniform of ["uTime", "uEnergy", "uRelease"]) {
+      expect(shader.vertexShader.match(new RegExp(`uniform\\s+float\\s+${uniform}\\s*;`, "g"))).toHaveLength(1);
+      expect(shader.vertexShader.indexOf(`uniform float ${uniform};`)).toBeLessThan(shader.vertexShader.indexOf(`+ ${uniform}`));
+    }
+  });
 });
 
 describe("setProtoStarMaterialState", () => {

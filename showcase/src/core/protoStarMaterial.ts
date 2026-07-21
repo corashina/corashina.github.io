@@ -7,6 +7,7 @@ export type ProtoStarShaderUniforms = {
 };
 
 const PROGRAM_KEY = "cosmic-genesis-proto-star-v1";
+const PROTO_STAR_UNIFORM_NAMES = ["uTime", "uEnergy", "uRelease"] as const;
 
 function clampUnit(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -14,6 +15,18 @@ function clampUnit(value: number): number {
 
 function lerp(from: number, to: number, amount: number): number {
   return from + (to - from) * amount;
+}
+
+function injectVertexUniformDeclarations(source: string): string {
+  const declarations = PROTO_STAR_UNIFORM_NAMES
+    .filter((uniform) => !new RegExp(`uniform\\s+float\\s+${uniform}\\s*;`).test(source))
+    .map((uniform) => `uniform float ${uniform};`)
+    .join("\n");
+  if (declarations.length === 0) return source;
+
+  const commonAnchor = "#include <common>";
+  if (source.includes(commonAnchor)) return source.replace(commonAnchor, `${commonAnchor}\n${declarations}`);
+  return source.replace("#include <begin_vertex>", `${declarations}\n#include <begin_vertex>`);
 }
 
 export function getProtoStarShaderUniforms(material: THREE.MeshPhysicalMaterial): ProtoStarShaderUniforms {
@@ -47,7 +60,7 @@ export function createProtoStarMaterial(): THREE.MeshPhysicalMaterial {
   material.customProgramCacheKey = () => PROGRAM_KEY;
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = shader.vertexShader.replace(
+    shader.vertexShader = injectVertexUniformDeclarations(shader.vertexShader).replace(
       "#include <begin_vertex>",
       `
         float protoStarNoise = sin(position.x * 9.0 + uTime * 1.7) * sin(position.y * 8.0 - uTime * 1.2) * sin(position.z * 10.0 + uTime);
