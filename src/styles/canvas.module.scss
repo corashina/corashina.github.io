@@ -7,6 +7,7 @@
   opacity: var(--canvas-opacity);
   pointer-events: none;
   position: fixed;
+  transition: background-color 220ms ease-in-out, opacity 220ms ease-in-out;
   width: 100%;
   z-index: -1;
 }

@@ -132,6 +132,20 @@ describe("AppShell", () => {
     expect(container.firstElementChild?.className).toBe(initialClassName);
   });
 
+  it("does not start a route transition when the active navigation link is clicked", async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <MemoryRouter initialEntries={["/works"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("link", { name: "Work" }));
+
+    expect(container.querySelectorAll("main")).toHaveLength(1);
+    expect(screen.getByRole("main")).not.toHaveClass(styles.forwardExitActive);
+  });
+
   it("toggles page and particle themes together without persistence", async () => {
     const user = userEvent.setup();
     render(
@@ -220,7 +234,7 @@ describe("AppShell", () => {
     act(() => navigate?.(-1));
 
     let mains = [...container.querySelectorAll("main")];
-    const contactExit = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const contactExit = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     const workEnter = mains.find((main) => main.textContent?.includes("my stuff"));
     expect(contactExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
     expect(workEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
@@ -230,7 +244,7 @@ describe("AppShell", () => {
 
     mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
-    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
@@ -259,7 +273,7 @@ describe("AppShell", () => {
 
     const mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("my stuff"));
-    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
@@ -293,7 +307,7 @@ describe("AppShell", () => {
 
     mains = [...container.querySelectorAll("main")];
     const homeExit = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
-    const contactEnter = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const contactEnter = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     expect(homeExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
@@ -357,7 +371,7 @@ describe("AppShell", () => {
 
     mains = [...container.querySelectorAll("main")];
     expect(mains).toHaveLength(2);
-    const contactExit = mains.find((main) => main.textContent?.includes("contact@zielin.ski"));
+    const contactExit = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     const workEnterBack = mains.find((main) => main.textContent?.includes("my stuff"));
     expect(contactExit).toHaveAttribute("aria-hidden", "true");
     expect(contactExit).toHaveAttribute("inert");
@@ -406,7 +420,7 @@ describe("AppShell", () => {
     expect(restoredHome).not.toHaveAttribute("inert");
   });
 
-  it("retains the original contact destinations, flair, and footer", () => {
+  it("renders the current contact address, flair, and footer", () => {
     render(
       <MemoryRouter initialEntries={["/contact"]}>
         <App />
@@ -414,9 +428,9 @@ describe("AppShell", () => {
     );
 
     const links = screen.getByRole("list", { name: "Contact links" });
-    expect(within(links).getByRole("link", { name: /contact@zielin\.ski/i })).toHaveAttribute(
+    expect(within(links).getByRole("link", { name: /corashina@gmail\.com/i })).toHaveAttribute(
       "href",
-      "mailto:contact@zielin.ski",
+      "mailto:corashina@gmail.com",
     );
     expect(within(links).getByRole("link", { name: /resume/i })).toHaveAttribute(
       "href",

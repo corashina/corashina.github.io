@@ -77,6 +77,7 @@ const QUALITY_FADE_SECONDS = 0.4;
 const MAX_SIMULATION_DELTA_MS = 50;
 const INITIAL_FRAME_DELTA_SECONDS = 1 / 60;
 const TARGET_DAMPING_RATE = -Math.log(1 - 0.035) * 60;
+const THEME_DAMPING_RATE = -Math.log(1 - 0.99) / 0.22;
 const QUALITY_MIX = { low: 0, medium: 1, high: 2 } as const;
 
 export function createBackgroundScene(
@@ -171,13 +172,13 @@ export function createBackgroundScene(
     reportFailure(new Error("WebGL context lost"));
   };
 
-  const applyTargets = (amount: number): void => {
-    pointer.lerp(pointerTarget, amount);
-    pointerSpeed += (pointerSpeedTarget - pointerSpeed) * amount;
-    particleColor.lerp(particleTarget, amount);
-    signalColor.lerp(signalTarget, amount);
-    connectionColor.lerp(connectionTarget, amount);
-    clearColor.lerp(clearTarget, amount);
+  const applyTargets = (pointerAmount: number, themeAmount: number): void => {
+    pointer.lerp(pointerTarget, pointerAmount);
+    pointerSpeed += (pointerSpeedTarget - pointerSpeed) * pointerAmount;
+    particleColor.lerp(particleTarget, themeAmount);
+    signalColor.lerp(signalTarget, themeAmount);
+    connectionColor.lerp(connectionTarget, themeAmount);
+    clearColor.lerp(clearTarget, themeAmount);
     field.setPointer(pointer.x * 900, pointer.y * 520, pointerSpeed);
     field.setColors({
       particle: particleColor,
@@ -267,7 +268,10 @@ export function createBackgroundScene(
     updateQualityTransition(simulationDeltaMs * 0.001);
     pointerSpeedTarget *= Math.exp(-simulationDeltaMs * 0.001 * 3.2);
     try {
-      applyTargets(1 - Math.exp(-TARGET_DAMPING_RATE * dampingDeltaSeconds));
+      applyTargets(
+        1 - Math.exp(-TARGET_DAMPING_RATE * dampingDeltaSeconds),
+        1 - Math.exp(-THEME_DAMPING_RATE * dampingDeltaSeconds),
+      );
       field.setTime(elapsedTime);
       renderer.render(scene, camera);
     } catch (error) {
@@ -349,7 +353,7 @@ export function createBackgroundScene(
       pointerSpeed = 0;
       pointerSpeedTarget = 0;
       try {
-        applyTargets(1);
+        applyTargets(1, 1);
         field.setTime(18);
         renderer.render(scene, camera);
       } catch (error) {

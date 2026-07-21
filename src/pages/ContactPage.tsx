@@ -17,9 +17,9 @@ export function ContactPage(): JSX.Element {
         <h2>find me</h2>
         <ul aria-label="Contact links" className={styles.contact}>
           <li>
-            <a href="mailto:contact@zielin.ski">
+            <a href="mailto:corashina@gmail.com">
               <FaEnvelope aria-hidden="true" />
-              contact@zielin.ski
+              corashina@gmail.com
             </a>
           </li>
           <li>

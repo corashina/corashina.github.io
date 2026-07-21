@@ -119,6 +119,34 @@ describe("background scene helpers", () => {
 });
 
 describe("background scene controller", () => {
+  it("settles theme colors within the short visual transition window in either direction", () => {
+    const { callbacks, controller, renderer } = createHarness();
+    controller.start();
+    advanceFrames(callbacks, 1, 16);
+
+    controller.setTheme({
+      background: "#ffffff",
+      blendMode: "normal",
+      particle: "#ffffff",
+      signal: "#ffffff",
+      connection: "#ffffff",
+    });
+    advanceFrames(callbacks, 14, 16, 2);
+    let clearColor = renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color;
+    expect(clearColor.r).toBeGreaterThan(0.98);
+
+    controller.setTheme({
+      background: "#222222",
+      blendMode: "additive",
+      particle: "#222222",
+      signal: "#222222",
+      connection: "#222222",
+    });
+    advanceFrames(callbacks, 14, 16, 16);
+    clearColor = renderer.setClearColor.mock.calls.at(-1)?.[0] as THREE.Color;
+    expect(clearColor.r).toBeLessThan(0.16);
+  });
+
   it("reports and rethrows renderer creation failures without disposing an unacquired renderer", () => {
     const setup = createSceneSetup();
     const failure = new Error("renderer creation failed");

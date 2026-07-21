@@ -12,6 +12,16 @@ body {
   font-size: 14px;
   line-height: 1.5;
   overflow-x: hidden;
+  transition: background-color 220ms ease-in-out, color 220ms ease-in-out;
+}
+
+body * {
+  transition:
+    background-color 220ms ease-in-out,
+    border-color 220ms ease-in-out,
+    color 220ms ease-in-out,
+    fill 220ms ease-in-out,
+    stroke 220ms ease-in-out;
 }
 
 a,

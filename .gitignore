@@ -15,5 +15,7 @@ yarn.lock
 .vscode
 .worktrees/
 .superpowers/
+docs/superpowers/
 dist/
 tsconfig.tsbuildinfo
+vite-dev*.err

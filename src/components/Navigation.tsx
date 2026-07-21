@@ -43,7 +43,12 @@ export function Navigation({ theme, onToggleTheme }: NavigationProps): JSX.Eleme
               <NavLink
                 className={({ isActive }) => (isActive ? styles.active : undefined)}
                 end={end}
-                onClick={() => setExpanded(false)}
+                onClick={(event) => {
+                  setExpanded(false);
+                  if (event.currentTarget.getAttribute("aria-current") === "page") {
+                    event.preventDefault();
+                  }
+                }}
                 to={to}
               >
                 {label}
