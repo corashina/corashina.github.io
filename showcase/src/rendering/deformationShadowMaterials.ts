@@ -4,16 +4,17 @@ export type DeformationShadowMaterials = {
   depth: THREE.MeshDepthMaterial;
   distance: THREE.MeshDistanceMaterial;
 };
+export type DeformationVertexHook = (shader: THREE.WebGLProgramParametersWithUniforms) => void;
 
 function chainDeformation(
   target: THREE.MeshDepthMaterial | THREE.MeshDistanceMaterial,
   source: THREE.Material,
   suffix: string,
+  augmentVertex: DeformationVertexHook,
 ): void {
-  const callback = source.onBeforeCompile;
   const key = source.customProgramCacheKey;
-  target.onBeforeCompile = function (_shader, renderer): void {
-    callback.call(source, _shader, renderer);
+  target.onBeforeCompile = function (_shader): void {
+    augmentVertex(_shader);
   };
   target.customProgramCacheKey = function (): string {
     return `${key.call(source)}|cosmic-shadow-${suffix}`;
@@ -21,7 +22,7 @@ function chainDeformation(
 }
 
 /** Shadow companions reuse the beauty hook, including its live uniform objects. */
-export function createDeformationShadowMaterials(source: THREE.Material): DeformationShadowMaterials {
+export function createDeformationShadowMaterials(source: THREE.Material, augmentVertex: DeformationVertexHook): DeformationShadowMaterials {
   const common = {
     side: source.shadowSide ?? source.side,
     alphaTest: source.alphaTest,
@@ -30,7 +31,7 @@ export function createDeformationShadowMaterials(source: THREE.Material): Deform
   };
   const depth = new THREE.MeshDepthMaterial({ ...common, depthPacking: THREE.RGBADepthPacking });
   const distance = new THREE.MeshDistanceMaterial(common);
-  chainDeformation(depth, source, "depth");
-  chainDeformation(distance, source, "distance");
+  chainDeformation(depth, source, "depth", augmentVertex);
+  chainDeformation(distance, source, "distance", augmentVertex);
   return { depth, distance };
 }

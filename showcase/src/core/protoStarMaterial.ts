@@ -5,6 +5,7 @@ export type ProtoStarShaderUniforms = {
   uEnergy: { value: number };
   uRelease: { value: number };
 };
+export type ProtoStarVertexShader = { uniforms: Record<string, { value: unknown }>; vertexShader: string };
 
 const PROGRAM_KEY = "cosmic-genesis-proto-star-v1";
 const PROTO_STAR_UNIFORM_NAMES = ["uTime", "uEnergy", "uRelease"] as const;
@@ -33,6 +34,18 @@ export function getProtoStarShaderUniforms(material: THREE.MeshPhysicalMaterial)
   return material.userData.protoStarShaderUniforms as ProtoStarShaderUniforms;
 }
 
+/** Shared vertex-only deformation contract for beauty, depth, and distance programs. */
+export function augmentProtoStarVertexShader(shader: ProtoStarVertexShader, uniforms: ProtoStarShaderUniforms): void {
+  Object.assign(shader.uniforms, uniforms);
+  shader.vertexShader = injectVertexUniformDeclarations(shader.vertexShader).replace(
+    "#include <begin_vertex>",
+    `
+      float protoStarNoise = sin(position.x * 9.0 + uTime * 1.7) * sin(position.y * 8.0 - uTime * 1.2) * sin(position.z * 10.0 + uTime);
+      vec3 transformed = vec3(position) + normal * protoStarNoise * (0.018 + uEnergy * 0.045 + uRelease * 0.01);
+    `,
+  );
+}
+
 /** Creates a standard physical material with only local plasma/crystal shader augmentation. */
 export function createProtoStarMaterial(): THREE.MeshPhysicalMaterial {
   const uniforms: ProtoStarShaderUniforms = {
@@ -59,14 +72,7 @@ export function createProtoStarMaterial(): THREE.MeshPhysicalMaterial {
   material.userData.protoStarShaderUniforms = uniforms;
   material.customProgramCacheKey = () => PROGRAM_KEY;
   material.onBeforeCompile = (shader) => {
-    Object.assign(shader.uniforms, uniforms);
-    shader.vertexShader = injectVertexUniformDeclarations(shader.vertexShader).replace(
-      "#include <begin_vertex>",
-      `
-        float protoStarNoise = sin(position.x * 9.0 + uTime * 1.7) * sin(position.y * 8.0 - uTime * 1.2) * sin(position.z * 10.0 + uTime);
-        vec3 transformed = vec3(position) + normal * protoStarNoise * (0.018 + uEnergy * 0.045 + uRelease * 0.01);
-      `,
-    );
+    augmentProtoStarVertexShader(shader, uniforms);
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <common>",
       `

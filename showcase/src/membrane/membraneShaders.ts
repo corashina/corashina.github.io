@@ -66,6 +66,7 @@ type PhysicalShader = {
   vertexShader: string;
   fragmentShader: string;
 };
+export type MembraneVertexShader = Pick<PhysicalShader, "uniforms" | "vertexShader">;
 
 const PROGRAM_KEY = "cosmic-genesis-membrane-physical-v2";
 
@@ -76,6 +77,11 @@ uniform float uWorldTexel;
 uniform float uHeightScale;
 varying float vMembraneCurvature;
 varying vec3 vMembraneWorldPosition;
+`;
+
+const displacementDeclarations = /* glsl */ `
+uniform sampler2D uHeightTexture;
+uniform float uHeightScale;
 `;
 
 const fragmentDeclarations = /* glsl */ `
@@ -106,6 +112,19 @@ function injectAfterCommon(source: string, declarations: string): string {
   return source.replace(anchor, `${anchor}\n${declarations}`);
 }
 
+/** Vertex-only displacement used by depth and point-light distance materials. */
+export function augmentMembraneShadowVertexShader(shader: MembraneVertexShader, uniforms: MembraneShaderUniforms): void {
+  Object.assign(shader.uniforms, uniforms);
+  shader.vertexShader = injectAfterCommon(shader.vertexShader, displacementDeclarations).replace(
+    "#include <begin_vertex>",
+    /* glsl */ `
+      #include <begin_vertex>
+      float membraneHeight = texture2D(uHeightTexture, uv).r * uHeightScale;
+      transformed += vec3(0.0, 0.0, membraneHeight);
+    `,
+  );
+}
+
 function augmentPhysicalShader(shader: PhysicalShader, uniforms: MembraneShaderUniforms): void {
   Object.assign(shader.uniforms, uniforms);
   shader.vertexShader = injectAfterCommon(shader.vertexShader, vertexDeclarations)
@@ -113,7 +132,7 @@ function augmentPhysicalShader(shader: PhysicalShader, uniforms: MembraneShaderU
       "#include <beginnormal_vertex>",
       /* glsl */ `
         #include <beginnormal_vertex>
-        float membraneHeight = texture2D(uHeightTexture, uv).r * uHeightScale;
+        float membraneHeightForNormal = texture2D(uHeightTexture, uv).r * uHeightScale;
         float heightEast = texture2D(uHeightTexture, uv + vec2(uTexel.x, 0.0)).r * uHeightScale;
         float heightWest = texture2D(uHeightTexture, uv - vec2(uTexel.x, 0.0)).r * uHeightScale;
         float heightNorth = texture2D(uHeightTexture, uv + vec2(0.0, uTexel.y)).r * uHeightScale;
@@ -121,13 +140,14 @@ function augmentPhysicalShader(shader: PhysicalShader, uniforms: MembraneShaderU
         vec3 membraneTangentX = vec3(2.0 * uWorldTexel, 0.0, heightEast - heightWest);
         vec3 membraneTangentY = vec3(0.0, 2.0 * uWorldTexel, heightNorth - heightSouth);
         objectNormal = normalize(cross(membraneTangentX, membraneTangentY));
-        vMembraneCurvature = abs(heightEast + heightWest + heightNorth + heightSouth - 4.0 * membraneHeight);
+        vMembraneCurvature = abs(heightEast + heightWest + heightNorth + heightSouth - 4.0 * membraneHeightForNormal);
       `,
     )
     .replace(
       "#include <begin_vertex>",
       /* glsl */ `
         #include <begin_vertex>
+        float membraneHeight = texture2D(uHeightTexture, uv).r * uHeightScale;
         transformed += vec3(0.0, 0.0, membraneHeight);
       `,
     )

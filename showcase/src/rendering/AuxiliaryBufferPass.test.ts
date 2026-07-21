@@ -120,4 +120,45 @@ describe("AuxiliaryBufferPass", () => {
     pass.dispose();
     mesh.geometry.dispose(); first.dispose(); second.dispose();
   });
+
+  it("uses opaque depth-writing companions and complementary dither coverage during transitions", () => {
+    const scene = new THREE.Scene();
+    const outgoingSource = new THREE.MeshPhysicalMaterial({ transparent: true, opacity: 0.5, depthWrite: false });
+    const incomingSource = outgoingSource.clone();
+    const outgoing = new THREE.Mesh(new THREE.PlaneGeometry(), outgoingSource);
+    const incoming = new THREE.Mesh(new THREE.PlaneGeometry(), incomingSource);
+    outgoing.userData.auxTransition = { role: "outgoing", progress: 0.5 };
+    incoming.userData.auxTransition = { role: "incoming", progress: 0.5 };
+    scene.add(outgoing, incoming);
+    const captured: THREE.Material[] = [];
+    const renderer = {
+      autoClear: true, getRenderTarget: () => null, setRenderTarget: vi.fn(), clear: vi.fn(),
+      render: () => {
+        for (const mesh of [outgoing, incoming]) {
+          captured.push(mesh.material as THREE.Material);
+          mesh.onBeforeRender(renderer as unknown as THREE.WebGLRenderer, scene, new THREE.PerspectiveCamera(), mesh.geometry, mesh.material as THREE.Material, new THREE.Group());
+        }
+      },
+    } as unknown as THREE.WebGLRenderer;
+    const pass = new AuxiliaryBufferPass(scene, new THREE.PerspectiveCamera());
+    pass.render(renderer);
+
+    for (const material of captured) {
+      expect(material.transparent).toBe(false);
+      expect(material.depthWrite).toBe(true);
+      expect(material.blending).toBe(THREE.NoBlending);
+    }
+    const outgoingShader = { uniforms: {}, vertexShader: THREE.ShaderLib.physical.vertexShader, fragmentShader: THREE.ShaderLib.physical.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    const incomingShader = { uniforms: {}, vertexShader: THREE.ShaderLib.physical.vertexShader, fragmentShader: THREE.ShaderLib.physical.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    captured[0]!.onBeforeCompile(outgoingShader, renderer); captured[1]!.onBeforeCompile(incomingShader, renderer);
+    expect(outgoingShader.uniforms.uAuxTransitionRole!.value).toBe(-1);
+    expect(incomingShader.uniforms.uAuxTransitionRole!.value).toBe(1);
+    expect(outgoingShader.uniforms.uAuxTransitionProgress!.value).toBe(0.5);
+    expect(incomingShader.uniforms.uAuxTransitionProgress!.value).toBe(0.5);
+    expect(outgoingShader.fragmentShader).toContain("auxNoise >= 1.0 - uAuxTransitionProgress");
+    expect(outgoingShader.fragmentShader).toContain("auxNoise < 1.0 - uAuxTransitionProgress");
+    expect(outgoingShader.fragmentShader.indexOf("discard")).toBeLessThan(outgoingShader.fragmentShader.indexOf("gl_FragColor = vec4"));
+    pass.dispose();
+    for (const mesh of [outgoing, incoming]) { mesh.geometry.dispose(); mesh.material.dispose(); }
+  });
 });

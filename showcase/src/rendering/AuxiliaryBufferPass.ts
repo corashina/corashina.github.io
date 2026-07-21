@@ -6,6 +6,8 @@ type AuxUniforms = {
   uAuxEnergyColor: { value: THREE.Color };
   uAuxRoughness: { value: number };
   uAuxReflective: { value: number };
+  uAuxTransitionRole: { value: number };
+  uAuxTransitionProgress: { value: number };
 };
 type CompanionEntry = {
   sources: THREE.Material[];
@@ -57,10 +59,15 @@ uniform float uAuxEnergy;
 uniform vec3 uAuxEnergyColor;
 uniform float uAuxRoughness;
 uniform float uAuxReflective;
+uniform float uAuxTransitionRole;
+uniform float uAuxTransitionProgress;
 `;
   const lastBrace = source.lastIndexOf("}");
   if (lastBrace < 0) return `${declaration}\n${source}`;
   const write = /* glsl */ `
+  float auxNoise = fract( 52.9829189 * fract( dot( floor( gl_FragCoord.xy ), vec2( 0.06711056, 0.00583715 ) ) ) );
+  if ( uAuxTransitionRole < -0.5 && auxNoise >= 1.0 - uAuxTransitionProgress ) discard;
+  if ( uAuxTransitionRole > 0.5 && auxNoise < 1.0 - uAuxTransitionProgress ) discard;
   gl_FragColor = vec4( normalize( normal ) * 0.5 + 0.5, uAuxRoughness );
   cosmicAuxEnergy = vec4( min( uAuxEnergyColor * uAuxEnergy, vec3( 16.0 ) ), uAuxReflective );
 `;
@@ -85,6 +92,8 @@ function createCompanion(source: THREE.Material): { material: THREE.Material; un
     uAuxEnergyColor: { value: new THREE.Color() },
     uAuxRoughness: { value: 0.5 },
     uAuxReflective: { value: 0 },
+    uAuxTransitionRole: { value: 0 },
+    uAuxTransitionProgress: { value: 0 },
   };
   // Material.clone intentionally does not copy shader hooks. Chain the current
   // beauty hook explicitly so displacement and its live uniform objects survive.
@@ -97,6 +106,11 @@ function createCompanion(source: THREE.Material): { material: THREE.Material; un
   material.customProgramCacheKey = function (): string {
     return `${cacheKey.call(source)}|cosmic-aux-mrt`;
   };
+  material.transparent = false;
+  material.opacity = 1;
+  material.blending = THREE.NoBlending;
+  material.depthWrite = true;
+  material.colorWrite = true;
   material.name = `${source.name || source.type} Auxiliary MRT`;
   return { material, uniforms };
 }
@@ -227,11 +241,16 @@ export class AuxiliaryBufferPass {
         object.material = Array.isArray(source) ? entry.companions : entry.companions[0]!;
         object.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
           const channel = channelsFor(object, source);
+          const transition = object.userData.auxTransition as { role?: unknown; progress?: unknown } | undefined;
+          const transitionRole = transition?.role === "outgoing" ? -1 : transition?.role === "incoming" ? 1 : 0;
+          const transitionProgress = unit(transition?.progress, 0);
           for (const uniforms of entry.uniforms) {
             uniforms.uAuxEnergy.value = channel.energy;
             uniforms.uAuxEnergyColor.value.set(channel.energyColor);
             uniforms.uAuxRoughness.value = channel.roughness;
             uniforms.uAuxReflective.value = this.reflectiveMeshes.has(object) ? 1 : 0;
+            uniforms.uAuxTransitionRole.value = transitionRole;
+            uniforms.uAuxTransitionProgress.value = transitionProgress;
           }
           originalCallback.call(object, renderer, scene, camera, geometry, material, group);
         };

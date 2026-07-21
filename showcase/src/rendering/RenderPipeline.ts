@@ -318,7 +318,7 @@ export class RenderPipeline {
     const effectiveDpr = Math.min(this.dpr, this.profile.pixelRatio);
     const w = Math.max(1, Math.floor(this.width * effectiveDpr)); const h = Math.max(1, Math.floor(this.height * effectiveDpr));
     this.auxiliaryPass.setSize(w, h); this.composer.setPixelRatio(1); this.composer.setSize(w, h);
-    const aoScale = this.profile.gtao === "depth" || this.profile.gtao === "low" ? 0.25 : 1;
+    const aoScale = this.profile.gtao === "depth" ? 0.25 : 1;
     this.gtaoPass.setSize(Math.max(1, Math.floor(w * aoScale)), Math.max(1, Math.floor(h * aoScale)));
   }
 

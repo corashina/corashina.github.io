@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer.js";
 import type { FrameContext } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
-import { createMembraneMaterial, getMembraneShaderUniforms, membraneComputeShader } from "./membraneShaders";
+import { augmentMembraneShadowVertexShader, createMembraneMaterial, getMembraneShaderUniforms, membraneComputeShader } from "./membraneShaders";
 import { createDeformationShadowMaterials } from "../rendering/deformationShadowMaterials";
 
 type Uniform = { value: unknown };
@@ -94,6 +94,8 @@ export class SpaceMembrane {
     const progress = Math.min(1, this.transition.elapsed / TRANSITION_DURATION);
     this.setTransitionOpacity(this.transition.outgoing, 1 - progress);
     this.setTransitionOpacity(this.transition.incoming, progress);
+    this.setAuxTransition(this.transition.outgoing, "outgoing", progress);
+    this.setAuxTransition(this.transition.incoming, "incoming", progress);
     if (this.transition.elapsed >= TRANSITION_DURATION - 1e-9) {
       const completed = this.transition;
       this.object.remove(completed.outgoing.mesh);
@@ -127,6 +129,8 @@ export class SpaceMembrane {
     const incoming = this.createRuntime(profile);
     this.setTransitionOpacity(this.current, 1);
     this.setTransitionOpacity(incoming, 0);
+    this.setAuxTransition(this.current, "outgoing", 0);
+    this.setAuxTransition(incoming, "incoming", 0);
     this.object.add(incoming.mesh);
     this.transition = { outgoing: this.current, incoming, elapsed: 0 };
   }
@@ -171,7 +175,8 @@ export class SpaceMembrane {
       mesh.frustumCulled = false;
       mesh.receiveShadow = true;
       mesh.userData.renderChannels = ["low-energy", "low-roughness"];
-      const shadow = createDeformationShadowMaterials(material);
+      const uniforms = getMembraneShaderUniforms(material);
+      const shadow = createDeformationShadowMaterials(material, (shader) => augmentMembraneShadowVertexShader(shader, uniforms));
       mesh.customDepthMaterial = shadow.depth;
       mesh.customDistanceMaterial = shadow.distance;
       return { compute, height, mesh, resolution, disposed: false };
@@ -237,6 +242,11 @@ export class SpaceMembrane {
       material.depthWrite = true;
       material.needsUpdate = true;
     }
+    delete runtime.mesh.userData.auxTransition;
+  }
+
+  private setAuxTransition(runtime: Runtime, role: "outgoing" | "incoming", progress: number): void {
+    runtime.mesh.userData.auxTransition = { role, progress: THREE.MathUtils.clamp(progress, 0, 1) };
   }
 
   private disposeRuntime(runtime: Runtime): void {

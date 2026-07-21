@@ -3,7 +3,7 @@ import { MarchingCubes } from "three/addons/objects/MarchingCubes.js";
 import type { FrameContext } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
 import { applyMetaballs, sampleMetaballs } from "./coreField";
-import { createProtoStarMaterial, setProtoStarMaterialState } from "./protoStarMaterial";
+import { augmentProtoStarVertexShader, createProtoStarMaterial, getProtoStarShaderUniforms, setProtoStarMaterialState } from "./protoStarMaterial";
 import { createDeformationShadowMaterials } from "../rendering/deformationShadowMaterials";
 
 type Runtime = {
@@ -90,6 +90,8 @@ export class ProtoStar {
     const progress = Math.min(1, this.transition.elapsed / TRANSITION_DURATION);
     this.setTransitionOpacity(this.transition.outgoing, 1 - progress);
     this.setTransitionOpacity(this.transition.incoming, progress);
+    this.setAuxTransition(this.transition.outgoing, "outgoing", progress);
+    this.setAuxTransition(this.transition.incoming, "incoming", progress);
 
     if (this.transition.elapsed >= TRANSITION_DURATION - 1e-9) {
       const completed = this.transition;
@@ -158,6 +160,8 @@ export class ProtoStar {
     incoming.effect.scale.copy(this.current.effect.scale);
     this.setTransitionOpacity(incoming, 0);
     this.setTransitionOpacity(this.current, 1);
+    this.setAuxTransition(this.current, "outgoing", 0);
+    this.setAuxTransition(incoming, "incoming", 0);
     this.object.add(incoming.effect);
     this.transition = { outgoing: this.current, incoming, elapsed: 0 };
     this.profile = profile;
@@ -174,7 +178,8 @@ export class ProtoStar {
       effect.receiveShadow = true;
       effect.frustumCulled = false;
       effect.userData.renderChannels = ["energy", "roughness"];
-      const shadow = createDeformationShadowMaterials(material);
+      const uniforms = getProtoStarShaderUniforms(material);
+      const shadow = createDeformationShadowMaterials(material, (shader) => augmentProtoStarVertexShader(shader, uniforms));
       effect.customDepthMaterial = shadow.depth;
       effect.customDistanceMaterial = shadow.distance;
       const runtime = { effect, material, resolution: profile.marchingCubes, disposed: false };
@@ -213,6 +218,11 @@ export class ProtoStar {
     runtime.material.transparent = false;
     runtime.material.depthWrite = true;
     runtime.material.needsUpdate = true;
+    delete runtime.effect.userData.auxTransition;
+  }
+
+  private setAuxTransition(runtime: Runtime, role: "outgoing" | "incoming", progress: number): void {
+    runtime.effect.userData.auxTransition = { role, progress: clampUnit(progress) };
   }
 
   private disposeRuntime(runtime: Runtime): void {

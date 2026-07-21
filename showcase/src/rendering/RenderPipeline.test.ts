@@ -86,6 +86,10 @@ describe("pipelineQuality", () => {
     expect(pipeline.reflectionPass.ssrRenderTarget.width).toBe(1);
     expect(pipeline.gtaoPass.gtaoRenderTarget.width).toBe(25);
     expect(pipeline.gtaoPass.normalTexture).toBeUndefined();
+    pipeline.setQuality(QUALITY_PROFILES.medium);
+    expect(pipeline.auxiliaryPass.target.width).toBe(125);
+    expect(pipeline.gtaoPass.gtaoRenderTarget.width).toBe(125);
+    expect(pipeline.reflectionPass.ssrRenderTarget.width).toBe(31);
     pipeline.dispose();
     mesh.geometry.dispose();
     material.dispose();

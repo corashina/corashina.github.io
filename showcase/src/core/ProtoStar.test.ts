@@ -59,8 +59,13 @@ describe("ProtoStar", () => {
     expect(distance).toBeInstanceOf(THREE.MeshDistanceMaterial);
     const shader = { uniforms: {}, vertexShader: THREE.ShaderLib.depth.vertexShader, fragmentShader: THREE.ShaderLib.depth.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
     depth.onBeforeCompile(shader, {} as THREE.WebGLRenderer);
+    const distanceShader = { uniforms: {}, vertexShader: THREE.ShaderLib.distance.vertexShader, fragmentShader: THREE.ShaderLib.distance.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    distance.onBeforeCompile(distanceShader, {} as THREE.WebGLRenderer);
     expect(shader.uniforms.uTime).toBe(getProtoStarShaderUniforms(effect.material as THREE.MeshPhysicalMaterial).uTime);
     expect(shader.vertexShader).toContain("protoStarNoise");
+    expect(distanceShader.vertexShader).toContain("protoStarNoise");
+    expect(shader.fragmentShader).not.toContain("protoStarFresnel");
+    expect(distanceShader.fragmentShader).not.toContain("protoStarFresnel");
     const depthDispose = vi.spyOn(depth, "dispose"); const distanceDispose = vi.spyOn(distance, "dispose");
     star.dispose();
     expect(depthDispose).toHaveBeenCalledTimes(1); expect(distanceDispose).toHaveBeenCalledTimes(1);
@@ -82,8 +87,16 @@ describe("ProtoStar", () => {
     expect((incoming.material as THREE.MeshPhysicalMaterial).transparent).toBe(true);
     expect((incoming.material as THREE.MeshPhysicalMaterial).opacity).toBe(0);
     expect(star.getShadowMaterials()).toHaveLength(2);
+    expect(outgoing.userData.auxTransition).toEqual({ role: "outgoing", progress: 0 });
+    expect(incoming.userData.auxTransition).toEqual({ role: "incoming", progress: 0 });
 
-    for (let step = 0; step < 27; step += 1) star.update(frame());
+    for (let step = 0; step < 13; step += 1) star.update(frame());
+    const outgoingTransition = outgoing.userData.auxTransition as { role: string; progress: number };
+    const incomingTransition = incoming.userData.auxTransition as { role: string; progress: number };
+    expect(outgoingTransition.role).toBe("outgoing"); expect(incomingTransition.role).toBe("incoming");
+    expect(outgoingTransition.progress).toBeCloseTo(incomingTransition.progress);
+
+    for (let step = 13; step < 27; step += 1) star.update(frame());
 
     const survivor = star.object.children[0] as MarchingCubes;
     expect(star.object.children).toHaveLength(1);
@@ -92,6 +105,7 @@ describe("ProtoStar", () => {
     expect((survivor.material as THREE.MeshPhysicalMaterial).opacity).toBe(1);
     expect(geometryDispose).toHaveBeenCalledTimes(1);
     expect(materialDispose).toHaveBeenCalledTimes(1);
+    expect(survivor.userData.auxTransition).toBeUndefined();
     star.dispose();
   });
 

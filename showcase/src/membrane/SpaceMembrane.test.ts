@@ -66,8 +66,16 @@ describe("SpaceMembrane", () => {
     expect(distance).toBeInstanceOf(THREE.MeshDistanceMaterial);
     const shader = { uniforms: {}, vertexShader: THREE.ShaderLib.depth.vertexShader, fragmentShader: THREE.ShaderLib.depth.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
     depth.onBeforeCompile(shader, {} as THREE.WebGLRenderer);
+    const distanceShader = { uniforms: {}, vertexShader: THREE.ShaderLib.distance.vertexShader, fragmentShader: THREE.ShaderLib.distance.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    distance.onBeforeCompile(distanceShader, {} as THREE.WebGLRenderer);
     expect(shader.uniforms.uHeightTexture).toBe(getMembraneShaderUniforms(mesh.material).uHeightTexture);
     expect(shader.vertexShader).toContain("membraneHeight");
+    expect(distanceShader.uniforms.uHeightTexture).toBe(getMembraneShaderUniforms(mesh.material).uHeightTexture);
+    expect(distanceShader.vertexShader).toContain("membraneHeight");
+    expect(shader.vertexShader).not.toContain("heightEast");
+    expect(distanceShader.vertexShader).not.toContain("heightEast");
+    expect(shader.fragmentShader).not.toContain("membraneDetailField");
+    expect(distanceShader.fragmentShader).not.toContain("membraneDetailField");
     const depthDispose = vi.spyOn(depth, "dispose"); const distanceDispose = vi.spyOn(distance, "dispose");
     membrane.dispose();
     expect(depthDispose).toHaveBeenCalledTimes(1); expect(distanceDispose).toHaveBeenCalledTimes(1);
@@ -135,6 +143,8 @@ describe("SpaceMembrane", () => {
     expect(created).toHaveLength(2);
     expect(membrane.object.children).toHaveLength(2);
     expect(membrane.getShadowMaterials()).toHaveLength(2);
+    expect(membrane.object.children[0]!.userData.auxTransition).toEqual({ role: "outgoing", progress: 0 });
+    expect(membrane.object.children[1]!.userData.auxTransition).toEqual({ role: "incoming", progress: 0 });
     for (const material of membrane.getShadowMaterials()) {
       expect(material.transparent).toBe(true);
       expect(material.depthWrite).toBe(false);
@@ -152,6 +162,9 @@ describe("SpaceMembrane", () => {
     expect(created[2]!.disposed).toBe(1);
 
     membrane.update(frame(), particles);
+    const outgoingTransition = membrane.object.children[0]!.userData.auxTransition as { progress: number };
+    const incomingTransition = membrane.object.children[1]!.userData.auxTransition as { progress: number };
+    expect(outgoingTransition.progress).toBeCloseTo(incomingTransition.progress);
     expect(created[3]!.variables[0]!.material.uniforms.uPulseEnergy!.value).toBe(0.6);
     for (let step = 1; step < 27; step += 1) membrane.update(frame(), particles);
     expect(created[0]!.computeCalls).toBe(27);
@@ -162,6 +175,7 @@ describe("SpaceMembrane", () => {
     expect(membrane.getShadowMaterials()[0]!.transparent).toBe(false);
     expect(membrane.getShadowMaterials()[0]!.depthWrite).toBe(true);
     expect(membrane.getShadowMaterials()[0]!.opacity).toBe(1);
+    expect(membrane.object.children[0]!.userData.auxTransition).toBeUndefined();
   });
 
   it("cleans up failed initialization and disposes every live resource only once", () => {
