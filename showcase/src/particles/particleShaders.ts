@@ -72,8 +72,9 @@ void main() {
   vec4 computedPosition = texture2D(texturePosition, lookup);
   vEnergy = texture2D(uEnergyTexture, lookup).rgb;
   vec4 modelPosition = modelMatrix * vec4(computedPosition.xyz, 1.0);
-  gl_Position = projectionMatrix * viewMatrix * modelPosition;
-  gl_PointSize = uPointSize * (1.0 + computedPosition.w) / max(0.75, -modelPosition.z);
+  vec4 viewPosition = viewMatrix * modelPosition;
+  gl_Position = projectionMatrix * viewPosition;
+  gl_PointSize = uPointSize * (1.0 + computedPosition.w) / max(0.75, -viewPosition.z);
 }
 `;
 
@@ -83,7 +84,7 @@ uniform float uOpacity;
 
 void main() {
   vec2 centered = gl_PointCoord - 0.5;
-  float radial = smoothstep(0.5, 0.0, length(centered));
+  float radial = 1.0 - smoothstep(0.0, 0.5, length(centered));
   vec3 cyan = vec3(0.22, 0.95, 1.0);
   vec3 violet = vec3(0.72, 0.34, 1.0);
   vec3 gold = vec3(1.0, 0.72, 0.28);

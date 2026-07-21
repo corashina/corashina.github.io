@@ -27,9 +27,14 @@ describe("particle render shaders", () => {
   it("samples computed positions and shades energy phases as soft points", () => {
     expect(particleVertexShader).toContain("texturePosition");
     expect(particleVertexShader).toContain("texture2D");
+    expect(particleVertexShader).toContain("vec4 viewPosition = viewMatrix * modelPosition");
+    expect(particleVertexShader).toContain("-viewPosition.z");
+    expect(particleVertexShader).not.toContain("-modelPosition.z");
     expect(particleFragmentShader).toContain("cyan");
     expect(particleFragmentShader).toContain("violet");
     expect(particleFragmentShader).toContain("gold");
     expect(particleFragmentShader).toContain("gl_PointCoord");
+    expect(particleFragmentShader).toContain("1.0 - smoothstep(0.0, 0.5");
+    expect(particleFragmentShader).not.toContain("smoothstep(0.5, 0.0");
   });
 });

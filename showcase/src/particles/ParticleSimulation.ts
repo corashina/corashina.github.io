@@ -34,6 +34,7 @@ type Runtime = {
   energy: THREE.DataTexture;
   points: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
   position: ComputeVariable;
+  size: number;
   velocity: ComputeVariable;
   disposed: boolean;
 };
@@ -62,7 +63,9 @@ function makeLookupGeometry(size: number): THREE.BufferGeometry {
     lookup[index * 2 + 1] = (Math.floor(index / size) + 0.5) / size;
   }
   const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(count * 3), 3));
   geometry.setAttribute("lookup", new THREE.BufferAttribute(lookup, 2));
+  geometry.setDrawRange(0, count);
   return geometry;
 }
 
@@ -80,7 +83,9 @@ function makePoints(size: number, energy: THREE.DataTexture): THREE.Points<THREE
     vertexShader: particleVertexShader,
     fragmentShader: particleFragmentShader,
   });
-  return new THREE.Points(makeLookupGeometry(size), material);
+  const points = new THREE.Points(makeLookupGeometry(size), material);
+  points.frustumCulled = false;
+  return points;
 }
 
 export class ParticleSimulation {
@@ -114,7 +119,7 @@ export class ParticleSimulation {
     this.setOpacity(this.transition.outgoing, 1 - progress);
     this.setOpacity(this.transition.incoming, progress);
 
-    if (progress === 1) {
+    if (this.transition.elapsed >= TRANSITION_DURATION - 1e-9) {
       const completed = this.transition;
       this.object.remove(completed.outgoing.points);
       this.disposeRuntime(completed.outgoing);
@@ -125,15 +130,28 @@ export class ParticleSimulation {
   }
 
   setQuality(profile: QualityProfile): void {
-    if (this.disposed || profile.particles === this.getSize(this.current)) return;
+    if (this.disposed) return;
 
     if (this.transition !== null) {
-      this.object.remove(this.transition.outgoing.points);
-      this.disposeRuntime(this.transition.outgoing);
-      this.current = this.transition.incoming;
+      if (profile.particles === this.transition.incoming.size) return;
+
+      if (profile.particles === this.transition.outgoing.size) {
+        this.object.remove(this.transition.incoming.points);
+        this.disposeRuntime(this.transition.incoming);
+        this.setOpacity(this.transition.outgoing, 1);
+        this.current = this.transition.outgoing;
+        this.transition = null;
+        return;
+      }
+
+      this.object.remove(this.transition.incoming.points);
+      this.disposeRuntime(this.transition.incoming);
+      this.current = this.transition.outgoing;
       this.setOpacity(this.current, 1);
       this.transition = null;
     }
+
+    if (profile.particles === this.current.size) return;
 
     const incoming = this.createRuntime(profile);
     this.setOpacity(incoming, 0);
@@ -177,7 +195,7 @@ export class ParticleSimulation {
     }
 
     const points = makePoints(size, seeds.energy);
-    return { compute, energy: seeds.energy, points, position: texturePosition, velocity: textureVelocity, disposed: false };
+    return { compute, energy: seeds.energy, points, position: texturePosition, size, velocity: textureVelocity, disposed: false };
   }
 
   private attachUniforms(texturePosition: ComputeVariable, textureVelocity: ComputeVariable): void {
@@ -212,11 +230,6 @@ export class ParticleSimulation {
 
   private setOpacity(runtime: Runtime, opacity: number): void {
     runtime.points.material.uniforms.uOpacity!.value = opacity;
-  }
-
-  private getSize(runtime: Runtime): number {
-    const lookup = runtime.points.geometry.getAttribute("lookup");
-    return Math.sqrt(lookup.count);
   }
 
   private disposeRuntime(runtime: Runtime): void {
