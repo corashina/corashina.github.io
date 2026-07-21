@@ -61,7 +61,7 @@ describe("ProjectPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("does not play detail video media when reduced motion is requested", () => {
+  it("plays detail video media when reduced motion is reported", async () => {
     vi.stubGlobal(
       "matchMedia",
       vi.fn().mockReturnValue({ matches: true }),
@@ -71,8 +71,9 @@ describe("ProjectPage", () => {
 
     const video = screen.getByLabelText("Infinite procedural WebGL city scene");
     fireEvent.mouseEnter(video.parentElement!);
+    await Promise.resolve();
 
-    expect(play).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledTimes(1);
   });
 
   it("renders the not-found page for an unknown project slug", () => {

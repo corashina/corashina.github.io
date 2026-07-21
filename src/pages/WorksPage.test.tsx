@@ -78,7 +78,7 @@ describe("WorksPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("does not play video previews when reduced motion is requested", () => {
+  it("plays video previews even when reduced motion is reported", async () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     renderPage();
@@ -86,8 +86,9 @@ describe("WorksPage", () => {
     const card = screen.getByRole("link", { name: "Endless-City" });
     fireEvent.mouseEnter(card);
     fireEvent.focus(card);
+    await Promise.resolve();
 
-    expect(play).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledTimes(2);
   });
 
   it("shows the original alt text when project media fails", () => {

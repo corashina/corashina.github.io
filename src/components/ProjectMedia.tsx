@@ -22,10 +22,6 @@ export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Ele
 
     const target = container.closest("a") ?? container;
     const play = () => {
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
-
       video.play()?.catch(() => {});
     };
     const reset = () => {
