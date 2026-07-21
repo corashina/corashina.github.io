@@ -50,4 +50,26 @@ describe("AuxiliaryBufferPass", () => {
     (mesh.material as THREE.Material).dispose();
     previousTarget.dispose();
   });
+
+  it("uses raw GLSL3 ownership and leaves every scene object untouched when renderer state capture fails", () => {
+    const scene = new THREE.Scene();
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.MeshPhysicalMaterial());
+    const points = new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial());
+    scene.add(mesh, points);
+    const originalMaterial = mesh.material;
+    const pass = new AuxiliaryBufferPass(scene, new THREE.PerspectiveCamera());
+    const renderer = { getRenderTarget: () => { throw new Error("state unavailable"); } } as unknown as THREE.WebGLRenderer;
+
+    expect(pass.material).toBeInstanceOf(THREE.RawShaderMaterial);
+    expect(pass.material.vertexShader).toContain("uniform mat4 modelViewMatrix");
+    expect(pass.material.vertexShader).toContain("in vec3 position");
+    expect(() => pass.render(renderer)).toThrow("state unavailable");
+    expect(mesh.material).toBe(originalMaterial);
+    expect(points.visible).toBe(true);
+    pass.dispose();
+    mesh.geometry.dispose();
+    (mesh.material as THREE.Material).dispose();
+    points.geometry.dispose();
+    (points.material as THREE.Material).dispose();
+  });
 });

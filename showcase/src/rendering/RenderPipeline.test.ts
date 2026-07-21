@@ -19,6 +19,7 @@ describe("pipelineQuality", () => {
       shadowMap: { enabled: false, type: THREE.BasicShadowMap },
       getPixelRatio: () => 1,
       getSize: (size: THREE.Vector2) => size.set(1, 1),
+      autoClear: true, getRenderTarget: () => null, setRenderTarget: () => undefined,
     } as unknown as THREE.WebGLRenderer;
     const material = new THREE.MeshPhysicalMaterial();
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
@@ -35,17 +36,44 @@ describe("pipelineQuality", () => {
     const auxiliaryDispose = vi.spyOn(pipeline.auxiliaryPass, "dispose");
 
     expect(pipeline.composer.passes).toEqual([
-      pipeline.renderPass, pipeline.gtaoPass, pipeline.ssrPass, pipeline.nebulaPass, pipeline.bloomPass, pipeline.outputPass,
+      pipeline.renderPass, pipeline.gtaoPass, pipeline.reflectionPass, pipeline.nebulaPass, pipeline.bloomPass, pipeline.outputPass,
     ]);
     expect(pipeline.ssrPass.selects).toEqual([mesh]);
+    expect(pipeline.reflectionPass.ssrPass).toBe(pipeline.ssrPass);
+    expect(pipeline.reflectionPass.material.uniforms.tRoughness!.value).toBe(pipeline.auxiliaryPass.normalTexture);
+    expect(pipeline.gtaoPass.depthTexture).toBe(pipeline.auxiliaryPass.target.depthTexture);
+    expect(pipeline.gtaoPass.normalTexture).toBe(pipeline.auxiliaryPass.normalTexture);
+    expect(pipeline.ssrPass.ssrMaterial.uniforms.tMetalness!.value).not.toBe(pipeline.auxiliaryPass.energyTexture);
     pipeline.resize(100, 60, 2);
     await Promise.resolve();
-    expect(pipeline.auxiliaryPass.target.width).toBe(200);
-    expect(pipeline.auxiliaryPass.target.height).toBe(120);
+    expect(pipeline.auxiliaryPass.target.width).toBe(150);
+    expect(pipeline.auxiliaryPass.target.height).toBe(90);
 
     pipeline.dispose();
     pipeline.dispose();
     expect(auxiliaryDispose).toHaveBeenCalledTimes(1);
+    mesh.geometry.dispose();
+    material.dispose();
+  });
+
+  it("caps DPR by the active profile and disables SSR allocation for low quality", async () => {
+    const renderer = {
+      toneMapping: THREE.NoToneMapping, outputColorSpace: THREE.LinearSRGBColorSpace,
+      shadowMap: { enabled: false, type: THREE.BasicShadowMap }, getPixelRatio: () => 1,
+      getSize: (size: THREE.Vector2) => size.set(1, 1),
+      autoClear: true, getRenderTarget: () => null, setRenderTarget: () => undefined,
+    } as unknown as THREE.WebGLRenderer;
+    const material = new THREE.MeshPhysicalMaterial();
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(), material);
+    const source = { object: mesh, getShadowMaterials: () => [material] };
+    const pipeline = new RenderPipeline({ renderer, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera(), nebulaPass: new NebulaPass(QUALITY_PROFILES.low), membrane: source, protoStar: source, profile: QUALITY_PROFILES.low });
+
+    pipeline.resize(100, 60, 2);
+    await Promise.resolve();
+    expect(pipeline.auxiliaryPass.target.width).toBe(100);
+    expect(pipeline.ssrPass.enabled).toBe(false);
+    expect(pipeline.ssrPass.ssrRenderTarget.width).toBe(1);
+    pipeline.dispose();
     mesh.geometry.dispose();
     material.dispose();
   });
