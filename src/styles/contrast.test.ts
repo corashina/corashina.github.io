@@ -10,11 +10,12 @@ const readStyles = async () => {
     readFile(resolve(process.cwd(), "src/styles/layout.module.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/global.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/work.module.scss"), "utf8"),
+    readFile(resolve(process.cwd(), "src/styles/contact.module.scss"), "utf8"),
   ]);
-  const [themes, layout, global, work] = sources.map((source) =>
+  const [themes, layout, global, work, contact] = sources.map((source) =>
     source.replace(/\r\n/g, "\n"),
   );
-  return { global, layout, themes, work };
+  return { contact, global, layout, themes, work };
 };
 
 const findBlock = (source: string, header: string): string => {
@@ -172,6 +173,16 @@ describe("original style contracts", () => {
     expect(media).toMatch(/transition: filter 400ms ease-in-out;/);
     expect(cardReveal).toMatch(/filter: grayscale\(0\);/);
     expect(detailReveal).toMatch(/filter: grayscale\(0\);/);
+  });
+
+  it("centers the contact profile flair without positional offsets", async () => {
+    const { contact } = await readStyles();
+    const flair = findBlock(contact, ".flair");
+
+    expect(flair).toMatch(/display: block;/);
+    expect(flair).toMatch(/margin: calc\(2 \* #\{\$spacing\}\) auto 0;/);
+    expect(flair).not.toContain("position: relative");
+    expect(flair).not.toContain("left: 50%");
   });
 
 });

@@ -19,7 +19,5 @@
 
 .flair {
   display: block;
-  margin-top: calc(2 * #{$spacing});
-  position: relative;
-  left: 50%;
+  margin: calc(2 * #{$spacing}) auto 0;
 }
