@@ -181,6 +181,7 @@ describe("original style contracts", () => {
 
     expect(flair).toMatch(/display: block;/);
     expect(flair).toMatch(/margin: calc\(2 \* #\{\$spacing\}\) auto 0;/);
+    expect(flair).toMatch(/width: fit-content;/);
     expect(flair).not.toContain("position: relative");
     expect(flair).not.toContain("left: 50%");
   });
