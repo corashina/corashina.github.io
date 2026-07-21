@@ -50,6 +50,22 @@ describe("ProtoStar", () => {
     star.dispose();
   });
 
+  it("assigns deformation-aligned depth and distance materials with shared live uniforms", () => {
+    const star = new ProtoStar(QUALITY_PROFILES.low);
+    const effect = star.object.children[0] as MarchingCubes;
+    const depth = effect.customDepthMaterial as THREE.MeshDepthMaterial;
+    const distance = effect.customDistanceMaterial as THREE.MeshDistanceMaterial;
+    expect(depth).toBeInstanceOf(THREE.MeshDepthMaterial);
+    expect(distance).toBeInstanceOf(THREE.MeshDistanceMaterial);
+    const shader = { uniforms: {}, vertexShader: THREE.ShaderLib.depth.vertexShader, fragmentShader: THREE.ShaderLib.depth.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    depth.onBeforeCompile(shader, {} as THREE.WebGLRenderer);
+    expect(shader.uniforms.uTime).toBe(getProtoStarShaderUniforms(effect.material as THREE.MeshPhysicalMaterial).uTime);
+    expect(shader.vertexShader).toContain("protoStarNoise");
+    const depthDispose = vi.spyOn(depth, "dispose"); const distanceDispose = vi.spyOn(distance, "dispose");
+    star.dispose();
+    expect(depthDispose).toHaveBeenCalledTimes(1); expect(distanceDispose).toHaveBeenCalledTimes(1);
+  });
+
   it("crossfades a replacement for 0.45 seconds, retains its transform, and disposes replaced resources", () => {
     const star = new ProtoStar(QUALITY_PROFILES.low);
     const outgoing = star.object.children[0] as MarchingCubes;

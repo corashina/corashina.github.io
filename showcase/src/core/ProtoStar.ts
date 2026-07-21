@@ -4,6 +4,7 @@ import type { FrameContext } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
 import { applyMetaballs, sampleMetaballs } from "./coreField";
 import { createProtoStarMaterial, setProtoStarMaterialState } from "./protoStarMaterial";
+import { createDeformationShadowMaterials } from "../rendering/deformationShadowMaterials";
 
 type Runtime = {
   effect: MarchingCubes;
@@ -173,11 +174,16 @@ export class ProtoStar {
       effect.receiveShadow = true;
       effect.frustumCulled = false;
       effect.userData.renderChannels = ["energy", "roughness"];
+      const shadow = createDeformationShadowMaterials(material);
+      effect.customDepthMaterial = shadow.depth;
+      effect.customDistanceMaterial = shadow.distance;
       const runtime = { effect, material, resolution: profile.marchingCubes, disposed: false };
       this.setRuntimeState(runtime);
       this.applyField(runtime);
       return runtime;
     } catch (error) {
+      effect?.customDepthMaterial?.dispose();
+      effect?.customDistanceMaterial?.dispose();
       effect?.geometry.dispose();
       material?.dispose();
       throw error;
@@ -213,6 +219,8 @@ export class ProtoStar {
     if (runtime.disposed) return;
     runtime.disposed = true;
     runtime.effect.geometry.dispose();
+    runtime.effect.customDepthMaterial?.dispose();
+    runtime.effect.customDistanceMaterial?.dispose();
     runtime.material.dispose();
   }
 }

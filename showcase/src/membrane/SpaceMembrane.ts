@@ -3,6 +3,7 @@ import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer
 import type { FrameContext } from "../app/contracts";
 import type { QualityProfile } from "../quality/qualityProfiles";
 import { createMembraneMaterial, getMembraneShaderUniforms, membraneComputeShader } from "./membraneShaders";
+import { createDeformationShadowMaterials } from "../rendering/deformationShadowMaterials";
 
 type Uniform = { value: unknown };
 
@@ -170,8 +171,13 @@ export class SpaceMembrane {
       mesh.frustumCulled = false;
       mesh.receiveShadow = true;
       mesh.userData.renderChannels = ["low-energy", "low-roughness"];
+      const shadow = createDeformationShadowMaterials(material);
+      mesh.customDepthMaterial = shadow.depth;
+      mesh.customDistanceMaterial = shadow.distance;
       return { compute, height, mesh, resolution, disposed: false };
     } catch (error) {
+      mesh?.customDepthMaterial?.dispose();
+      mesh?.customDistanceMaterial?.dispose();
       geometry?.dispose();
       material?.dispose();
       compute?.dispose();
@@ -238,6 +244,8 @@ export class SpaceMembrane {
     runtime.disposed = true;
     runtime.compute.dispose();
     runtime.mesh.geometry.dispose();
+    runtime.mesh.customDepthMaterial?.dispose();
+    runtime.mesh.customDistanceMaterial?.dispose();
     runtime.mesh.material.dispose();
   }
 }

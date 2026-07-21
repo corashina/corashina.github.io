@@ -56,6 +56,22 @@ function frame(overrides: Partial<InteractionSnapshot> = {}): FrameContext {
 }
 
 describe("SpaceMembrane", () => {
+  it("assigns and disposes depth and distance materials that share displacement uniforms", () => {
+    const created: FakeCompute[] = [];
+    const membrane = new SpaceMembrane({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const mesh = membrane.object.children[0] as THREE.Mesh<THREE.PlaneGeometry, THREE.MeshPhysicalMaterial>;
+    const depth = mesh.customDepthMaterial as THREE.MeshDepthMaterial;
+    const distance = mesh.customDistanceMaterial as THREE.MeshDistanceMaterial;
+    expect(depth).toBeInstanceOf(THREE.MeshDepthMaterial);
+    expect(distance).toBeInstanceOf(THREE.MeshDistanceMaterial);
+    const shader = { uniforms: {}, vertexShader: THREE.ShaderLib.depth.vertexShader, fragmentShader: THREE.ShaderLib.depth.fragmentShader } as THREE.WebGLProgramParametersWithUniforms;
+    depth.onBeforeCompile(shader, {} as THREE.WebGLRenderer);
+    expect(shader.uniforms.uHeightTexture).toBe(getMembraneShaderUniforms(mesh.material).uHeightTexture);
+    expect(shader.vertexShader).toContain("membraneHeight");
+    const depthDispose = vi.spyOn(depth, "dispose"); const distanceDispose = vi.spyOn(distance, "dispose");
+    membrane.dispose();
+    expect(depthDispose).toHaveBeenCalledTimes(1); expect(distanceDispose).toHaveBeenCalledTimes(1);
+  });
   it("builds a finite drawable physical mesh and advances its GPU height state from interaction and particle texture", () => {
     const created: FakeCompute[] = [];
     const membrane = new SpaceMembrane({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });

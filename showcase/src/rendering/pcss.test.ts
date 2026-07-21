@@ -13,10 +13,13 @@ describe("applyPcss", () => {
     expect(material.onBeforeCompile).not.toBe(original);
     expect(material.customProgramCacheKey()).toContain("pcss-high-32");
     expect(shader.fragmentShader).toContain("findBlocker");
-    expect(shader.fragmentShader).toContain("penumbra");
+    expect(shader.fragmentShader).toContain("initPoissonSamples");
+    expect(shader.fragmentShader).toContain("penumbraSize");
     expect(shader.fragmentShader).toContain("PCSS_FILTER_TAPS 32");
+    expect(shader.fragmentShader).toContain("LIGHT_FRUSTUM_WIDTH");
+    expect(shader.fragmentShader).toContain("NEAR_PLANE");
     expect(shader.fragmentShader).toContain("blockerDepthSum");
-    expect(shader.fragmentShader).toContain("receiverDepth - averageBlockerDepth");
+    expect(shader.fragmentShader).toContain("penumbraSize( zReceiver, avgBlockerDepth )");
   });
 
   it("preserves callback and cache-key receivers, is idempotent, and restores hooks", () => {
@@ -28,7 +31,7 @@ describe("applyPcss", () => {
     applyPcss(material, "pcss-high");
     const firstCallback = material.onBeforeCompile;
     applyPcss(material, "pcss-high");
-    expect(material.onBeforeCompile).not.toBe(firstCallback);
+    expect(material.onBeforeCompile).toBe(firstCallback);
     material.onBeforeCompile({ fragmentShader: "#include <shadowmap_pars_fragment>", vertexShader: "", uniforms: {} } as THREE.WebGLProgramParametersWithUniforms, {} as THREE.WebGLRenderer);
     expect(callback).toHaveBeenCalledTimes(1);
     expect(material.customProgramCacheKey()).toContain("base");
