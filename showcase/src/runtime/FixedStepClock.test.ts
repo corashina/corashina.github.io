@@ -11,6 +11,16 @@ describe("FixedStepClock", () => {
     expect(step).toHaveBeenCalledTimes(4);
   });
 
+  it("caps elapsed time at 0.1 seconds even when the step budget is higher", () => {
+    const clock = new FixedStepClock(0.01, 20, 0.1);
+    const step = vi.fn();
+
+    clock.advance(0, step);
+    clock.advance(1_000, step);
+
+    expect(step).toHaveBeenCalledTimes(10);
+  });
+
   it("returns interpolation for the remaining accumulated fraction", () => {
     const clock = new FixedStepClock(1 / 60, 4, 0.1);
     const step = vi.fn();

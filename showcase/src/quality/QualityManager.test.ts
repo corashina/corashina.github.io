@@ -30,15 +30,31 @@ describe("QualityManager", () => {
     expect(manager.sample(100, 180)).toBeNull();
   });
 
-  it("downgrades when the rolling 120-frame 75th percentile exceeds 20 ms", () => {
+  it("uses nearest-rank rolling p75 and keeps an exact 20 ms boundary", () => {
+    const atBoundary = new QualityManager("high");
+    const aboveBoundary = new QualityManager("high");
+
+    warmUp(atBoundary);
+    expect(sampleFrames(atBoundary, 90, 20, 180)).toBeNull();
+    expect(sampleFrames(atBoundary, 30, 21, 270)).toBeNull();
+    expect(atBoundary.getTier()).toBe("high");
+
+    warmUp(aboveBoundary);
+    expect(sampleFrames(aboveBoundary, 89, 20, 180)).toBeNull();
+    expect(sampleFrames(aboveBoundary, 31, 21, 269)).toBe("medium");
+  });
+
+  it("evicts the oldest timing sample after the rolling window reaches 120 frames", () => {
     const manager = new QualityManager("high");
 
     warmUp(manager);
-    expect(sampleFrames(manager, 120, 21, 180)).toBe("medium");
+    expect(sampleFrames(manager, 90, 20, 180)).toBeNull();
+    expect(sampleFrames(manager, 30, 21, 270)).toBeNull();
+    expect(manager.sample(21, 300)).toBe("medium");
     expect(manager.getTier()).toBe("medium");
-    expect(manager.getTransition(299.25)).toEqual({ from: "high", to: "medium", startedAt: 299, duration: 0.45 });
-    expect(manager.getTransition(299.25)).not.toBeNull();
-    expect(manager.getTransition(299.5)).toBeNull();
+    expect(manager.getTransition(300.25)).toEqual({ from: "high", to: "medium", startedAt: 300, duration: 0.45 });
+    expect(manager.getTransition(300.25)).not.toBeNull();
+    expect(manager.getTransition(300.5)).toBeNull();
   });
 
   it("upgrades only once after 600 stable frames below 15 ms", () => {
@@ -47,7 +63,8 @@ describe("QualityManager", () => {
     warmUp(manager);
     expect(sampleFrames(manager, 600, 14, 180)).toBe("high");
     expect(manager.getTier()).toBe("high");
-    expect(sampleFrames(manager, 600, 14, 780)).toBeNull();
+    expect(sampleFrames(manager, 300, 14, 780)).toBeNull();
+    expect(sampleFrames(manager, 600, 14, 1080)).toBeNull();
     expect(manager.getTier()).toBe("high");
   });
 
