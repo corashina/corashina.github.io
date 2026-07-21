@@ -155,4 +155,52 @@ describe("ProtoStar", () => {
     expect(activeUpdate).toHaveBeenCalledTimes(1);
     star.dispose();
   });
+
+  it("initializes incoming effects once and preserves an active transition when a retarget creation fails", () => {
+    const effects: MarchingCubes[] = [];
+    const materials: THREE.MeshPhysicalMaterial[] = [];
+    const cause = new Error("retarget creation failed");
+    let incomingUpdate: ReturnType<typeof vi.spyOn> | undefined;
+    let failedGeometryDispose: ReturnType<typeof vi.spyOn> | undefined;
+    let failedMaterialDispose: ReturnType<typeof vi.spyOn> | undefined;
+    const star = new ProtoStar(QUALITY_PROFILES.low, {
+      createEffect: (resolution, material) => {
+        const effect = new MarchingCubes(resolution, material, false, true, 120000);
+        effects.push(effect);
+        materials.push(material);
+        if (effects.length === 2) incomingUpdate = vi.spyOn(effect, "update");
+        if (effects.length === 3) {
+          failedGeometryDispose = vi.spyOn(effect.geometry, "dispose");
+          failedMaterialDispose = vi.spyOn(material, "dispose");
+          vi.spyOn(effect, "update").mockImplementation(() => { throw cause; });
+        }
+        return effect;
+      },
+    });
+    const outgoing = effects[0]!;
+
+    star.setQuality(QUALITY_PROFILES.medium);
+
+    const incoming = effects[1]!;
+    const outgoingUpdate = vi.spyOn(outgoing, "update");
+    expect(incomingUpdate).toHaveBeenCalledTimes(1);
+    outgoingUpdate.mockClear();
+    incomingUpdate!.mockClear();
+
+    expect(() => star.setQuality(QUALITY_PROFILES.high)).toThrow(cause);
+
+    expect(star.object.children).toEqual([outgoing, incoming]);
+    expect(star.getShadowMaterials()).toEqual([outgoing.material, incoming.material]);
+    expect(failedGeometryDispose).toHaveBeenCalledTimes(1);
+    expect(failedMaterialDispose).toHaveBeenCalledTimes(1);
+
+    star.update(frame());
+    star.update(frame());
+    expect(outgoingUpdate).toHaveBeenCalledTimes(1);
+    expect(incomingUpdate).toHaveBeenCalledTimes(1);
+
+    star.dispose();
+    expect(failedGeometryDispose).toHaveBeenCalledTimes(1);
+    expect(failedMaterialDispose).toHaveBeenCalledTimes(1);
+  });
 });

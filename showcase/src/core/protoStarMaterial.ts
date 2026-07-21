@@ -26,7 +26,7 @@ function injectVertexUniformDeclarations(source: string): string {
 
   const commonAnchor = "#include <common>";
   if (source.includes(commonAnchor)) return source.replace(commonAnchor, `${commonAnchor}\n${declarations}`);
-  return source.replace("#include <begin_vertex>", `${declarations}\n#include <begin_vertex>`);
+  return `${declarations}\n${source}`;
 }
 
 export function getProtoStarShaderUniforms(material: THREE.MeshPhysicalMaterial): ProtoStarShaderUniforms {

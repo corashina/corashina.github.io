@@ -152,17 +152,15 @@ export class ProtoStar {
   }
 
   private beginTransition(profile: QualityProfile, incoming: Runtime): void {
-    this.profile = profile;
-    this.fieldAccumulator = 0;
     incoming.effect.position.copy(this.current.effect.position);
     incoming.effect.quaternion.copy(this.current.effect.quaternion);
     incoming.effect.scale.copy(this.current.effect.scale);
-    this.setRuntimeState(incoming);
-    this.applyField(incoming);
     this.setTransitionOpacity(incoming, 0);
     this.setTransitionOpacity(this.current, 1);
     this.object.add(incoming.effect);
     this.transition = { outgoing: this.current, incoming, elapsed: 0 };
+    this.profile = profile;
+    this.fieldAccumulator = 0;
   }
 
   private createRuntime(profile: QualityProfile): Runtime {

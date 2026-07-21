@@ -44,6 +44,23 @@ describe("createProtoStarMaterial", () => {
       expect(shader.vertexShader.indexOf(`uniform float ${uniform};`)).toBeLessThan(shader.vertexShader.indexOf(`+ ${uniform}`));
     }
   });
+
+  it("keeps fallback vertex uniform declarations at global scope when common is unavailable", () => {
+    const material = createProtoStarMaterial();
+    const shader = {
+      uniforms: {},
+      vertexShader: "void main() {\n  #include <begin_vertex>\n}",
+      fragmentShader: "#include <common>\n#include <emissivemap_fragment>",
+    };
+
+    material.onBeforeCompile(shader as never, {} as never);
+
+    const mainStart = shader.vertexShader.indexOf("void main()");
+    for (const uniform of ["uTime", "uEnergy", "uRelease"]) {
+      expect(shader.vertexShader.indexOf(`uniform float ${uniform};`)).toBeGreaterThanOrEqual(0);
+      expect(shader.vertexShader.indexOf(`uniform float ${uniform};`)).toBeLessThan(mainStart);
+    }
+  });
 });
 
 describe("setProtoStarMaterialState", () => {
