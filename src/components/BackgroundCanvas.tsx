@@ -35,20 +35,9 @@ type BackgroundCanvasProps = {
   theme: Theme;
 };
 
-export function resolveReducedMotion(
-  prefersReducedMotion: boolean,
-  isDevelopment: boolean,
-  search: string,
-): boolean {
-  const forcesFullMotion =
-    isDevelopment && new URLSearchParams(search).get("motion") === "full";
-  return prefersReducedMotion && !forcesFullMotion;
-}
-
 export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
-  const reducedMotionRef = useRef(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
@@ -58,15 +47,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       setFailed(true);
       return;
     }
-
-    const prefersReducedMotion =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-    const reducedMotion = resolveReducedMotion(
-      prefersReducedMotion,
-      import.meta.env.DEV,
-      window.location.search,
-    );
-    reducedMotionRef.current = reducedMotion;
 
     let controller: BackgroundController | null = null;
     let resizeObserver: ResizeObserver | null = null;
@@ -81,7 +61,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
         previousPointer = null;
         return;
       }
-      if (reducedMotion || !controller) return;
+      if (!controller) return;
       const rect = canvas.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const pointer = normalizePointer(event.clientX, event.clientY, rect);
@@ -102,8 +82,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       if (document.visibilityState === "hidden") {
         previousPointer = null;
         controller.stop();
-      } else if (reducedMotion) {
-        controller.renderStatic();
       } else {
         controller.start();
       }
@@ -136,7 +114,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
           setFailed(true);
           teardown();
         },
-        staticQuality: reducedMotion ? "medium" : undefined,
       });
     } catch {
       setFailed(true);
@@ -154,7 +131,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     resizeObserver = new ResizeObserver(([entry]) => {
       if (closed || !controller || !entry) return;
       controller.resize(entry.contentRect.width, entry.contentRect.height, window.devicePixelRatio);
-      if (reducedMotion) controller.renderStatic();
     });
 
     resizeObserver.observe(canvas);
@@ -162,7 +138,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     document.addEventListener("visibilitychange", onVisibilityChange);
     listenersAttached = true;
 
-    if (!reducedMotion && document.visibilityState !== "hidden") {
+    if (document.visibilityState !== "hidden") {
       controller.start();
     }
 
@@ -173,7 +149,6 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     const controller = controllerRef.current;
     if (!controller) return;
     controller.setTheme(sceneThemes[theme]);
-    if (reducedMotionRef.current) controller.renderStatic();
   }, [theme]);
 
   return (

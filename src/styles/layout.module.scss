@@ -149,19 +149,3 @@
     display: none;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .layout {
-    .forwardEnter,
-    .forwardEnterActive,
-    .forwardExit,
-    .forwardExitActive,
-    .backwardEnter,
-    .backwardEnterActive,
-    .backwardExit,
-    .backwardExitActive {
-      transform: none;
-      transition-duration: 0ms;
-    }
-  }
-}

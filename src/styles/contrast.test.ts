@@ -89,25 +89,12 @@ describe("original style contracts", () => {
     expect(layout).toMatch(/\.backwardExitActive\s*\{\s*transform: translateX\(50vw\);\s*\}/);
   });
 
-  it("disables every directional transform and duration for reduced motion", async () => {
-    const { layout } = await readStyles();
-    const reducedMotion =
-      layout.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]+)\}\s*$/)?.[1] ??
-      "";
+  it("keeps route, page, and media motion enabled regardless of user preference", async () => {
+    const { global, layout, work } = await readStyles();
 
-    for (const className of [
-      "forwardEnter",
-      "forwardEnterActive",
-      "forwardExit",
-      "forwardExitActive",
-      "backwardEnter",
-      "backwardEnterActive",
-      "backwardExit",
-      "backwardExitActive",
-    ]) {
-      expect(reducedMotion).toContain(`.${className}`);
+    for (const source of [layout, global, work]) {
+      expect(source).not.toContain("@media (prefers-reduced-motion: reduce)");
     }
-    expect(reducedMotion).toMatch(/transform: none;\s*transition-duration: 0ms;/);
   });
 
   it("keeps the exact Questrial import, family, spacing, and breakpoints", async () => {
@@ -187,11 +174,4 @@ describe("original style contracts", () => {
     expect(detailReveal).toMatch(/filter: grayscale\(0\);/);
   });
 
-  it("suppresses the shared image and video transition for reduced motion", async () => {
-    const { work } = await readStyles();
-    const reducedMotion = findBlock(work, "@media (prefers-reduced-motion: reduce)");
-    const media = findBlock(reducedMotion, ".media img,\n  .media video");
-
-    expect(media).toMatch(/transition: none;/);
-  });
 });

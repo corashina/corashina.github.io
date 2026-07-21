@@ -106,13 +106,3 @@ video:hover {
 ::-webkit-scrollbar-thumb {
   background: $color-25;
 }
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  video:hover {
-    transition: none;
-  }
-}
