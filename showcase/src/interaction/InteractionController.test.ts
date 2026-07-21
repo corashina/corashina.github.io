@@ -9,10 +9,10 @@ function createCanvas(): HTMLCanvasElement {
   return canvas;
 }
 
-function pointerEvent(type: string, x: number, y: number, pointerType = "mouse"): PointerEvent {
+function pointerEvent(type: string, x: number, y: number, pointerType = "mouse", pointerId = 1): PointerEvent {
   const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y });
   Object.defineProperties(event, {
-    pointerId: { value: 1 },
+    pointerId: { value: pointerId },
     pointerType: { value: pointerType },
   });
   return event as PointerEvent;
@@ -62,6 +62,45 @@ describe("InteractionController", () => {
     expect(interaction.orbitDelta[0]).toBeGreaterThan(0);
     expect(interaction.resetRequested).toBe(true);
     expect(controller.sample(1 / 60).resetRequested).toBe(false);
+  });
+
+  it("turns a two-touch distance change into zoom without orbiting", () => {
+    const canvas = createCanvas();
+    const controller = new InteractionController({ canvas, eventTarget: window, reducedMotion: false });
+
+    canvas.dispatchEvent(pointerEvent("pointerdown", 30, 50, "touch", 1));
+    canvas.dispatchEvent(pointerEvent("pointerdown", 70, 50, "touch", 2));
+    canvas.dispatchEvent(pointerEvent("pointermove", 90, 50, "touch", 2));
+
+    const interaction = controller.sample(1 / 60);
+    expect(interaction.zoomDelta).toBeLessThan(0);
+    expect(interaction.orbitDelta).toEqual([0, 0]);
+  });
+
+  it("restores pointer gravity when a drag ends", () => {
+    const canvas = createCanvas();
+    const controller = new InteractionController({ canvas, eventTarget: window, reducedMotion: false });
+
+    canvas.dispatchEvent(pointerEvent("pointerdown", 10, 10));
+    window.dispatchEvent(pointerEvent("pointermove", 30, 10));
+    expect(controller.sample(1 / 60).gravity).toBe(0);
+    window.dispatchEvent(pointerEvent("pointerup", 30, 10));
+
+    expect(controller.sample(1 / 60).gravity).toBe(1);
+  });
+
+  it("emits one peak release and starts the following pulse cycle from zero", () => {
+    const canvas = createCanvas();
+    const controller = new InteractionController({ canvas, eventTarget: window, reducedMotion: false });
+
+    for (let index = 0; index < 4; index += 1) {
+      window.dispatchEvent(new KeyboardEvent("keydown", { code: "Space" }));
+    }
+    expect(controller.sample(1 / 60)).toMatchObject({ pulseEnergy: 1, release: true });
+    expect(controller.sample(1 / 60)).toMatchObject({ pulseEnergy: 0, release: false });
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { code: "Space" }));
+    expect(controller.sample(1 / 60)).toMatchObject({ pulseEnergy: 0.25, release: false });
   });
 
   it("removes listeners safely on repeated disposal", () => {

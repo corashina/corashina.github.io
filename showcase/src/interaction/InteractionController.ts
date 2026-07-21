@@ -28,12 +28,17 @@ export class InteractionController {
   private activePointerId: number | null = null;
   private pointerStart: Vec2 | null = null;
   private previousClientPointer: Vec2 | null = null;
+  private readonly touchPointers = new Map<number, Vec2>();
+  private readonly touchPulseSuppressed = new Set<number>();
+  private pinchDistance: number | null = null;
+  private pinching = false;
   private dragged = false;
   private orbitIntent: Vec2 = [0, 0];
   private zoomIntent = 0;
   private pulseId = 0;
   private pulseEnergy = 0;
   private releasePending = false;
+  private releasePeakPending = false;
   private resetPending = false;
   private disposed = false;
   private readonly handledPointerMoves = new WeakSet<object>();
@@ -63,7 +68,9 @@ export class InteractionController {
     const zoomDelta = this.zoomIntent;
     this.zoomIntent = 0;
     const release = this.releasePending;
+    const pulseEnergy = this.releasePeakPending ? 1 : this.pulseEnergy;
     this.releasePending = false;
+    this.releasePeakPending = false;
     const resetRequested = this.resetPending;
     this.resetPending = false;
 
@@ -75,7 +82,7 @@ export class InteractionController {
       orbitDelta: Object.freeze([...orbitDelta]) as Vec2,
       zoomDelta,
       pulseId: this.pulseId,
-      pulseEnergy: this.pulseEnergy,
+      pulseEnergy,
       release,
       resetRequested,
       reducedMotion: this.reducedMotion,
@@ -97,17 +104,30 @@ export class InteractionController {
   private readonly onPointerDown = (event: PointerEvent): void => {
     if (this.disposed) return;
     const point: Vec2 = [event.clientX, event.clientY];
+    if (event.pointerType === "touch") {
+      this.touchPointers.set(event.pointerId, point);
+      this.touchPulseSuppressed.delete(event.pointerId);
+    }
     this.activePointerId = event.pointerId;
     this.pointerStart = point;
     this.previousClientPointer = point;
     this.dragged = false;
     this.updatePointer(event);
+    if (this.touchPointers.size >= 2) this.startPinch();
   };
 
   private readonly onPointerMove = (event: PointerEvent): void => {
     if (this.disposed) return;
     if (this.handledPointerMoves.has(event)) return;
     this.handledPointerMoves.add(event);
+    if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
+      this.touchPointers.set(event.pointerId, [event.clientX, event.clientY]);
+      this.updatePointer(event);
+      if (this.touchPointers.size >= 2) {
+        this.updatePinch();
+        return;
+      }
+    }
     this.updatePointer(event);
     if (this.activePointerId !== event.pointerId || this.pointerStart === null) return;
 
@@ -124,13 +144,33 @@ export class InteractionController {
   };
 
   private readonly onPointerUp = (event: PointerEvent): void => {
-    if (this.disposed || event.pointerId !== this.activePointerId) return;
+    if (this.disposed) return;
+    if (event.pointerType === "touch" && this.touchPointers.has(event.pointerId)) {
+      const wasPinching = this.pinching;
+      const suppressPulse = this.touchPulseSuppressed.delete(event.pointerId);
+      this.touchPointers.delete(event.pointerId);
+      if (wasPinching) {
+        this.rebaseTouchGesture();
+        return;
+      }
+      if (event.pointerId !== this.activePointerId) return;
+      this.updatePointer(event);
+      if (!this.dragged && this.pointerStart !== null && !suppressPulse) this.triggerPulse();
+      this.clearPointerGesture();
+      return;
+    }
+    if (event.pointerId !== this.activePointerId) return;
     this.updatePointer(event);
     if (!this.dragged && this.pointerStart !== null) this.triggerPulse();
     this.clearPointerGesture();
   };
 
   private readonly onPointerCancel = (event: PointerEvent): void => {
+    if (event.pointerType === "touch" && this.touchPointers.delete(event.pointerId)) {
+      this.touchPulseSuppressed.delete(event.pointerId);
+      this.rebaseTouchGesture();
+      return;
+    }
     if (event.pointerId === this.activePointerId) this.clearPointerGesture();
   };
 
@@ -174,8 +214,13 @@ export class InteractionController {
   private triggerPulse(): void {
     const pulse = accumulateEnergy(this.pulseEnergy, PULSE_ENERGY_STEP);
     this.pulseId += 1;
+    if (pulse.release) {
+      this.pulseEnergy = 0;
+      this.releasePending = true;
+      this.releasePeakPending = true;
+      return;
+    }
     this.pulseEnergy = pulse.energy;
-    this.releasePending ||= pulse.release;
   }
 
   private clearPointerGesture(): void {
@@ -183,5 +228,49 @@ export class InteractionController {
     this.pointerStart = null;
     this.previousClientPointer = null;
     this.dragged = false;
+    this.pointerGravity = 1;
+  }
+
+  private startPinch(): void {
+    this.pinching = true;
+    this.dragged = true;
+    this.pinchDistance = this.getTouchDistance();
+    this.pointerGravity = 0;
+    for (const pointerId of this.touchPointers.keys()) this.touchPulseSuppressed.add(pointerId);
+  }
+
+  private updatePinch(): void {
+    const distance = this.getTouchDistance();
+    if (distance === null || this.pinchDistance === null) return;
+    this.zoomIntent = clamp(this.zoomIntent + (this.pinchDistance - distance) / 100, -1, 1);
+    this.pinchDistance = distance;
+    this.pointerGravity = 0;
+  }
+
+  private rebaseTouchGesture(): void {
+    if (this.touchPointers.size >= 2) {
+      this.startPinch();
+      return;
+    }
+    this.pinching = false;
+    this.pinchDistance = null;
+    const remaining = this.touchPointers.entries().next().value as [number, Vec2] | undefined;
+    if (remaining === undefined) {
+      this.clearPointerGesture();
+      return;
+    }
+    this.activePointerId = remaining[0];
+    this.pointerStart = remaining[1];
+    this.previousClientPointer = remaining[1];
+    this.dragged = false;
+    this.pointerGravity = 1;
+  }
+
+  private getTouchDistance(): number | null {
+    const points = [...this.touchPointers.values()];
+    const first = points[0];
+    const second = points[1];
+    if (first === undefined || second === undefined) return null;
+    return Math.hypot(first[0] - second[0], first[1] - second[1]);
   }
 }
