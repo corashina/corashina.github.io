@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-showcase-state="loading">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmic Genesis</title>
+  </head>
+  <body>
+    <main id="showcase-root">
+      <canvas id="showcase-canvas" aria-label="Cosmic Genesis interactive scene"></canvas>
+      <picture class="showcase-fallback">
+        <img src="/showcase/fallback.svg" alt="Cosmic Genesis abstract artwork" />
+      </picture>
+      <section class="showcase-controls" aria-label="Showcase controls">
+        <p class="interaction-hint">Drag to explore · Scroll to drift</p>
+        <label>
+          Quality
+          <select aria-label="Rendering quality">
+            <option value="auto">Auto</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+        <button type="button">Reset view</button>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
