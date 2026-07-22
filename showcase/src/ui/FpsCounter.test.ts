@@ -12,11 +12,19 @@ describe("FpsCounter", () => {
     expect(publish.mock.lastCall?.[0]).toBeLessThanOrEqual(61);
   });
 
-  it("stops publishing after disposal and can reset its sample window", () => {
+  it("resets its sample window and stops publishing after disposal", () => {
     const publish = vi.fn();
     const counter = new FpsCounter(publish);
-    counter.sample(0); counter.sample(300); counter.reset(); counter.sample(500);
-    publish.mockClear(); counter.dispose(); counter.sample(900);
+    counter.sample(0);
+    counter.sample(300);
+    counter.reset();
+    counter.sample(500);
+    counter.sample(600);
+    expect(publish).toHaveBeenLastCalledWith(10);
+
+    publish.mockClear();
+    counter.dispose();
+    counter.sample(900);
     expect(publish).not.toHaveBeenCalled();
   });
 });
