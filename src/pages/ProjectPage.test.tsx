@@ -38,6 +38,26 @@ describe("ProjectPage", () => {
     );
   });
 
+  it("renders a company product overview instead of a GitHub link", () => {
+    renderProject("xelcode");
+
+    expect(screen.getByRole("heading", { level: 2, name: "Xelcode" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Product overview →" })).toHaveAttribute(
+      "href",
+      "https://xelcode.com/product/",
+    );
+  });
+
+  it("renders the project start timestamp semantically", () => {
+    renderProject("xelcode");
+
+    expect(screen.getByText("2021")).toHaveAttribute(
+      "dateTime",
+      "2021",
+    );
+    expect(screen.queryByText(/Started:/)).not.toBeInTheDocument();
+  });
+
   it("plays detail video media on hover, then pauses and resets it", async () => {
     vi.stubGlobal(
       "matchMedia",

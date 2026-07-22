@@ -24,15 +24,21 @@ afterEach(() => {
 });
 
 describe("WorksPage", () => {
-  it("renders the original projects as single semantic links in order", () => {
+  it("renders all projects as single semantic links in order", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "my stuff" })).toBeInTheDocument();
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(7);
+    expect(links).toHaveLength(13);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
+      "/works/xelcode",
+      "/works/icr",
+      "/works/workflow",
+      "/works/holiday",
+      "/works/einvoicing",
+      "/works/xelapps",
       "/works/webgl-minecraft",
       "/works/endless-city",
       "/works/flappy-pixie",
@@ -46,6 +52,9 @@ describe("WorksPage", () => {
       expect(within(link).queryByRole("link")).not.toBeInTheDocument();
       expect(within(link).getByText(link.getAttribute("aria-label") ?? "")).toBeInTheDocument();
     }
+    const xelcode = screen.getByRole("link", { name: "Xelcode" });
+    expect(within(xelcode).getByText("2021")).toHaveAttribute("dateTime", "2021");
+    expect(within(xelcode).queryByText(/Started:/)).not.toBeInTheDocument();
   });
 
   it("plays video previews from card hover and keyboard focus, then pauses and resets them", async () => {

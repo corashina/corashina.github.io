@@ -10,9 +10,16 @@ type ProjectCardProps = {
 
 export function ProjectCard({ project }: ProjectCardProps): JSX.Element {
   return (
-    <Link aria-label={project.title} className={styles.card} to={`/works/${project.slug}`}>
+    <Link
+      aria-label={project.title}
+      className={styles.card}
+      to={`/works/${project.slug}`}
+    >
       <ProjectMedia interactive media={project.media} />
-      <span>{project.title}</span>
+      <span className={styles.cardHeader}>
+        <span className={styles.cardTitle}>{project.title}</span>
+        <time dateTime={project.startedAt}>{project.startedLabel}</time>
+      </span>
     </Link>
   );
 }

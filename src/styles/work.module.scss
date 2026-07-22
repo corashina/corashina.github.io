@@ -23,11 +23,22 @@
   color: $color-accent-text;
 }
 
-.card > span:last-child {
-  color: inherit;
-  display: block;
+.cardHeader {
+  align-items: baseline;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
   margin: 0;
   padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.cardTitle {
+  color: inherit;
+}
+
+.cardHeader time {
+  color: $color-muted-text;
+  white-space: nowrap;
 }
 
 .media {

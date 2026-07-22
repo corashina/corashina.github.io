@@ -9,10 +9,16 @@ const expectedProjects = [
   ["particle-simulation", "Particle Simulation", "Particle generator made with GLSL", ["typescript", "three.js", "webgl", "glsl"], "February 2019", "/portfolio/particle-simulation.mp4", "https://github.com/corashina/Particle-Simulation"],
   ["fitmed", "Fitmed", "Prototype system for dieteticians", ["javascript", "react", "redux", "node", "express", "mongodb"], "July 2018", "/portfolio/fitmed.png", "https://github.com/corashina/Fitmed"],
   ["kiteprint", "Kiteprint", "Simple PSD to HTML", ["javscript", "react"], "September 2018", "/portfolio/kiteprint.png", "https://github.com/corashina/Kiteprint"],
+  ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "typescript", "javascript", "i18next", "oracle jd edwards"], "2021–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/"],
+  ["icr", "ICR", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
+  ["workflow", "Workflow", "Approval and operational workflow modules for business-process handling.", ["react", "typescript", "rest api"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+  ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+  ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "pdf", "xml"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo"],
+  ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo"],
 ] as const;
 
 describe("projects", () => {
-  it("matches the original project dataset verbatim and in order", () => {
+  it("matches the project dataset in display order", () => {
     expect(projects.map((project) => [
       project.slug,
       project.title,
@@ -21,11 +27,51 @@ describe("projects", () => {
       project.date,
       project.media.src,
       project.sourceUrl,
-    ])).toEqual(expectedProjects);
+    ])).toEqual([
+      ...expectedProjects.slice(7),
+      ...expectedProjects.slice(0, 7),
+    ]);
   });
 
   it("looks up projects by slug", () => {
     expect(getProjectBySlug("civio")?.title).toBe("Civio");
     expect(getProjectBySlug("missing")).toBeUndefined();
+  });
+
+  it.each([
+    ["xelcode", "Xelcode", "/portfolio/xelcode.mp4", "https://xelcode.com/product/"],
+    ["icr", "ICR", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
+    ["workflow", "Workflow", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+    ["holiday", "Holiday", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+    ["einvoicing", "eInvoicing", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo"],
+    ["xelapps", "XELapps", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo"],
+  ])("adds the public-safe %s project record", (slug, title, mediaSrc, sourceUrl) => {
+    expect(getProjectBySlug(slug)).toMatchObject({
+      media: { kind: "video", src: mediaSrc },
+      sourceLabel: "Product overview →",
+      sourceUrl,
+      title,
+    });
+  });
+
+  it("lists the six Xelto projects first with their supported start dates", () => {
+    expect(projects.slice(0, 6).map((project) => project.slug)).toEqual([
+      "xelcode",
+      "icr",
+      "workflow",
+      "holiday",
+      "einvoicing",
+      "xelapps",
+    ]);
+    expect(getProjectBySlug("administration")).toBeUndefined();
+    expect(getProjectBySlug("ksef")).toBeUndefined();
+    expect(getProjectBySlug("xelcode")).toMatchObject({ startedAt: "2021", startedLabel: "2021" });
+    expect(getProjectBySlug("icr")).toMatchObject({ startedAt: "2025", startedLabel: "2025" });
+    expect(getProjectBySlug("workflow")).toMatchObject({ startedAt: "2024", startedLabel: "2024" });
+    expect(getProjectBySlug("xelapps")).toMatchObject({ startedAt: "2026", startedLabel: "2026" });
+    expect(getProjectBySlug("webgl-minecraft")).toMatchObject({
+      startedAt: "2018-04",
+      startedLabel: "April 2018",
+    });
   });
 });

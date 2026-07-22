@@ -18,7 +18,7 @@ export function ProjectPage(): JSX.Element {
       <ProjectMedia interactive media={project.media} />
       <div>
         <h2>{project.title}</h2>
-        <h4>{project.date}</h4>
+        <h4><time dateTime={project.startedAt}>{project.startedLabel}</time></h4>
         <p>{project.description}</p>
         <br />
         <ul className={styles.tools}>
@@ -27,7 +27,7 @@ export function ProjectPage(): JSX.Element {
           ))}
         </ul>
         <br />
-        <a href={project.sourceUrl}>github →</a>
+        <a href={project.sourceUrl}>{project.sourceLabel}</a>
       </div>
     </article>
   );
