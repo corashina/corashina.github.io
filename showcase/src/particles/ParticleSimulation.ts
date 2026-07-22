@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer.js";
 import type { FrameContext } from "../app/contracts";
-import type { QualityProfile } from "../quality/qualityProfiles";
+import { PARTICLE_TEXTURE_SIZE } from "./particleConfig";
 import { createParticleSeedTexture, type ParticleSeedTextures } from "./particleSeeds";
 import { particleFragmentShader, particlePositionShader, particleVelocityShader, particleVertexShader } from "./particleShaders";
 
@@ -34,18 +34,9 @@ type Runtime = {
   energy: THREE.DataTexture;
   points: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
   position: ComputeVariable;
-  size: number;
   velocity: ComputeVariable;
   disposed: boolean;
 };
-
-type Transition = {
-  outgoing: Runtime;
-  incoming: Runtime;
-  elapsed: number;
-};
-
-const TRANSITION_DURATION = 0.45;
 
 function createGpuCompute(size: number, renderer: THREE.WebGLRenderer): ComputeRenderer {
   return new GPUComputationRenderer(size, size, renderer) as unknown as ComputeRenderer;
@@ -93,17 +84,15 @@ export class ParticleSimulation {
   private readonly computeFactory: ComputeFactory;
   private readonly seed: number;
   private current: Runtime;
-  private transition: Transition | null = null;
   private disposed = false;
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
-    profile: QualityProfile,
     options: ParticleSimulationOptions = {},
   ) {
     this.computeFactory = options.computeFactory ?? createGpuCompute;
     this.seed = options.seed ?? 0x51a7;
-    this.current = this.createRuntime(profile);
+    this.current = this.createRuntime();
     this.object.add(this.current.points);
   }
 
@@ -111,75 +100,21 @@ export class ParticleSimulation {
     if (this.disposed) return;
 
     this.advanceRuntime(this.current, frame);
-    if (this.transition === null) return;
-
-    this.advanceRuntime(this.transition.incoming, frame);
-    this.transition.elapsed += frame.deltaSeconds;
-    const progress = Math.min(1, this.transition.elapsed / TRANSITION_DURATION);
-    this.setOpacity(this.transition.outgoing, 1 - progress);
-    this.setOpacity(this.transition.incoming, progress);
-
-    if (this.transition.elapsed >= TRANSITION_DURATION - 1e-9) {
-      const completed = this.transition;
-      this.object.remove(completed.outgoing.points);
-      this.disposeRuntime(completed.outgoing);
-      this.setOpacity(completed.incoming, 1);
-      this.current = completed.incoming;
-      this.transition = null;
-    }
-  }
-
-  setQuality(profile: QualityProfile): void {
-    if (this.disposed) return;
-
-    if (this.transition !== null) {
-      if (profile.particles === this.transition.incoming.size) return;
-
-      if (profile.particles === this.transition.outgoing.size) {
-        this.object.remove(this.transition.incoming.points);
-        this.disposeRuntime(this.transition.incoming);
-        this.setOpacity(this.transition.outgoing, 1);
-        this.current = this.transition.outgoing;
-        this.transition = null;
-        return;
-      }
-
-      this.object.remove(this.transition.incoming.points);
-      this.disposeRuntime(this.transition.incoming);
-      this.current = this.transition.outgoing;
-      this.setOpacity(this.current, 1);
-      this.transition = null;
-    }
-
-    if (profile.particles === this.current.size) return;
-
-    const incoming = this.createRuntime(profile);
-    this.setOpacity(incoming, 0);
-    this.object.add(incoming.points);
-    this.transition = { outgoing: this.current, incoming, elapsed: 0 };
   }
 
   getPositionTexture(): THREE.Texture {
     return this.current.compute.getCurrentRenderTarget(this.current.position).texture;
   }
 
-  getEnergyTexture(): THREE.Texture {
-    return this.current.energy;
-  }
-
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    if (this.transition !== null) {
-      this.disposeRuntime(this.transition.incoming);
-      this.transition = null;
-    }
     this.disposeRuntime(this.current);
     this.object.clear();
   }
 
-  private createRuntime(profile: QualityProfile): Runtime {
-    const size = profile.particles;
+  private createRuntime(): Runtime {
+    const size = PARTICLE_TEXTURE_SIZE;
     const seeds = createParticleSeedTexture(size, this.seed);
     const compute = this.computeFactory(size, this.renderer);
     const texturePosition = compute.addVariable("texturePosition", particlePositionShader, seeds.position);
@@ -195,7 +130,7 @@ export class ParticleSimulation {
     }
 
     const points = makePoints(size, seeds.energy);
-    return { compute, energy: seeds.energy, points, position: texturePosition, size, velocity: textureVelocity, disposed: false };
+    return { compute, energy: seeds.energy, points, position: texturePosition, velocity: textureVelocity, disposed: false };
   }
 
   private attachUniforms(texturePosition: ComputeVariable, textureVelocity: ComputeVariable): void {
@@ -230,10 +165,6 @@ export class ParticleSimulation {
     setUniform(runtime.velocity, "uDrag", frame.interaction.reducedMotion ? 0.3 : 0.03);
     runtime.compute.compute();
     runtime.points.material.uniforms.texturePosition!.value = runtime.compute.getCurrentRenderTarget(runtime.position).texture;
-  }
-
-  private setOpacity(runtime: Runtime, opacity: number): void {
-    runtime.points.material.uniforms.uOpacity!.value = opacity;
   }
 
   private disposeRuntime(runtime: Runtime): void {

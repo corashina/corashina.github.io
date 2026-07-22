@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { describe, expect, it, vi } from "vitest";
 import type { FrameContext, InteractionSnapshot } from "../app/contracts";
-import { QUALITY_PROFILES } from "../quality/qualityProfiles";
+import { PARTICLE_COUNT } from "./particleConfig";
 import { ParticleSimulation, type ComputeFactory, type ComputeVariable } from "./ParticleSimulation";
 import { particleVelocityShader } from "./particleShaders";
 
@@ -56,7 +56,7 @@ function frame(overrides: Partial<InteractionSnapshot> = {}): FrameContext {
 describe("ParticleSimulation", () => {
   it("installs ping-pong dependencies, updates interaction uniforms, and rebinds the computed position texture", () => {
     const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
 
     simulation.update(frame());
 
@@ -76,17 +76,18 @@ describe("ParticleSimulation", () => {
 
   it("creates drawable GPU points with a finite draw range and no frustum culling", () => {
     const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
     const points = simulation.object.children[0] as THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
 
-    expect(points.geometry.getAttribute("position").count).toBe(128 * 128);
-    expect(points.geometry.drawRange).toEqual({ start: 0, count: 128 * 128 });
+    expect(points.geometry.getAttribute("position").count).toBe(PARTICLE_COUNT);
+    expect(points.geometry.drawRange).toEqual({ start: 0, count: PARTICLE_COUNT });
     expect(points.frustumCulled).toBe(false);
+    expect("setQuality" in simulation).toBe(false);
   });
 
   it("materially suppresses rapid ejection and turbulence for reduced motion", () => {
     const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
     simulation.update(frame({ reducedMotion: true, pulseEnergy: 1, pointerVelocity: [1, 0] }));
     const uniforms = created[0]!.variables.find(({ name }) => name === "textureVelocity")!.material.uniforms;
     expect(uniforms.uPulseEnergy!.value).toBeLessThanOrEqual(0.15);
@@ -99,7 +100,7 @@ describe("ParticleSimulation", () => {
 
   it("forwards bounded pointer velocity into a tangential compute force", () => {
     const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
     simulation.update(frame({ pointerVelocity: [8, -6] }));
     const uniforms = created[0]!.variables.find(({ name }) => name === "textureVelocity")!.material.uniforms;
     const velocity = uniforms.uPointerVelocity!.value as THREE.Vector2;
@@ -109,40 +110,9 @@ describe("ParticleSimulation", () => {
     simulation.dispose();
   });
 
-  it("keeps an active transition when asked for its incoming target and cancels it when asked for the outgoing target", () => {
-    const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
-
-    simulation.setQuality(QUALITY_PROFILES.medium);
-    simulation.setQuality(QUALITY_PROFILES.medium);
-
-    expect(created).toHaveLength(2);
-    expect(created[1]!.disposed).toBe(0);
-    expect(simulation.object.children).toHaveLength(2);
-
-    simulation.setQuality(QUALITY_PROFILES.low);
-
-    expect(created).toHaveLength(2);
-    expect(created[1]!.disposed).toBe(1);
-    expect(simulation.object.children).toHaveLength(1);
-  });
-
-  it("crossfades a replacement for exactly 27 fixed 60 Hz steps", () => {
-    const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
-    simulation.setQuality(QUALITY_PROFILES.medium);
-
-    for (let step = 0; step < 27; step += 1) simulation.update(frame());
-
-    expect(created[0]!.computeCalls).toBe(27);
-    expect(created[1]!.computeCalls).toBe(27);
-    expect(created[0]!.disposed).toBe(1);
-    expect(simulation.object.children).toHaveLength(1);
-  });
-
   it("disposes compute-owned textures and render targets plus point geometry/material exactly once", () => {
     const created: FakeCompute[] = [];
-    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
     const points = simulation.object.children[0] as THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
     const energy = points.material.uniforms.uEnergyTexture!.value as THREE.Texture;
     const geometryDispose = vi.spyOn(points.geometry, "dispose");
