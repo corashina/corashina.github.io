@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { GPUComputationRenderer } from "three/addons/misc/GPUComputationRenderer.js";
 import type { FrameContext } from "../app/contracts";
+import { DEFAULT_SCENE_PARAMETERS, type SceneParameters } from "../runtime/SceneParameters";
 import { PARTICLE_TEXTURE_SIZE } from "./particleConfig";
 import { createParticleSeedTexture, type ParticleSeedTextures } from "./particleSeeds";
 import { particleFragmentShader, particlePositionShader, particleVelocityShader, particleVertexShader } from "./particleShaders";
@@ -85,6 +86,7 @@ export class ParticleSimulation {
   private readonly seed: number;
   private current: Runtime;
   private disposed = false;
+  private parameters: SceneParameters = { ...DEFAULT_SCENE_PARAMETERS };
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -100,6 +102,12 @@ export class ParticleSimulation {
     if (this.disposed) return;
 
     this.advanceRuntime(this.current, frame);
+  }
+
+  setParameters(parameters: SceneParameters): void {
+    if (this.disposed) return;
+    this.parameters = { ...parameters };
+    this.current.points.material.uniforms.uPointSize!.value = parameters.particleSize;
   }
 
   getPositionTexture(): THREE.Texture {
@@ -155,14 +163,15 @@ export class ParticleSimulation {
     pointerPosition.set(pointer[0], pointer[1], pointer[2]);
     const pointerMotionScale = frame.interaction.reducedMotion ? 0.2 : 1;
     pointerVelocity.set(frame.interaction.pointerVelocity[0], frame.interaction.pointerVelocity[1]).clampLength(0, 1).multiplyScalar(pointerMotionScale);
-    setUniform(runtime.position, "uDelta", frame.deltaSeconds);
-    setUniform(runtime.velocity, "uDelta", frame.deltaSeconds);
+    const simulationDelta = frame.deltaSeconds * this.parameters.speed;
+    setUniform(runtime.position, "uDelta", simulationDelta);
+    setUniform(runtime.velocity, "uDelta", simulationDelta);
     setUniform(runtime.velocity, "uPointerGravity", frame.interaction.gravity);
-    setUniform(runtime.velocity, "uPulseEnergy", frame.interaction.pulseEnergy * (frame.interaction.reducedMotion ? 0.12 : 1));
+    setUniform(runtime.velocity, "uPulseEnergy", frame.interaction.pulseEnergy * this.parameters.pulseStrength * (frame.interaction.reducedMotion ? 0.12 : 1));
     setUniform(runtime.velocity, "uPulseRadius", frame.interaction.pulseRadius);
-    setUniform(runtime.velocity, "uOrbitStrength", frame.interaction.reducedMotion ? 0.15 : 0.75);
-    setUniform(runtime.velocity, "uTurbulence", frame.interaction.reducedMotion ? 0 : 0.35);
-    setUniform(runtime.velocity, "uDrag", frame.interaction.reducedMotion ? 0.3 : 0.03);
+    setUniform(runtime.velocity, "uOrbitStrength", frame.interaction.reducedMotion ? Math.min(0.2, this.parameters.orbitStrength) : this.parameters.orbitStrength);
+    setUniform(runtime.velocity, "uTurbulence", frame.interaction.reducedMotion ? 0 : this.parameters.turbulence);
+    setUniform(runtime.velocity, "uDrag", frame.interaction.reducedMotion ? Math.max(0.3, this.parameters.drag) : this.parameters.drag);
     runtime.compute.compute();
     runtime.points.material.uniforms.texturePosition!.value = runtime.compute.getCurrentRenderTarget(runtime.position).texture;
   }

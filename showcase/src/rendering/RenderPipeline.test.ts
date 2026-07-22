@@ -42,6 +42,15 @@ describe("RenderPipeline", () => {
     pipeline.dispose();
   });
 
+  it("updates bloom strength through its narrow public setter", () => {
+    const pipeline = new RenderPipeline({ renderer: rendererHarness(), scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera() });
+    pipeline.setBloomStrength(1.2);
+    expect(pipeline.bloomPass.strength).toBe(1.2);
+    pipeline.setBloomStrength(-1);
+    expect(pipeline.bloomPass.strength).toBe(0);
+    pipeline.dispose();
+  });
+
   it("renders non-negative frame time and disposes once while restoring renderer settings", () => {
     const renderer = rendererHarness();
     const pipeline = new RenderPipeline({ renderer, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera() });

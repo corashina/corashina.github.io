@@ -66,12 +66,33 @@ describe("ParticleSimulation", () => {
     expect(compute.computeCalls).toBe(1);
     expect(compute.dependencies.get("texturePosition")).toEqual(["texturePosition", "textureVelocity"]);
     expect(compute.dependencies.get("textureVelocity")).toEqual(["texturePosition", "textureVelocity"]);
-    expect(velocity.material.uniforms.uDelta!.value).toBe(1 / 60);
+    expect(velocity.material.uniforms.uDelta!.value).toBe(3 / 60);
     expect(velocity.material.uniforms.uPointerPosition!.value).toEqual(new THREE.Vector3(1, 2, 3));
     expect(velocity.material.uniforms.uPointerGravity!.value).toBe(0.8);
     expect(velocity.material.uniforms.uPulseEnergy!.value).toBe(0.6);
     expect(velocity.material.uniforms.uPulseRadius!.value).toBe(4.25);
     expect(points.material.uniforms.texturePosition!.value).toBe(compute.textures[1]);
+  });
+
+  it("applies live speed, force, size, and pulse parameters", () => {
+    const created: FakeCompute[] = [];
+    const simulation = new ParticleSimulation({} as THREE.WebGLRenderer, { computeFactory: makeFactory(created) });
+    simulation.setParameters({
+      speed: 3, orbitStrength: 1.2, turbulence: 0.8, drag: 0.2,
+      particleSize: 24, bloomStrength: 0.4, pulseStrength: 1.5,
+    });
+    simulation.update(frame({ pulseEnergy: 0.6 }));
+    const variables = created[0]!.variables;
+    const position = variables.find(({ name }) => name === "texturePosition")!;
+    const velocity = variables.find(({ name }) => name === "textureVelocity")!;
+    const points = simulation.object.children[0] as THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
+    expect(position.material.uniforms.uDelta!.value).toBeCloseTo(3 / 60);
+    expect(velocity.material.uniforms.uDelta!.value).toBeCloseTo(3 / 60);
+    expect(velocity.material.uniforms.uOrbitStrength!.value).toBe(1.2);
+    expect(velocity.material.uniforms.uTurbulence!.value).toBe(0.8);
+    expect(velocity.material.uniforms.uDrag!.value).toBe(0.2);
+    expect(velocity.material.uniforms.uPulseEnergy!.value).toBeCloseTo(0.9);
+    expect(points.material.uniforms.uPointSize!.value).toBe(24);
   });
 
   it("creates drawable GPU points with a finite draw range and no frustum culling", () => {

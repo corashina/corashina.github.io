@@ -108,6 +108,11 @@ export class RenderPipeline {
     this.composer.setSize(Math.max(1, Math.floor(width)), Math.max(1, Math.floor(height)));
   }
 
+  setBloomStrength(strength: number): void {
+    if (this.disposed) return;
+    this.bloomPass.strength = Math.min(1.5, Math.max(0, Number.isFinite(strength) ? strength : this.bloomPass.strength));
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
