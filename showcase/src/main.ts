@@ -22,9 +22,12 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const query = new URLSearchParams(activeDocument.defaultView?.location.search ?? window.location.search);
   const testMode = options.testMode ?? query.get("test") === "1";
   const capabilities = detectCapabilities(canvas, media);
+  const clearTestTelemetry = (): void => {
+    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete root.dataset[key];
+  };
   const showFallback = (message: string, app?: AppControls): null => {
     try { app?.dispose(); } catch { /* preserve the original failure state */ }
-    delete root.dataset.showcaseReady;
+    clearTestTelemetry();
     root.dataset.showcaseState = "fallback";
     root.dataset.showcaseError = message;
     return null;

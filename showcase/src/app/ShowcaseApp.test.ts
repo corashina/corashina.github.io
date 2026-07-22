@@ -164,12 +164,20 @@ describe("ShowcaseApp", () => {
 
   it("falls back after a second context loss and hides the interactive controls", () => {
     const h = makeHarness();
+    h.app.start(); h.runFrame();
     const first = new Event("webglcontextlost", { cancelable: true }); h.canvas.dispatchEvent(first);
     h.canvas.dispatchEvent(new Event("webglcontextrestored"));
     const second = new Event("webglcontextlost", { cancelable: true }); h.canvas.dispatchEvent(second);
     expect(h.root.dataset.showcaseState).toBe("fallback");
     expect(h.root.dataset.showcaseError).toContain("context");
+    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"]) expect(h.root.dataset[key]).toBeUndefined();
     expect(h.app.isDisposed()).toBe(true);
+  });
+
+  it("removes all test-only telemetry on explicit disposal", () => {
+    const h = makeHarness();
+    h.app.start(); h.runFrame(); h.app.dispose();
+    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"]) expect(h.root.dataset[key]).toBeUndefined();
   });
 
   it("shows fallback and cancels future frames when a frame throws", () => {

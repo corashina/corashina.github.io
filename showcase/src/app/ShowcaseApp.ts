@@ -143,6 +143,7 @@ export class ShowcaseApp {
   private firstFrame = true;
   private readonly cleanups = new Set<() => void>();
   private readonly testMode: boolean;
+  private renderedFrames = 0;
 
   constructor(private readonly options: ShowcaseAppOptions) {
     try {
@@ -161,6 +162,7 @@ export class ShowcaseApp {
       this.profile = this.qualityManager.getProfile();
       this.setTestQualityTier(tier);
       this.systems = this.createGpuSystems(this.profile);
+      this.setTestLayersReady();
       this.frame = { deltaSeconds: 0, elapsedSeconds: 0, interaction: { ...EMPTY_INTERACTION, reducedMotion: options.capabilities.reducedMotion } };
       this.resize();
       options.canvas.addEventListener("webglcontextlost", this.onContextLost);
@@ -227,6 +229,7 @@ export class ShowcaseApp {
     this.cleanups.clear();
     this.disposeGpuSystems();
     this.cameraController.dispose?.(); this.interactionController.dispose(); this.renderer.dispose();
+    this.clearTestTelemetry();
   }
 
   private createGpuSystems(profile: QualityProfile): GpuSystems {
@@ -288,6 +291,7 @@ export class ShowcaseApp {
       }
       this.qualityTransition = this.qualityManager.getTransition(nowMs);
       this.systems.pipeline.render(this.frame);
+      this.recordTestFrame();
       if (this.firstFrame) {
         this.firstFrame = false;
         if (this.testMode) this.root.dataset.showcaseReady = "true";
@@ -314,6 +318,8 @@ export class ShowcaseApp {
     if (this.testMode) {
       this.root.dataset.lastPulse = String(interaction.pulseId);
       if (interaction.resetRequested) this.root.dataset.lastReset = "1";
+      if (interaction.orbitDelta[0] !== 0 || interaction.orbitDelta[1] !== 0) this.root.dataset.lastOrbit = "true";
+      if (interaction.zoomDelta !== 0) this.root.dataset.lastZoom = "true";
     }
   }
 
@@ -374,6 +380,21 @@ export class ShowcaseApp {
 
   private setTestQualityTier(tier: QualityTier): void {
     if (this.testMode) this.root.dataset.qualityTier = tier;
+  }
+
+  private setTestLayersReady(): void {
+    if (!this.testMode) return;
+    this.root.dataset.showcaseLayers = "5";
+    this.root.dataset.reducedMotion = String(this.options.capabilities.reducedMotion);
+  }
+
+  private recordTestFrame(): void {
+    if (this.testMode) this.root.dataset.renderedFrames = String(++this.renderedFrames);
+  }
+
+  private clearTestTelemetry(): void {
+    if (!this.testMode) return;
+    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete this.root.dataset[key];
   }
 
   private showFallback(message: string): void {
