@@ -28,8 +28,19 @@ describe("projects", () => {
       project.media.src,
       project.sourceUrl,
     ])).toEqual([
-      ...expectedProjects.slice(7),
-      ...expectedProjects.slice(0, 7),
+      expectedProjects[12],
+      expectedProjects[8],
+      expectedProjects[9],
+      expectedProjects[10],
+      expectedProjects[11],
+      expectedProjects[7],
+      expectedProjects[4],
+      expectedProjects[3],
+      expectedProjects[2],
+      expectedProjects[1],
+      expectedProjects[6],
+      expectedProjects[5],
+      expectedProjects[0],
     ]);
   });
 
@@ -54,17 +65,26 @@ describe("projects", () => {
     });
   });
 
-  it("lists the six Xelto projects first with their supported start dates", () => {
-    expect(projects.slice(0, 6).map((project) => project.slug)).toEqual([
-      "xelcode",
+  it("categorizes projects and lists them newest first", () => {
+    expect(projects.map((project) => project.slug)).toEqual([
+      "xelapps",
       "icr",
       "workflow",
       "holiday",
       "einvoicing",
-      "xelapps",
+      "xelcode",
+      "particle-simulation",
+      "civio",
+      "flappy-pixie",
+      "endless-city",
+      "kiteprint",
+      "fitmed",
+      "webgl-minecraft",
     ]);
     expect(getProjectBySlug("administration")).toBeUndefined();
     expect(getProjectBySlug("ksef")).toBeUndefined();
+    expect(getProjectBySlug("xelapps")?.category).toBe("commercial");
+    expect(getProjectBySlug("particle-simulation")?.category).toBe("experiments");
     expect(getProjectBySlug("xelcode")).toMatchObject({ startedAt: "2021", startedLabel: "2021" });
     expect(getProjectBySlug("icr")).toMatchObject({ startedAt: "2025", startedLabel: "2025" });
     expect(getProjectBySlug("workflow")).toMatchObject({ startedAt: "2024", startedLabel: "2024" });

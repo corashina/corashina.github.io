@@ -4,6 +4,8 @@ export type ProjectMedia = {
   alt: string;
 };
 
+export type ProjectCategory = "commercial" | "experiments";
+
 export type Project = {
   slug: string;
   title: string;
@@ -12,6 +14,7 @@ export type Project = {
   date: string;
   startedAt: string;
   startedLabel: string;
+  category: ProjectCategory;
   media: ProjectMedia;
   sourceUrl: string;
   sourceLabel: string;
@@ -65,14 +68,21 @@ const projectStartDates: Record<string, { startedAt: string; startedLabel: strin
   xelapps: { startedAt: "2026", startedLabel: "2026" },
 };
 
-const xeltoProjectSlugs = new Set([
-  "xelcode",
-  "icr",
-  "workflow",
-  "holiday",
-  "einvoicing",
-  "xelapps",
-]);
+const projectCategories: Record<string, ProjectCategory> = {
+  xelapps: "commercial",
+  icr: "commercial",
+  workflow: "commercial",
+  holiday: "commercial",
+  einvoicing: "commercial",
+  xelcode: "commercial",
+  kiteprint: "commercial",
+  fitmed: "commercial",
+  "particle-simulation": "experiments",
+  civio: "experiments",
+  "flappy-pixie": "experiments",
+  "endless-city": "experiments",
+  "webgl-minecraft": "experiments",
+};
 
 export const projects: readonly Project[] = projectData.map(
   ([slug, title, description, tools, date, src, sourceUrl, sourceLabel = "github →"]): Project => ({
@@ -88,9 +98,10 @@ export const projects: readonly Project[] = projectData.map(
     },
     sourceUrl,
     sourceLabel,
+    category: projectCategories[slug],
     ...projectStartDates[slug],
   }),
-).sort((first, second) => Number(xeltoProjectSlugs.has(second.slug)) - Number(xeltoProjectSlugs.has(first.slug)));
+).sort((first, second) => second.startedAt.localeCompare(first.startedAt));
 
 export const getProjectBySlug = (slug: string): Project | undefined =>
   projects.find((project) => project.slug === slug);
