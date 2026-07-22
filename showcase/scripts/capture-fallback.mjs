@@ -29,7 +29,7 @@ async function waitForPreview() {
 
 async function capture(page, viewport, destination) {
   await page.setViewportSize(viewport);
-  await page.goto(`http://127.0.0.1:${port}/showcase/?quality=high&capture=1&test=1`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:${port}/showcase/?capture=1&test=1`, { waitUntil: "networkidle" });
   await page.locator("html").waitFor({ state: "attached" });
   await page.locator("html[data-showcase-ready='true']").waitFor();
   await page.waitForTimeout(2_000);

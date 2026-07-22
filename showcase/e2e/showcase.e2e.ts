@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const browserErrors = new WeakMap<Page, string[]>();
 const telemetryAttributes = [
-  "data-showcase-ready", "data-quality-tier", "data-last-pulse", "data-last-reset", "data-reduced-motion",
+  "data-showcase-ready", "data-last-pulse", "data-last-reset", "data-reduced-motion",
   "data-showcase-layers", "data-rendered-frames", "data-last-orbit", "data-last-zoom",
 ] as const;
 
@@ -17,7 +17,7 @@ test.afterEach(({ page }) => expect(browserErrors.get(page) ?? []).toEqual([]));
 
 async function expectReady(page: Page): Promise<void> {
   await expect(page.locator("html")).toHaveAttribute("data-showcase-ready", "true");
-  await expect(page.locator("html")).toHaveAttribute("data-showcase-layers", "5");
+  await expect(page.locator("html")).toHaveAttribute("data-showcase-layers", "1");
   await expect(page.locator("#showcase-canvas")).toBeVisible();
 }
 
@@ -52,26 +52,12 @@ test("serves direct /showcase/ navigation without test instrumentation", async (
 });
 
 test("accepts direct interaction", async ({ page }) => {
-  await page.goto("/showcase/?quality=low&test=1");
+  await page.goto("/showcase/?test=1");
   await expectReady(page);
   const canvas = page.locator("#showcase-canvas");
   await canvas.hover({ position: { x: 300, y: 220 } });
   await canvas.click({ position: { x: 300, y: 220 } });
   await expect(page.locator("html")).toHaveAttribute("data-last-pulse", "1");
-});
-
-for (const quality of ["ultra", "high", "medium", "low"] as const) {
-  test(`compiles and renders the ${quality} quality tier`, async ({ page }) => {
-    await page.goto(`/showcase/?quality=${quality}&test=1`);
-    await expectReady(page);
-    await expect(page.locator("html")).toHaveAttribute("data-quality-tier", quality);
-  });
-}
-
-test("applies manual Low quality", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
-  await page.getByLabel("Rendering quality").selectOption("low");
-  await expect(page.locator("html")).toHaveAttribute("data-quality-tier", "low");
 });
 
 test("keeps the scene ready after a keyboard reset", async ({ page }) => {
@@ -87,7 +73,6 @@ test("supports reduced motion with pulse, keyboard orbit, and zoom controls", as
   await page.goto("/showcase/?test=1");
   await expectReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
-  await expect(page.locator("html")).toHaveAttribute("data-quality-tier", "medium");
   await page.locator("#showcase-canvas").click({ position: { x: 300, y: 220 } });
   await expect(page.locator("html")).toHaveAttribute("data-last-pulse", "1");
   await page.keyboard.press("ArrowRight");

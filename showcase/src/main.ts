@@ -1,9 +1,8 @@
 import { ShowcaseApp, type ShowcaseAppOptions } from "./app/ShowcaseApp";
 import { detectCapabilities } from "./app/capabilities";
-import type { QualityMode } from "./quality/qualityProfiles";
 import "./styles.css";
 
-type AppControls = Pick<ShowcaseApp, "start" | "setQualityMode" | "resetView" | "dispose"> & { registerCleanup?: (cleanup: () => void) => void };
+type AppControls = Pick<ShowcaseApp, "start" | "resetView" | "dispose"> & { registerCleanup?: (cleanup: () => void) => void };
 export type BootstrapOptions = {
   document?: Document;
   media?: typeof window.matchMedia;
@@ -24,7 +23,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const testMode = options.testMode ?? query.get("test") === "1";
   const capabilities = detectCapabilities(canvas, media);
   const clearTestTelemetry = (): void => {
-    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete root.dataset[key];
+    for (const key of ["showcaseReady", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete root.dataset[key];
   };
   const updateStatus = (state: "loading" | "ready" | "recovering" | "fallback", message?: string): void => {
     if (status === null) return;
@@ -57,17 +56,9 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   } catch (error) {
     return showFallback(error instanceof Error ? error.message : "The interactive scene could not be created.");
   }
-  const quality = activeDocument.querySelector<HTMLSelectElement>("select[aria-label='Rendering quality']");
   const reset = activeDocument.querySelector<HTMLButtonElement>("button[type='button']");
-  const onQualityChange = (): void => { try { app.setQualityMode(quality!.value as QualityMode); } catch (error) { showFallback(error instanceof Error ? error.message : "Quality selection failed.", app); } };
   const onReset = (): void => { try { app.resetView(); } catch (error) { showFallback(error instanceof Error ? error.message : "View reset failed.", app); } };
-  quality?.addEventListener("change", onQualityChange);
   reset?.addEventListener("click", onReset);
-  const requestedQuality = query.get("quality") as QualityMode | null;
-  if (testMode && requestedQuality !== null && ["auto", "ultra", "high", "medium", "low"].includes(requestedQuality)) {
-    if (quality !== null) quality.value = requestedQuality;
-    onQualityChange();
-  }
 
   const hint = activeDocument.querySelector<HTMLElement>(".interaction-hint");
   const hideHint = (): void => { if (hint !== null) hint.hidden = true; };
@@ -77,7 +68,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   canvas.addEventListener("touchstart", clearHint, { once: true });
   window.addEventListener("keydown", clearHint, { once: true });
   app.registerCleanup?.(() => {
-    quality?.removeEventListener("change", onQualityChange); reset?.removeEventListener("click", onReset);
+    reset?.removeEventListener("click", onReset);
     canvas.removeEventListener("pointerdown", clearHint); canvas.removeEventListener("touchstart", clearHint);
     window.removeEventListener("keydown", clearHint); window.clearTimeout(hintTimer);
   });

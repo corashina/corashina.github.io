@@ -48,7 +48,7 @@ body { margin: 0; overflow: hidden; }
 }
 
 .interaction-hint { margin: 0; }
-select, button { font: inherit; }
+button { font: inherit; }
 
 html[data-showcase-state="ready"] .showcase-fallback,
 html[data-showcase-state="fallback"] #showcase-canvas {
