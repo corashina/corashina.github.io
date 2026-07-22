@@ -8,10 +8,11 @@ from zipfile import ZipFile
 
 from docx import Document
 from docx.shared import Inches, Pt
+from pypdf import PdfReader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from create_editable_cv import build_cv
+from create_editable_cv import build_cv, build_pdf
 
 
 class EditableCvBuilderTest(unittest.TestCase):
@@ -100,6 +101,20 @@ class EditableCvBuilderTest(unittest.TestCase):
     def test_has_no_placeholders_or_extraction_artifacts(self) -> None:
         for forbidden in ("TBD", "TODO", "\u200b", "\ufffd"):
             self.assertNotIn(forbidden, self.text)
+
+    def test_builds_one_page_letter_pdf_with_source_content(self) -> None:
+        pdf_path = Path(self._temp_dir.name) / "cv.pdf"
+        build_pdf(pdf_path)
+
+        reader = PdfReader(pdf_path)
+        self.assertEqual(len(reader.pages), 1)
+        page = reader.pages[0]
+        self.assertEqual(float(page.mediabox.width), 612)
+        self.assertEqual(float(page.mediabox.height), 792)
+        extracted = page.extract_text()
+        self.assertIn("Tomasz Zielinski", extracted)
+        self.assertIn("Professional Experience", extracted)
+        self.assertIn("I hereby consent", extracted)
 
 
 if __name__ == "__main__":

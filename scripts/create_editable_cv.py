@@ -11,6 +11,10 @@ from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
+from reportlab.lib.colors import Color, black
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase.pdfmetrics import stringWidth
+from reportlab.pdfgen import canvas
 
 
 SERIF_FONT = "Georgia"
@@ -18,6 +22,7 @@ SANS_FONT = "Arial"
 INK = RGBColor(0x11, 0x11, 0x11)
 MUTED = RGBColor(0x88, 0x88, 0x88)
 CONTENT_WIDTH = Inches(7.5)
+PDF_MUTED = Color(0.53, 0.53, 0.53)
 
 
 @dataclass(frozen=True)
@@ -392,11 +397,160 @@ def build_cv(output_path: Path) -> Path:
     return output_path
 
 
+def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> None:
+    pdf.setFillColor(PDF_MUTED)
+    pdf.setFont("Times-Roman", 17)
+    pdf.drawString(36, y, title)
+
+
+def _pdf_entry(
+    pdf: canvas.Canvas,
+    title_runs: tuple[tuple[str, bool], ...],
+    date: str,
+    y: float,
+) -> None:
+    x = 39.5
+    pdf.setFillColor(black)
+    for text, bold in title_runs:
+        font_name = "Helvetica-Bold" if bold else "Helvetica"
+        pdf.setFont(font_name, 8.4)
+        pdf.drawString(x, y, text)
+        x += stringWidth(text, font_name, 8.4)
+
+    pdf.setFillColor(PDF_MUTED)
+    pdf.setFont("Helvetica", 8.3)
+    pdf.drawRightString(568, y, date)
+
+
+def _pdf_description(pdf: canvas.Canvas, text: str, y: float, size: float = 8.3) -> None:
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica", size)
+    pdf.drawString(39.5, y, text)
+
+
+def _pdf_labeled_line(pdf: canvas.Canvas, label: str, value: str, y: float) -> None:
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica-Bold", 8.3)
+    pdf.drawString(36, y, label)
+    label_width = stringWidth(label, "Helvetica-Bold", 8.3)
+    pdf.setFont("Helvetica", 8.3)
+    pdf.drawString(36 + label_width, y, value)
+
+
+def build_pdf(output_path: Path) -> Path:
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    pdf = canvas.Canvas(str(output_path), pagesize=letter, pageCompression=1)
+    pdf.setTitle("Tomasz Zielinski - CV")
+    pdf.setAuthor("Tomasz Zielinski")
+    pdf.setSubject("Curriculum Vitae")
+
+    pdf.setFillColor(black)
+    pdf.setFont("Times-Roman", 29)
+    pdf.drawString(36, 711, "Tomasz Zielinski")
+
+    contact_rows = (
+        ("www.zielin.ski", "https://www.zielin.ski", 730),
+        ("contact@zielin.ski", "mailto:contact@zielin.ski", 716),
+        ("07519554924", None, 702),
+    )
+    pdf.setFillColor(PDF_MUTED)
+    pdf.setFont("Helvetica", 8.5)
+    for text, url, y in contact_rows:
+        pdf.drawRightString(570, y, text)
+        if url:
+            width = stringWidth(text, "Helvetica", 8.5)
+            pdf.linkURL(url, (570 - width, y - 1, 570, y + 9), relative=0)
+
+    _pdf_section(pdf, "Professional Experience", 661)
+    _pdf_entry(
+        pdf,
+        (("Freelance Web Development", True), ("  ·  Poznan, Poland", True)),
+        "May - August 2018",
+        631,
+    )
+    bullet_rows = (
+        ("Created responsive single page app components for clients", 617),
+        ("Improved speed and scalability, optimized websites for search engines", 604),
+        ("Developed using primarily MERN stack", 591),
+    )
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica", 8.4)
+    for text, y in bullet_rows:
+        pdf.drawString(40, y, "•")
+        pdf.drawString(47, y, text)
+
+    _pdf_section(pdf, "Education", 557)
+    _pdf_entry(
+        pdf,
+        (("University of Southampton", True), ("  ·  Southampton, United Kingdom", True)),
+        "August 2017 - Present",
+        529,
+    )
+    _pdf_description(pdf, "Bachelor of Science in Computer Science, expected in July 2020", 515)
+    _pdf_labeled_line(
+        pdf,
+        "Relevant Coursework: ",
+        "Algorithmics, Cloud Application Development, Computer Systems, Data Management,",
+        496,
+    )
+    _pdf_description(
+        pdf,
+        "Distributed Systems and Networks, Theory of Computing, Intelligent Systems, Web Infrastructure",
+        483,
+    )
+    _pdf_entry(
+        pdf,
+        (("Poznan University of Technology", True), ("  ·  Poznan, Poland", True)),
+        "August 2016 - May 2017",
+        455,
+    )
+    _pdf_description(
+        pdf,
+        "First-year Bachelor of Science in Information Engineering, Faculty of Electrical Engineering",
+        441,
+    )
+
+    _pdf_section(pdf, "Projects", 407)
+    project_positions = (379, 342, 305, 268, 231, 194)
+    for project, title_y in zip(PROJECTS, project_positions):
+        _pdf_entry(pdf, project.title_runs, project.date, title_y)
+        _pdf_description(pdf, project.descriptions[0], title_y - 14)
+
+    _pdf_section(pdf, "Technical Skills", 144)
+    _pdf_labeled_line(
+        pdf,
+        "Programming:  ",
+        "Javascript, React, Node.js, SCSS, Java, SQL, Bash, TypeScript, WebGL, C++",
+        116,
+    )
+    _pdf_labeled_line(pdf, "Software:  ", "Visual Studio Code, Git, MongoDB, Photoshop", 94)
+    _pdf_labeled_line(pdf, "Languages:  ", "English, Polish", 72)
+
+    pdf.setFillColor(black)
+    pdf.setFont("Helvetica", 7.8)
+    pdf.drawString(
+        36,
+        30,
+        "I hereby consent to the processing of personal data in this document  by anyone who receives it for the sole purpose of consideration of my skills",
+    )
+    pdf.drawString(36, 19, "and experience for professional opportunities")
+
+    pdf.showPage()
+    pdf.save()
+    return output_path
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Create the editable Tomasz Zielinski CV.")
     parser.add_argument("output", type=Path, help="Destination DOCX path")
+    parser.add_argument("--pdf", action="store_true", help="Create a PDF instead of a DOCX")
     arguments = parser.parse_args()
-    build_cv(arguments.output)
+    if arguments.pdf:
+        build_pdf(arguments.output)
+    else:
+        build_cv(arguments.output)
 
 
 if __name__ == "__main__":
