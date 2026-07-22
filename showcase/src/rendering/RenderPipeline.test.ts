@@ -12,7 +12,7 @@ describe("pipelineQuality", () => {
     expect(pipelineQuality(QUALITY_PROFILES.ultra)).toEqual({ ssrScale: 0.5, gtao: "high", shadows: "pcss-high" });
   });
 
-  it("orders scene, AO, selective SSR, nebula, masked bloom, and output; resize and disposal are idempotent", async () => {
+  it("orders scene, AO, selective SSR, nebula, masked bloom, and output; resize and disposal are idempotent", () => {
     const renderer = {
       toneMapping: THREE.NoToneMapping,
       outputColorSpace: THREE.LinearSRGBColorSpace,
@@ -49,8 +49,13 @@ describe("pipelineQuality", () => {
     expect(pipeline.reflectionPass.ssrMaterial.uniforms.tMetalness!.value).toBe(pipeline.auxiliaryPass.energyTexture);
     expect(pipeline.reflectionPass.ssrMaterial.uniforms.tDepth!.value).toBe(pipeline.auxiliaryPass.target.depthTexture);
     expect(pipeline.reflectionPass.ssrMaterial.fragmentShader).toContain("texture2D(tMetalness,vUv).a");
+    const invalidateHistory = vi.spyOn(nebula, "invalidateHistory");
+    vi.spyOn(pipeline.auxiliaryPass, "render").mockImplementation(() => undefined);
+    vi.spyOn(pipeline.composer, "render").mockImplementation(() => undefined);
+    pipeline.render({ deltaSeconds: 1 / 60 });
+    pipeline.render({ deltaSeconds: 1 / 60 });
+    expect(invalidateHistory).toHaveBeenCalledTimes(3);
     pipeline.resize(100, 60, 2);
-    await Promise.resolve();
     expect(pipeline.auxiliaryPass.target.width).toBe(150);
     expect(pipeline.auxiliaryPass.target.height).toBe(90);
     expect(pipeline.reflectionPass.ssrRenderTarget.width).toBe(75);

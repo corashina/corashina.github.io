@@ -52,9 +52,9 @@ describe("QualityManager", () => {
     expect(sampleFrames(manager, 30, 21, 270)).toBeNull();
     expect(manager.sample(21, 300)).toBe("medium");
     expect(manager.getTier()).toBe("medium");
-    expect(manager.getTransition(300.25)).toEqual({ from: "high", to: "medium", startedAt: 300, duration: 0.45 });
-    expect(manager.getTransition(300.25)).not.toBeNull();
-    expect(manager.getTransition(300.5)).toBeNull();
+    expect(manager.getTransition(749)).toEqual({ from: "high", to: "medium", startedAt: 300, duration: 450 });
+    expect(manager.getTransition(749)).not.toBeNull();
+    expect(manager.getTransition(750)).toBeNull();
   });
 
   it("upgrades only once after 600 stable frames below 15 ms", () => {

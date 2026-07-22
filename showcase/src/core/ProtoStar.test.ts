@@ -12,7 +12,7 @@ function frame(overrides: Partial<InteractionSnapshot> = {}): FrameContext {
     elapsedSeconds: 2,
     interaction: {
       pointerNdc: [0, 0], pointerWorld: [0, 0, 0], pointerVelocity: [0, 0], gravity: 0,
-      orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseEnergy: 0, release: false,
+      orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseCharge: 0, pulseEnergy: 0, pulseAge: 3, pulseRadius: 0, release: false,
       resetRequested: false, reducedMotion: false, ...overrides,
     },
   };
@@ -47,6 +47,17 @@ describe("ProtoStar", () => {
     expect(effect.userData.energy).toBe(0.75);
     expect(effect.userData.roughness).toBe(material.roughness);
     expect(star.getShadowMaterials()).toEqual([material]);
+    star.dispose();
+  });
+
+  it("slows field/material time and suppresses release deformation for reduced motion", () => {
+    const star = new ProtoStar(QUALITY_PROFILES.low);
+    star.update(frame({ reducedMotion: true, pulseEnergy: 1, release: true }));
+    const uniforms = getProtoStarShaderUniforms(star.getShadowMaterials()[0]!);
+    expect(uniforms.uTime.value).toBeLessThan(1);
+    expect(uniforms.uEnergy.value).toBeLessThanOrEqual(0.35);
+    expect(uniforms.uRelease.value).toBe(0);
+    expect(uniforms.uMotionScale.value).toBeLessThanOrEqual(0.25);
     star.dispose();
   });
 

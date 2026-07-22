@@ -16,7 +16,7 @@ describe("membrane compute shader", () => {
     expect(membraneComputeShader).toContain("uWaveSpeed");
     expect(membraneComputeShader).toContain("exp(-uDamping * uDelta)");
     expect(membraneComputeShader).toContain("pulse");
-    expect(membraneComputeShader).toContain("clamp(center + velocity * uDelta + pulse + impacts, -0.65, 0.65)");
+    expect(membraneComputeShader).toContain("clamp(center + velocity * uDelta + (pulse + impacts) * uMotionScale, -0.65, 0.65)");
     expect(membraneComputeShader).toContain("gl_FragColor = vec4(height, velocity");
   });
 

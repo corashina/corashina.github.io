@@ -15,6 +15,7 @@ export type BootstrapOptions = {
 export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls | null {
   const activeDocument = options.document ?? document;
   const canvas = activeDocument.querySelector<HTMLCanvasElement>("#showcase-canvas");
+  const status = activeDocument.querySelector<HTMLElement>(".showcase-status");
   const root = activeDocument.documentElement;
   if (canvas === null) return null;
 
@@ -25,16 +26,23 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const clearTestTelemetry = (): void => {
     for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete root.dataset[key];
   };
+  const updateStatus = (state: "loading" | "ready" | "recovering" | "fallback", message?: string): void => {
+    if (status === null) return;
+    status.hidden = state === "ready";
+    status.textContent = message ?? (state === "recovering" ? "Restoring Cosmic Genesis…" : state === "fallback" ? "The interactive scene is unavailable." : "Preparing Cosmic Genesis…");
+  };
   const showFallback = (message: string, app?: AppControls): null => {
     try { app?.dispose(); } catch { /* preserve the original failure state */ }
     clearTestTelemetry();
     root.dataset.showcaseState = "fallback";
     root.dataset.showcaseError = message;
+    updateStatus("fallback", message);
     return null;
   };
   if (!capabilities.webgl2) return showFallback("WebGL 2 is unavailable.");
 
   root.dataset.showcaseState = "loading";
+  updateStatus("loading");
   let app: AppControls;
   try {
     app = (options.createApp ?? ((appOptions) => new ShowcaseApp(appOptions)))({
@@ -43,6 +51,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
         root.dataset.showcaseState = state;
         if (message === undefined) delete root.dataset.showcaseError;
         else root.dataset.showcaseError = message;
+        updateStatus(state, message);
       },
     });
   } catch (error) {

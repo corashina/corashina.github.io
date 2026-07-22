@@ -5,7 +5,7 @@ import type { FrameContext, InteractionSnapshot } from "./contracts";
 
 const interaction: InteractionSnapshot = {
   pointerNdc: [0, 0], pointerWorld: [0, 0, 0], pointerVelocity: [0, 0], gravity: 1,
-  orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseEnergy: 0, release: false,
+  orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseCharge: 0, pulseEnergy: 0, pulseAge: 3, pulseRadius: 0, release: false,
   resetRequested: false, reducedMotion: false,
 };
 
@@ -83,6 +83,35 @@ describe("ShowcaseApp", () => {
     h.app.dispose();
   });
 
+  it("compiles the scene before scheduling its first frame", async () => {
+    let resolveCompile!: () => void;
+    const compileAsync = vi.fn(() => new Promise<void>((resolve) => { resolveCompile = resolve; }));
+    const renderer = { setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn(), compileAsync };
+    const h = makeHarness({ createRenderer: vi.fn(() => renderer) });
+    h.app.start();
+    expect(compileAsync).toHaveBeenCalledWith(expect.anything(), expect.anything());
+    expect(h.frameCallbacks.size).toBe(0);
+    resolveCompile(); await Promise.resolve(); await Promise.resolve();
+    expect(h.frameCallbacks.size).toBe(1);
+    h.app.dispose();
+  });
+
+  it("falls back on compile failure and ignores a late compile after stop", async () => {
+    const compileAsync = vi.fn(() => Promise.reject(new Error("shader compile failed")));
+    const renderer = { setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn(), compileAsync };
+    const failed = makeHarness({ createRenderer: vi.fn(() => renderer) });
+    failed.app.start(); await Promise.resolve(); await Promise.resolve();
+    expect(failed.root.dataset.showcaseState).toBe("fallback");
+    expect(failed.root.dataset.showcaseError).toContain("shader compile failed");
+
+    let resolveCompile!: () => void;
+    const deferredRenderer = { setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn(), compileAsync: vi.fn(() => new Promise<void>((resolve) => { resolveCompile = resolve; })) };
+    const stopped = makeHarness({ createRenderer: vi.fn(() => deferredRenderer) });
+    stopped.app.start(); stopped.app.stop(); resolveCompile(); await Promise.resolve(); await Promise.resolve();
+    expect(stopped.frameCallbacks.size).toBe(0);
+    stopped.app.dispose();
+  });
+
   it("pauses on visibility changes and resumes without a clock catch-up", () => {
     const h = makeHarness();
     h.app.start();
@@ -116,12 +145,43 @@ describe("ShowcaseApp", () => {
   });
 
   it("clamps resize through the pipeline and propagates selected quality exactly once to every GPU system", () => {
+    vi.useFakeTimers();
     const h = makeHarness();
     h.app.setQualityMode("low");
     for (const system of [h.particles, h.protoStar, h.membrane, h.pipeline]) expect(system.setQuality).toHaveBeenCalledTimes(1);
     window.dispatchEvent(new Event("resize"));
+    vi.advanceTimersByTime(100);
     expect(h.pipeline.resize).toHaveBeenLastCalledWith(900, 500, expect.any(Number));
     h.app.dispose();
+    vi.useRealTimers();
+  });
+
+  it("coalesces resize events for 100 ms and skips a settled zero-sized canvas", () => {
+    vi.useFakeTimers();
+    const h = makeHarness();
+    expect(h.pipeline.resize).toHaveBeenCalledTimes(1);
+    window.dispatchEvent(new Event("resize")); window.dispatchEvent(new Event("resize"));
+    vi.advanceTimersByTime(99);
+    expect(h.pipeline.resize).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1);
+    expect(h.pipeline.resize).toHaveBeenCalledTimes(2);
+    Object.defineProperty(h.canvas, "clientWidth", { value: 0, configurable: true });
+    window.dispatchEvent(new Event("resize")); vi.advanceTimersByTime(100);
+    expect(h.pipeline.resize).toHaveBeenCalledTimes(2);
+    h.app.dispose(); vi.useRealTimers();
+  });
+
+  it("enters fallback when settled resize allocation fails and cancels resize on dispose", () => {
+    vi.useFakeTimers();
+    const h = makeHarness();
+    h.pipeline.resize.mockImplementationOnce(() => { throw new Error("resize allocation failed"); });
+    window.dispatchEvent(new Event("resize")); vi.advanceTimersByTime(100);
+    expect(h.root.dataset.showcaseState).toBe("fallback");
+    expect(h.root.dataset.showcaseError).toContain("resize allocation failed");
+    const calls = h.pipeline.resize.mock.calls.length;
+    window.dispatchEvent(new Event("resize")); vi.advanceTimersByTime(100);
+    expect(h.pipeline.resize).toHaveBeenCalledTimes(calls);
+    vi.useRealTimers();
   });
 
   it("lets the pipeline own concrete nebula quality so a forwarded call is not duplicated", () => {

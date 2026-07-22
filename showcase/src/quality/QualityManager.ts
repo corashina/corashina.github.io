@@ -4,7 +4,7 @@ export type QualityTransition = {
   from: QualityTier;
   to: QualityTier;
   startedAt: number;
-  duration: 0.45;
+  duration: 450;
 };
 
 const TIERS: readonly QualityTier[] = ["low", "medium", "high", "ultra"];
@@ -114,7 +114,7 @@ export class QualityManager {
     this.cooldownFrames = COOLDOWN_FRAMES;
     this.samples.length = 0;
     this.stableFrames = 0;
-    this.transition = { from, to: nextTier, startedAt: now, duration: 0.45 };
+    this.transition = { from, to: nextTier, startedAt: now, duration: 450 };
     return nextTier;
   }
 }

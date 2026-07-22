@@ -204,6 +204,7 @@ export class ParticleSimulation {
     setUniform(textureVelocity, "uDelta", 0);
     setUniform(textureVelocity, "uCorePosition", new THREE.Vector3());
     setUniform(textureVelocity, "uPointerPosition", new THREE.Vector3());
+    setUniform(textureVelocity, "uPointerVelocity", new THREE.Vector2());
     setUniform(textureVelocity, "uPointerGravity", 0);
     setUniform(textureVelocity, "uPulseEnergy", 0);
     setUniform(textureVelocity, "uPulseRadius", 3);
@@ -215,15 +216,18 @@ export class ParticleSimulation {
   private advanceRuntime(runtime: Runtime, frame: FrameContext): void {
     const pointer = frame.interaction.pointerWorld;
     const pointerPosition = runtime.velocity.material.uniforms.uPointerPosition!.value as THREE.Vector3;
+    const pointerVelocity = runtime.velocity.material.uniforms.uPointerVelocity!.value as THREE.Vector2;
     pointerPosition.set(pointer[0], pointer[1], pointer[2]);
+    const pointerMotionScale = frame.interaction.reducedMotion ? 0.2 : 1;
+    pointerVelocity.set(frame.interaction.pointerVelocity[0], frame.interaction.pointerVelocity[1]).clampLength(0, 1).multiplyScalar(pointerMotionScale);
     setUniform(runtime.position, "uDelta", frame.deltaSeconds);
     setUniform(runtime.velocity, "uDelta", frame.deltaSeconds);
     setUniform(runtime.velocity, "uPointerGravity", frame.interaction.gravity);
-    setUniform(runtime.velocity, "uPulseEnergy", frame.interaction.pulseEnergy);
-    setUniform(runtime.velocity, "uPulseRadius", 2 + (frame.elapsedSeconds % 2) * 3);
-    setUniform(runtime.velocity, "uOrbitStrength", frame.interaction.reducedMotion ? 0.35 : 0.75);
-    setUniform(runtime.velocity, "uTurbulence", frame.interaction.reducedMotion ? 0.16 : 0.35);
-    setUniform(runtime.velocity, "uDrag", frame.interaction.reducedMotion ? 0.12 : 0.03);
+    setUniform(runtime.velocity, "uPulseEnergy", frame.interaction.pulseEnergy * (frame.interaction.reducedMotion ? 0.12 : 1));
+    setUniform(runtime.velocity, "uPulseRadius", frame.interaction.pulseRadius);
+    setUniform(runtime.velocity, "uOrbitStrength", frame.interaction.reducedMotion ? 0.15 : 0.75);
+    setUniform(runtime.velocity, "uTurbulence", frame.interaction.reducedMotion ? 0 : 0.35);
+    setUniform(runtime.velocity, "uDrag", frame.interaction.reducedMotion ? 0.3 : 0.03);
     runtime.compute.compute();
     runtime.points.material.uniforms.texturePosition!.value = runtime.compute.getCurrentRenderTarget(runtime.position).texture;
   }

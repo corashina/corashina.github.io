@@ -74,6 +74,9 @@ export class NebulaPass extends Pass {
   private historyValid = false;
   private hasDepth = false;
   private frame = 0;
+  private depthTexture: THREE.Texture | null = null;
+  private normalTexture: THREE.Texture | null = null;
+  private camera: THREE.Camera | null = null;
   private disposed = false;
 
   constructor(profile: QualityProfile, options: NebulaPassOptions = {}) {
@@ -132,6 +135,8 @@ export class NebulaPass extends Pass {
 
   setDepthTexture(texture: THREE.Texture | null): void {
     if (this.disposed) return;
+    if (texture === this.depthTexture) return;
+    this.depthTexture = texture;
     this.material.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
     this.temporalMaterial.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
     this.depthCopyMaterial.uniforms.uSceneDepth!.value = texture ?? this.fallbackTexture;
@@ -143,6 +148,8 @@ export class NebulaPass extends Pass {
 
   setNormalTexture(texture: THREE.Texture | null): void {
     if (this.disposed) return;
+    if (texture === this.normalTexture) return;
+    this.normalTexture = texture;
     this.material.uniforms.uSceneNormal!.value = texture ?? this.fallbackTexture;
     this.material.uniforms.uHasNormal!.value = texture === null ? 0 : 1;
     this.invalidateHistory();
@@ -150,6 +157,8 @@ export class NebulaPass extends Pass {
 
   setCamera(camera: THREE.Camera, cameraCut = false): void {
     if (this.disposed) return;
+    const cameraChanged = camera !== this.camera;
+    this.camera = camera;
     const projectionInverse = camera.projectionMatrixInverse;
     this.material.uniforms.uProjectionInverse!.value.copy(projectionInverse);
     this.material.uniforms.uCameraWorldMatrix!.value.copy(camera.matrixWorld);
@@ -159,14 +168,14 @@ export class NebulaPass extends Pass {
     this.temporalMaterial.uniforms.uProjectionInverse!.value.copy(projectionInverse);
     this.temporalMaterial.uniforms.uCameraWorldMatrix!.value.copy(camera.matrixWorld);
     this.currentViewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    if (cameraCut) this.invalidateHistory();
+    if (cameraChanged || cameraCut) this.invalidateHistory();
   }
 
   setInteraction(snapshot: InteractionSnapshot): void {
     if (this.disposed) return;
     const pulsePosition = this.material.uniforms.uPulsePosition!.value as THREE.Vector3;
     pulsePosition.set(snapshot.pointerWorld[0], snapshot.pointerWorld[1], snapshot.pointerWorld[2]);
-    this.material.uniforms.uPulseRadius!.value = snapshot.pulseEnergy > 0 ? 1.25 + snapshot.pulseEnergy * 3.5 : 0;
+    this.material.uniforms.uPulseRadius!.value = snapshot.pulseEnergy > 0 ? snapshot.pulseRadius : 0;
     this.temporalMaterial.uniforms.uHistoryWeight!.value = snapshot.reducedMotion ? 0.55 : 0.88;
   }
 

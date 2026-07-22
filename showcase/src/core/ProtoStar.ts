@@ -55,6 +55,7 @@ export class ProtoStar {
   private elapsed = 0;
   private energy = 0;
   private release = false;
+  private motionScale = 1;
   private profile: QualityProfile;
   private readonly materialFactory: () => THREE.MeshPhysicalMaterial;
   private readonly effectFactory: ProtoStarEffectFactory;
@@ -70,9 +71,10 @@ export class ProtoStar {
   update(frame: FrameContext): void {
     if (this.disposed) return;
 
-    this.elapsed = frame.elapsedSeconds;
-    this.energy = clampUnit(frame.interaction.pulseEnergy);
-    this.release = frame.interaction.release;
+    this.motionScale = frame.interaction.reducedMotion ? 0.2 : 1;
+    this.elapsed = frame.elapsedSeconds * this.motionScale;
+    this.energy = clampUnit(frame.interaction.pulseEnergy) * (frame.interaction.reducedMotion ? 0.3 : 1);
+    this.release = frame.interaction.reducedMotion ? false : frame.interaction.release;
     this.setRuntimeState(this.current);
     if (this.transition !== null) this.setRuntimeState(this.transition.incoming);
 
@@ -196,7 +198,7 @@ export class ProtoStar {
   }
 
   private setRuntimeState(runtime: Runtime): void {
-    setProtoStarMaterialState(runtime.material, this.elapsed, this.energy, this.release);
+    setProtoStarMaterialState(runtime.material, this.elapsed, this.energy, this.release, this.motionScale);
     runtime.effect.userData.energy = this.energy;
     runtime.effect.userData.roughness = runtime.material.roughness;
   }

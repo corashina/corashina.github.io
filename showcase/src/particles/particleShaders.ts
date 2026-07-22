@@ -8,6 +8,7 @@ uniform float uTurbulence;
 uniform float uDrag;
 uniform vec3 uCorePosition;
 uniform vec3 uPointerPosition;
+uniform vec2 uPointerVelocity;
 
 vec3 clampLength(vec3 vector, float maximumLength) {
   float vectorLength = length(vector);
@@ -33,9 +34,10 @@ void main() {
   vec3 pointerDelta = uPointerPosition - position.xyz;
   float pointerFalloff = exp(-dot(pointerDelta, pointerDelta) * 0.18);
   vec3 pointerForce = normalize(pointerDelta + 1e-5) * pointerFalloff * uPointerGravity;
+  vec3 pointerTangential = vec3(-uPointerVelocity.y, 0.0, uPointerVelocity.x) * pointerFalloff * 1.6;
   float pulseFalloff = exp(-abs(length(radial) - uPulseRadius) * 2.5);
   vec3 pulseForce = normalize(radial + 1e-5) * pulseFalloff * uPulseEnergy;
-  velocity.xyz = clampLength((velocity.xyz + (orbital + curl + pointerForce + pulseForce) * uDelta) * exp(-uDelta * 0.18), 5.0);
+  velocity.xyz = clampLength((velocity.xyz + (orbital + curl + pointerForce + pointerTangential + pulseForce) * uDelta) * exp(-uDelta * 0.18), 5.0);
   velocity.xyz *= exp(-uDelta * uDrag);
   gl_FragColor = velocity;
 }

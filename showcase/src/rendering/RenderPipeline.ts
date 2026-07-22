@@ -211,7 +211,7 @@ export class RenderPipeline {
   readonly bloomPass: MaskedBloomPass;
   readonly outputPass: OutputPass;
   private disposed = false;
-  private width = 1; private height = 1; private dpr = 1; private resizeScheduled = false;
+  private width = 1; private height = 1; private dpr = 1;
   private profile: QualityProfile;
   private readonly initialState: RenderState;
   private readonly shadowMaterials = new Set<THREE.Material>();
@@ -269,9 +269,7 @@ export class RenderPipeline {
   resize(width: number, height: number, dpr: number): void {
     if (this.disposed) return;
     this.width = Math.max(1, Math.floor(width)); this.height = Math.max(1, Math.floor(height)); this.dpr = Math.max(0.1, dpr);
-    if (this.resizeScheduled) return;
-    this.resizeScheduled = true;
-    queueMicrotask(() => { if (!this.resizeScheduled) return; this.resizeScheduled = false; if (!this.disposed) this.applySize(); });
+    this.applySize();
   }
 
   setQuality(profile: QualityProfile): void {
@@ -282,7 +280,7 @@ export class RenderPipeline {
     configureGtao(this.gtaoPass, config.gtao);
     this.nebulaPass.setQuality(profile);
     this.options.renderer.shadowMap.type = config.shadows === "pcf" ? THREE.PCFShadowMap : THREE.BasicShadowMap;
-    this.resizeScheduled = false; this.applySize(); this.refreshShadowMaterials();
+    this.applySize(); this.refreshShadowMaterials();
   }
 
   refreshSelections(): void {
@@ -306,7 +304,7 @@ export class RenderPipeline {
 
   dispose(): void {
     if (this.disposed) return;
-    this.disposed = true; this.resizeScheduled = false;
+    this.disposed = true;
     for (const material of this.shadowMaterials) removePcss(material); this.shadowMaterials.clear();
     this.outputPass.dispose(); this.bloomPass.dispose();
     // NebulaPass is supplied by the caller and remains caller-owned.

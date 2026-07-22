@@ -9,7 +9,10 @@ export type InteractionSnapshot = {
   orbitDelta: Vec2;
   zoomDelta: number;
   pulseId: number;
+  pulseCharge: number;
   pulseEnergy: number;
+  pulseAge: number;
+  pulseRadius: number;
   release: boolean;
   resetRequested: boolean;
   reducedMotion: boolean;

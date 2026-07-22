@@ -3,7 +3,21 @@ import { describe, expect, it, vi } from "vitest";
 import { QUALITY_PROFILES } from "../quality/qualityProfiles";
 import { NebulaPass } from "./NebulaPass";
 
+const interaction = {
+  pointerNdc: [0, 0], pointerWorld: [1, 2, 3], pointerVelocity: [0, 0], gravity: 0,
+  orbitDelta: [0, 0], zoomDelta: 0, pulseId: 1, pulseCharge: 0.5, pulseEnergy: 0.4,
+  pulseAge: 0.7, pulseRadius: 3.75, release: false, resetRequested: false, reducedMotion: false,
+} as const;
+
 describe("NebulaPass", () => {
+  it("uses the finite interaction pulse radius and clears after its envelope ends", () => {
+    const pass = new NebulaPass(QUALITY_PROFILES.low);
+    pass.setInteraction(interaction);
+    expect(pass.material.uniforms.uPulseRadius!.value).toBe(3.75);
+    pass.setInteraction({ ...interaction, pulseEnergy: 0, pulseRadius: 0 });
+    expect(pass.material.uniforms.uPulseRadius!.value).toBe(0);
+    pass.dispose();
+  });
   it.each([
     ["ultra", 96, 0.5], ["high", 72, 0.5], ["medium", 48, 0.5], ["low", 28, 0.35],
   ] as const)("maps %s quality to raymarch steps and target scale", (tier, steps, scale) => {
@@ -85,5 +99,20 @@ describe("NebulaPass", () => {
     readBuffer.dispose();
     writeBuffer.dispose();
     pass.dispose();
+  });
+
+  it("retains history when identical depth, normal, and camera identities are rebound", () => {
+    const pass = new NebulaPass(QUALITY_PROFILES.low);
+    const depth = new THREE.DepthTexture(100, 60);
+    const normal = new THREE.Texture();
+    const camera = new THREE.PerspectiveCamera();
+    const invalidate = vi.spyOn(pass, "invalidateHistory");
+    pass.setDepthTexture(depth); pass.setNormalTexture(normal); pass.setCamera(camera);
+    expect(invalidate).toHaveBeenCalledTimes(3);
+    pass.setDepthTexture(depth); pass.setNormalTexture(normal); pass.setCamera(camera);
+    expect(invalidate).toHaveBeenCalledTimes(3);
+    pass.setCamera(new THREE.PerspectiveCamera());
+    expect(invalidate).toHaveBeenCalledTimes(4);
+    depth.dispose(); normal.dispose(); pass.dispose();
   });
 });

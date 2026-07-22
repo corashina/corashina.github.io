@@ -7,6 +7,7 @@ uniform float uWaveSpeed;
 uniform float uDamping;
 uniform float uPulseEnergy;
 uniform float uPulseRadius;
+uniform float uMotionScale;
 uniform float uMembraneY;
 uniform vec2 uPointerUv;
 uniform sampler2D uParticleTexture;
@@ -33,7 +34,7 @@ void main() {
   float west = sampleHeight(uv - vec2(texel.x, 0.0));
   float velocity = texture2D(textureHeight, uv).g;
   float laplacian = north + south + east + west - 4.0 * center;
-  velocity += laplacian * uWaveSpeed * uDelta;
+  velocity += laplacian * uWaveSpeed * uDelta * uMotionScale;
   velocity *= exp(-uDamping * uDelta);
 
   float ringDistance = abs(length(uv - uPointerUv) - uPulseRadius);
@@ -46,7 +47,7 @@ void main() {
     + particleImpact(uv, texture2D(uParticleTexture, uParticleSamples[5]))
     + particleImpact(uv, texture2D(uParticleTexture, uParticleSamples[6]))
     + particleImpact(uv, texture2D(uParticleTexture, uParticleSamples[7]));
-  float height = clamp(center + velocity * uDelta + pulse + impacts, -0.65, 0.65);
+  float height = clamp(center + velocity * uDelta + (pulse + impacts) * uMotionScale, -0.65, 0.65);
   gl_FragColor = vec4(height, velocity, 0.0, 1.0);
 }
 `;

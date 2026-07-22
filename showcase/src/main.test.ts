@@ -1,13 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { bootstrapShowcase } from "./main";
+import type { ShowcaseAppOptions } from "./app/ShowcaseApp";
 
 afterEach(() => { document.documentElement.replaceChildren(); delete document.documentElement.dataset.showcaseState; });
 
-function page(): { canvas: HTMLCanvasElement; select: HTMLSelectElement; reset: HTMLButtonElement; hint: HTMLElement } {
-  document.documentElement.innerHTML = `<body><main id="showcase-root"><canvas id="showcase-canvas"></canvas><section class="showcase-controls"><p class="interaction-hint">Hint</p><select aria-label="Rendering quality"><option value="auto">Auto</option><option value="low">Low</option></select><button type="button">Reset view</button></section></main></body>`;
+function page(): { canvas: HTMLCanvasElement; select: HTMLSelectElement; reset: HTMLButtonElement; hint: HTMLElement; status: HTMLElement } {
+  document.documentElement.innerHTML = `<body><main id="showcase-root"><canvas id="showcase-canvas"></canvas><p class="showcase-status" role="status" aria-live="polite">Preparing Cosmic Genesis…</p><section class="showcase-controls"><p class="interaction-hint">Hint</p><select aria-label="Rendering quality"><option value="auto">Auto</option><option value="low">Low</option></select><button type="button">Reset view</button></section></main></body>`;
   const canvas = document.querySelector<HTMLCanvasElement>("#showcase-canvas")!;
   vi.spyOn(canvas, "getContext").mockReturnValue({} as WebGL2RenderingContext);
-  return { canvas, select: document.querySelector("select")!, reset: document.querySelector("button")!, hint: document.querySelector(".interaction-hint")! };
+  return { canvas, select: document.querySelector("select")!, reset: document.querySelector("button")!, hint: document.querySelector(".interaction-hint")!, status: document.querySelector(".showcase-status")! };
 }
 
 describe("bootstrapShowcase", () => {
@@ -27,6 +28,21 @@ describe("bootstrapShowcase", () => {
     const createApp = vi.fn();
     bootstrapShowcase({ createApp, media: () => ({ matches: true }) as MediaQueryList });
     expect(createApp).not.toHaveBeenCalled(); expect(document.documentElement.dataset.showcaseState).toBe("fallback");
+  });
+
+  it("announces loading, hides status when ready, and exposes fallback errors", () => {
+    const { status } = page();
+    let appOptions: ShowcaseAppOptions | undefined;
+    const app = { start: vi.fn(), setQualityMode: vi.fn(), resetView: vi.fn(), dispose: vi.fn() };
+    bootstrapShowcase({ createApp: (options) => { appOptions = options; return app; }, media: () => ({ matches: false }) as MediaQueryList });
+    expect(status.getAttribute("role")).toBe("status");
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    expect(status.textContent).toContain("Preparing");
+    appOptions!.onStateChange?.("ready");
+    expect(status.hidden).toBe(true);
+    appOptions!.onStateChange?.("fallback", "GPU unavailable");
+    expect(status.hidden).toBe(false);
+    expect(status.textContent).toContain("GPU unavailable");
   });
 
   it("hides the interaction hint on first input", () => {

@@ -49,7 +49,7 @@ function frame(overrides: Partial<InteractionSnapshot> = {}): FrameContext {
     elapsedSeconds: 2,
     interaction: {
       pointerNdc: [0, 0], pointerWorld: [1, 0, 3], pointerVelocity: [0, 0], gravity: 0.8,
-      orbitDelta: [0, 0], zoomDelta: 0, pulseId: 4, pulseEnergy: 0.6, release: false,
+      orbitDelta: [0, 0], zoomDelta: 0, pulseId: 4, pulseCharge: 0.75, pulseEnergy: 0.6, pulseAge: 0.5, pulseRadius: 3.2, release: false,
       resetRequested: false, reducedMotion: false, ...overrides,
     },
   };
@@ -115,6 +115,18 @@ describe("SpaceMembrane", () => {
     new SpaceMembrane({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
 
     expect(created[0]!.variables[0]!.material.uniforms.uParticleTexture!.value).toBeNull();
+  });
+
+  it("suppresses procedural detail, pulses, and particle disturbances for reduced motion", () => {
+    const created: FakeCompute[] = [];
+    const membrane = new SpaceMembrane({} as THREE.WebGLRenderer, QUALITY_PROFILES.low, { computeFactory: makeFactory(created) });
+    membrane.update(frame({ reducedMotion: true, pulseEnergy: 1 }), new THREE.Texture());
+    const computeUniforms = created[0]!.variables[0]!.material.uniforms;
+    const material = membrane.getShadowMaterials()[0]! as THREE.MeshPhysicalMaterial;
+    expect(computeUniforms.uMotionScale!.value).toBeLessThanOrEqual(0.2);
+    expect(computeUniforms.uPulseEnergy!.value).toBeLessThanOrEqual(0.2);
+    expect(getMembraneShaderUniforms(material).uDetailStrength.value).toBeLessThanOrEqual(0.003);
+    membrane.dispose();
   });
 
   it("de-duplicates a pulse id while preserving pointer and particle simulation updates", () => {

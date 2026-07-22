@@ -4,11 +4,12 @@ export type ProtoStarShaderUniforms = {
   uTime: { value: number };
   uEnergy: { value: number };
   uRelease: { value: number };
+  uMotionScale: { value: number };
 };
 export type ProtoStarVertexShader = { uniforms: Record<string, { value: unknown }>; vertexShader: string };
 
 const PROGRAM_KEY = "cosmic-genesis-proto-star-v1";
-const PROTO_STAR_UNIFORM_NAMES = ["uTime", "uEnergy", "uRelease"] as const;
+const PROTO_STAR_UNIFORM_NAMES = ["uTime", "uEnergy", "uRelease", "uMotionScale"] as const;
 
 function clampUnit(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -41,7 +42,7 @@ export function augmentProtoStarVertexShader(shader: ProtoStarVertexShader, unif
     "#include <begin_vertex>",
     `
       float protoStarNoise = sin(position.x * 9.0 + uTime * 1.7) * sin(position.y * 8.0 - uTime * 1.2) * sin(position.z * 10.0 + uTime);
-      vec3 transformed = vec3(position) + normal * protoStarNoise * (0.018 + uEnergy * 0.045 + uRelease * 0.01);
+      vec3 transformed = vec3(position) + normal * protoStarNoise * (0.018 + uEnergy * 0.045 + uRelease * 0.01) * uMotionScale;
     `,
   );
 }
@@ -52,6 +53,7 @@ export function createProtoStarMaterial(): THREE.MeshPhysicalMaterial {
     uTime: { value: 0 },
     uEnergy: { value: 0 },
     uRelease: { value: 0 },
+    uMotionScale: { value: 1 },
   };
   const material = new THREE.MeshPhysicalMaterial({
     color: new THREE.Color("#ffd2a2"),
@@ -103,12 +105,14 @@ export function setProtoStarMaterialState(
   elapsed: number,
   energy: number,
   release: boolean,
+  motionScale = 1,
 ): void {
   const boundedEnergy = clampUnit(energy);
   const uniforms = getProtoStarShaderUniforms(material);
   uniforms.uTime.value = elapsed;
   uniforms.uEnergy.value = boundedEnergy;
   uniforms.uRelease.value = release ? 1 : 0;
+  uniforms.uMotionScale.value = clampUnit(motionScale);
   material.transmission = lerp(0.18, 0.92, boundedEnergy);
   material.roughness = lerp(0.28, 0.08, boundedEnergy);
   material.dispersion = lerp(0.08, 0.68, boundedEnergy);

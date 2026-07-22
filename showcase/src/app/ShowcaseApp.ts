@@ -13,16 +13,20 @@ import { FixedStepClock } from "../runtime/FixedStepClock";
 import { NebulaPass } from "../volume/NebulaPass";
 
 const STEP_SECONDS = 1 / 60;
+const RESIZE_SETTLE_MS = 100;
 const CAMERA_BOUNDS = { radius: [5.5, 13] as const, polarAngle: [0.45, 1.35] as const };
 const EMPTY_INTERACTION: InteractionSnapshot = {
   pointerNdc: [0, 0], pointerWorld: [0, 0, 0], pointerVelocity: [0, 0], gravity: 0,
-  orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseEnergy: 0, release: false,
+  orbitDelta: [0, 0], zoomDelta: 0, pulseId: 0, pulseCharge: 0, pulseEnergy: 0, pulseAge: 3, pulseRadius: 0, release: false,
   resetRequested: false, reducedMotion: false,
 };
 
 type Disposable = { dispose(): void };
 type QualitySystem = Disposable & { setQuality(profile: QualityProfile): void };
-type Renderer = Disposable & { setSize(width: number, height: number, updateStyle?: boolean): void; setPixelRatio(ratio: number): void };
+type Renderer = Disposable & {
+  setSize(width: number, height: number, updateStyle?: boolean): void;
+  setPixelRatio(ratio: number): void;
+};
 type Scene = { add(...objects: unknown[]): void; remove(...objects: unknown[]): void };
 type Camera = { aspect: number; updateProjectionMatrix(): void };
 type ParticleSystem = QualitySystem & { object: unknown; update(frame: FrameContext): void; getPositionTexture(): unknown };
@@ -144,6 +148,10 @@ export class ShowcaseApp {
   private readonly cleanups = new Set<() => void>();
   private readonly testMode: boolean;
   private renderedFrames = 0;
+  private resizeTimer: number | null = null;
+  private compiled = false;
+  private compiling = false;
+  private compileGeneration = 0;
 
   constructor(private readonly options: ShowcaseAppOptions) {
     try {
@@ -179,9 +187,34 @@ export class ShowcaseApp {
     if (this.disposed) return;
     this.desiredRunning = true;
     if (this.running || this.recovering || document.hidden) return;
+    if (!this.compiled) { this.compileScene(); return; }
+    this.beginFrameLoop();
+  }
+
+  private beginFrameLoop(): void {
+    if (this.running || this.disposed || this.recovering || !this.desiredRunning || document.hidden) return;
     this.running = true;
     this.lastFrameNowMs = this.factories.now();
     this.scheduleFrame();
+  }
+
+  private compileScene(): void {
+    if (this.compiling || this.disposed || this.recovering) return;
+    const compileAsync = (this.renderer as Renderer & { compileAsync?: (scene: Scene, camera: Camera) => Promise<unknown> }).compileAsync;
+    if (compileAsync === undefined) { this.compiled = true; this.beginFrameLoop(); return; }
+    this.compiling = true;
+    const generation = ++this.compileGeneration;
+    let compilation: Promise<unknown>;
+    try { compilation = compileAsync.call(this.renderer, this.scene, this.camera); }
+    catch (error) { this.compiling = false; this.showFallback(error instanceof Error ? error.message : "Shader compilation failed."); return; }
+    void compilation.then(() => {
+      if (generation !== this.compileGeneration || this.disposed || this.recovering) return;
+      this.compiling = false; this.compiled = true; this.beginFrameLoop();
+    }, (error: unknown) => {
+      if (generation !== this.compileGeneration || this.disposed || this.recovering) return;
+      this.compiling = false;
+      this.showFallback(error instanceof Error ? error.message : "Shader compilation failed.");
+    });
   }
 
   stop(): void {
@@ -221,10 +254,12 @@ export class ShowcaseApp {
   dispose(): void {
     if (this.disposed) return;
     this.stop(); this.disposed = true;
+    this.compileGeneration += 1; this.compiling = false;
     this.options.canvas.removeEventListener("webglcontextlost", this.onContextLost);
     this.options.canvas.removeEventListener("webglcontextrestored", this.onContextRestored);
     window.removeEventListener("resize", this.onResize);
     document.removeEventListener("visibilitychange", this.onVisibilityChange);
+    this.cancelPendingResize();
     for (const cleanup of this.cleanups) cleanup();
     this.cleanups.clear();
     this.disposeGpuSystems();
@@ -337,7 +372,22 @@ export class ShowcaseApp {
     if (this.desiredRunning) this.start();
   };
 
-  private readonly onResize = (): void => this.resize();
+  private readonly onResize = (): void => {
+    if (this.disposed) return;
+    this.cancelPendingResize();
+    this.resizeTimer = window.setTimeout(() => {
+      this.resizeTimer = null;
+      if (this.disposed || this.recovering || this.options.canvas.clientWidth <= 0 || this.options.canvas.clientHeight <= 0) return;
+      try { this.resize(); }
+      catch (error) { this.showFallback(error instanceof Error ? error.message : "Resize allocation failed."); }
+    }, RESIZE_SETTLE_MS);
+  };
+
+  private cancelPendingResize(): void {
+    if (this.resizeTimer === null) return;
+    window.clearTimeout(this.resizeTimer);
+    this.resizeTimer = null;
+  }
 
   private resize(): void {
     if (this.disposed) return;
@@ -353,9 +403,10 @@ export class ShowcaseApp {
 
   private readonly onContextLost = (event: Event): void => {
     event.preventDefault();
+    this.cancelPendingResize();
     this.contextLosses += 1;
     if (this.contextLosses > 1) { this.showFallback("WebGL context was lost more than once."); return; }
-    this.recovering = true; this.pauseFrameLoop(); this.firstFrame = true;
+    this.recovering = true; this.compileGeneration += 1; this.compiling = false; this.compiled = false; this.pauseFrameLoop(); this.firstFrame = true;
     if (this.testMode) delete this.root.dataset.showcaseReady;
     this.setState("recovering");
   };
@@ -365,7 +416,7 @@ export class ShowcaseApp {
     try {
       this.disposeGpuSystems();
       this.systems = this.createGpuSystems(this.profile);
-      this.resize(); this.recovering = false; this.setState("loading"); if (this.desiredRunning) this.start();
+      this.resize(); this.recovering = false; this.compiled = false; this.setState("loading"); if (this.desiredRunning) this.start();
     } catch (error) {
       this.showFallback(error instanceof Error ? error.message : "WebGL recovery failed.");
     }

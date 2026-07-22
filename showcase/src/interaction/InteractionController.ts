@@ -11,10 +11,20 @@ export type InteractionControllerOptions = {
 
 const CAMERA_KEYBOARD_STEP = 0.12;
 const PULSE_ENERGY_STEP = 0.25;
+const PULSE_DURATION_SECONDS = 3;
+const RELEASE_HOLD_SECONDS = 0.1;
+const PULSE_START_RADIUS = 0.75;
+const PULSE_TRAVEL = 8;
 const POINTER_DAMPING_RATE = 8;
+const POINTER_GRAVITY_DECAY_RATE = 2;
 
 function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+  return target.closest("input, textarea, select, button, [contenteditable]:not([contenteditable='false'])") !== null;
 }
 
 export class InteractionController {
@@ -36,17 +46,21 @@ export class InteractionController {
   private orbitIntent: Vec2 = [0, 0];
   private zoomIntent = 0;
   private pulseId = 0;
-  private pulseEnergy = 0;
-  private releasePending = false;
-  private releasePeakPending = false;
+  private pulseCharge = 0;
+  private pulsePeak = 0;
+  private pulseAge = PULSE_DURATION_SECONDS;
+  private releasePulse = false;
   private resetPending = false;
   private disposed = false;
   private readonly handledPointerMoves = new WeakSet<object>();
+  private readonly previousTouchAction: string;
 
   constructor(options: InteractionControllerOptions) {
     this.canvas = options.canvas;
     this.eventTarget = options.eventTarget;
     this.reducedMotion = options.reducedMotion;
+    this.previousTouchAction = this.canvas.style.touchAction;
+    this.canvas.style.touchAction = "none";
     this.canvas.addEventListener("pointerdown", this.onPointerDown);
     this.canvas.addEventListener("pointermove", this.onPointerMove);
     this.canvas.addEventListener("wheel", this.onWheel, { passive: false });
@@ -67,14 +81,16 @@ export class InteractionController {
     this.orbitIntent = [0, 0];
     const zoomDelta = this.zoomIntent;
     this.zoomIntent = 0;
-    const release = this.releasePending;
-    const pulseEnergy = this.releasePeakPending ? 1 : this.pulseEnergy;
-    this.releasePending = false;
-    this.releasePeakPending = false;
+    const pulseAge = this.pulseAge;
+    const pulseProgress = clamp(pulseAge / PULSE_DURATION_SECONDS, 0, 1);
+    const pulseEnvelope = (1 - pulseProgress) ** 2;
+    const pulseEnergy = this.pulsePeak * pulseEnvelope;
+    const pulseRadius = pulseEnergy > 0 ? PULSE_START_RADIUS + pulseProgress * PULSE_TRAVEL : 0;
+    const release = this.releasePulse && pulseAge <= RELEASE_HOLD_SECONDS + 1e-9;
     const resetRequested = this.resetPending;
     this.resetPending = false;
 
-    return Object.freeze({
+    const snapshot = Object.freeze({
       pointerNdc: Object.freeze([...this.pointerNdc]) as Vec2,
       pointerWorld: Object.freeze([0, 0, 0]) as readonly [number, number, number],
       pointerVelocity: Object.freeze([...this.pointerVelocity]) as Vec2,
@@ -82,11 +98,21 @@ export class InteractionController {
       orbitDelta: Object.freeze([...orbitDelta]) as Vec2,
       zoomDelta,
       pulseId: this.pulseId,
+      pulseCharge: this.pulseCharge,
       pulseEnergy,
+      pulseAge,
+      pulseRadius,
       release,
       resetRequested,
       reducedMotion: this.reducedMotion,
     });
+    this.pulseAge = Math.min(PULSE_DURATION_SECONDS, this.pulseAge + Math.max(0, deltaSeconds));
+    this.pointerGravity *= Math.exp(-Math.max(0, deltaSeconds) * POINTER_GRAVITY_DECAY_RATE);
+    if (this.pulseAge >= PULSE_DURATION_SECONDS) {
+      this.pulsePeak = 0;
+      this.releasePulse = false;
+    }
+    return snapshot;
   }
 
   dispose(): void {
@@ -99,6 +125,7 @@ export class InteractionController {
     this.eventTarget.removeEventListener("pointerup", this.onPointerUp as EventListener);
     this.eventTarget.removeEventListener("pointercancel", this.onPointerCancel as EventListener);
     this.eventTarget.removeEventListener("keydown", this.onKeyDown as EventListener);
+    this.canvas.style.touchAction = this.previousTouchAction;
   }
 
   private readonly onPointerDown = (event: PointerEvent): void => {
@@ -182,15 +209,16 @@ export class InteractionController {
 
   private readonly onKeyDown = (event: KeyboardEvent): void => {
     if (this.disposed) return;
+    if (isEditableTarget(event.target)) return;
     switch (event.code) {
-      case "ArrowLeft": this.orbitIntent = [this.orbitIntent[0] - CAMERA_KEYBOARD_STEP, this.orbitIntent[1]]; break;
-      case "ArrowRight": this.orbitIntent = [this.orbitIntent[0] + CAMERA_KEYBOARD_STEP, this.orbitIntent[1]]; break;
-      case "ArrowUp": this.orbitIntent = [this.orbitIntent[0], this.orbitIntent[1] - CAMERA_KEYBOARD_STEP]; break;
-      case "ArrowDown": this.orbitIntent = [this.orbitIntent[0], this.orbitIntent[1] + CAMERA_KEYBOARD_STEP]; break;
+      case "ArrowLeft": event.preventDefault(); this.orbitIntent = [this.orbitIntent[0] - CAMERA_KEYBOARD_STEP, this.orbitIntent[1]]; break;
+      case "ArrowRight": event.preventDefault(); this.orbitIntent = [this.orbitIntent[0] + CAMERA_KEYBOARD_STEP, this.orbitIntent[1]]; break;
+      case "ArrowUp": event.preventDefault(); this.orbitIntent = [this.orbitIntent[0], this.orbitIntent[1] - CAMERA_KEYBOARD_STEP]; break;
+      case "ArrowDown": event.preventDefault(); this.orbitIntent = [this.orbitIntent[0], this.orbitIntent[1] + CAMERA_KEYBOARD_STEP]; break;
       case "Equal":
-      case "NumpadAdd": this.zoomIntent = clamp(this.zoomIntent - 0.25, -1, 1); break;
+      case "NumpadAdd": event.preventDefault(); this.zoomIntent = clamp(this.zoomIntent - 0.25, -1, 1); break;
       case "Minus":
-      case "NumpadSubtract": this.zoomIntent = clamp(this.zoomIntent + 0.25, -1, 1); break;
+      case "NumpadSubtract": event.preventDefault(); this.zoomIntent = clamp(this.zoomIntent + 0.25, -1, 1); break;
       case "Space": event.preventDefault(); this.triggerPulse(); break;
       case "KeyR": this.resetPending = true; break;
       default: return;
@@ -212,15 +240,18 @@ export class InteractionController {
   }
 
   private triggerPulse(): void {
-    const pulse = accumulateEnergy(this.pulseEnergy, PULSE_ENERGY_STEP);
+    const pulse = accumulateEnergy(this.pulseCharge, PULSE_ENERGY_STEP);
     this.pulseId += 1;
+    this.pulseAge = 0;
+    this.pulsePeak = pulse.energy;
     if (pulse.release) {
-      this.pulseEnergy = 0;
-      this.releasePending = true;
-      this.releasePeakPending = true;
+      this.pulseCharge = 0;
+      this.pulsePeak = 1;
+      this.releasePulse = true;
       return;
     }
-    this.pulseEnergy = pulse.energy;
+    this.pulseCharge = pulse.energy;
+    this.releasePulse = false;
   }
 
   private clearPointerGesture(): void {

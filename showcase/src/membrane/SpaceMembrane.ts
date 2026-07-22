@@ -198,6 +198,7 @@ export class SpaceMembrane {
     setUniform(height, "uDamping", 2.4);
     setUniform(height, "uPulseEnergy", 0);
     setUniform(height, "uPulseRadius", 0);
+    setUniform(height, "uMotionScale", 1);
     setUniform(height, "uMembraneY", 0);
     setUniform(height, "uPointerUv", new THREE.Vector2(0.5, 0.5));
     setUniform(height, "uParticleTexture", null);
@@ -215,13 +216,17 @@ export class SpaceMembrane {
     const pointerUv = runtime.height.material.uniforms.uPointerUv!.value as THREE.Vector2;
     pointerUv.set(THREE.MathUtils.clamp(pointer[0] / MEMBRANE_SIZE + 0.5, 0, 1), THREE.MathUtils.clamp(pointer[2] / MEMBRANE_SIZE + 0.5, 0, 1));
     setUniform(runtime.height, "uDelta", Math.max(0, frame.deltaSeconds));
-    setUniform(runtime.height, "uTime", frame.elapsedSeconds);
-    setUniform(runtime.height, "uPulseEnergy", pulseEnergy);
-    setUniform(runtime.height, "uPulseRadius", (frame.elapsedSeconds * 0.32) % 0.72);
+    const motionScale = frame.interaction.reducedMotion ? 0.15 : 1;
+    setUniform(runtime.height, "uTime", frame.elapsedSeconds * motionScale);
+    setUniform(runtime.height, "uPulseEnergy", pulseEnergy * motionScale);
+    setUniform(runtime.height, "uPulseRadius", frame.interaction.pulseRadius / MEMBRANE_SIZE);
+    setUniform(runtime.height, "uMotionScale", motionScale);
     setUniform(runtime.height, "uMembraneY", membraneY);
     setUniform(runtime.height, "uParticleTexture", particleTexture);
     runtime.compute.compute();
-    getMembraneShaderUniforms(runtime.mesh.material).uHeightTexture.value = runtime.compute.getCurrentRenderTarget(runtime.height).texture;
+    const materialUniforms = getMembraneShaderUniforms(runtime.mesh.material);
+    materialUniforms.uHeightTexture.value = runtime.compute.getCurrentRenderTarget(runtime.height).texture;
+    materialUniforms.uDetailStrength.value = frame.interaction.reducedMotion ? 0.002 : 0.018;
   }
 
   private setTransitionOpacity(runtime: Runtime, opacity: number): void {
