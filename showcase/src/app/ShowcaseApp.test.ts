@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FrameContext, InteractionSnapshot } from "./contracts";
 import { ShowcaseApp, type ShowcaseAppFactories } from "./ShowcaseApp";
-import { QUALITY_PROFILES } from "../quality/qualityProfiles";
 
 const interaction: InteractionSnapshot = {
   pointerNdc: [0, 0], pointerWorld: [0, 0, 0], pointerVelocity: [0, 0], gravity: 1,
@@ -31,15 +30,6 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
   const cameraController = { projectPointer: vi.fn(() => [4, 5, 6] as const), update: vi.fn(() => calls.push("camera.update")), reset: vi.fn(() => calls.push("camera.reset")), dispose: vi.fn(() => calls.push("camera.dispose")) };
   const interactionController = { sample: vi.fn(() => ({ ...interaction })), dispose: vi.fn(() => calls.push("interaction.dispose")) };
 
-  // Legacy factories keep the old implementation constructible during the red phase.
-  // The assertions below require that none of them are called by the final shell.
-  const legacy = {
-    createLights: vi.fn(() => calls.push("lights")),
-    createQualityManager: vi.fn(() => ({ setMode: vi.fn(), getProfile: () => QUALITY_PROFILES.high, sample: () => null, getTransition: () => null })),
-    createProtoStar: vi.fn(() => ({ object: {}, update: vi.fn(() => calls.push("proto.update")), setQuality: vi.fn(), getShadowMaterials: () => [], dispose: vi.fn(() => calls.push("proto.dispose")) })),
-    createMembrane: vi.fn(() => ({ object: {}, update: vi.fn(() => calls.push("membrane.update")), setQuality: vi.fn(), getShadowMaterials: () => [], dispose: vi.fn(() => calls.push("membrane.dispose")) })),
-    createNebula: vi.fn(() => ({ setInteraction: vi.fn(() => calls.push("nebula.update")), setElapsedTime: vi.fn(), setQuality: vi.fn(), dispose: vi.fn(() => calls.push("nebula.dispose")) })),
-  };
   const factories = {
     now: vi.fn(() => 100),
     requestFrame: vi.fn((callback: FrameRequestCallback) => { const id = ++frameId; frameCallbacks.set(id, callback); return id; }),
@@ -52,8 +42,7 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
     createClock: vi.fn(() => clock),
     createParticles: vi.fn(() => { calls.push("particles"); return particles; }),
     createPipeline: vi.fn(() => { calls.push("pipeline"); return pipeline; }),
-    ...legacy,
-  } as unknown as ShowcaseAppFactories;
+  } satisfies ShowcaseAppFactories;
   const root = document.documentElement;
   const app = new ShowcaseApp({ canvas, root, capabilities: { webgl2: true, reducedMotion: false }, factories, testMode: true });
   const runFrame = (now = 116): void => {
@@ -62,7 +51,7 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
     frameCallbacks.clear();
     callback?.(now);
   };
-  return { app, canvas, root, calls, renderer, scene, camera, particles, pipeline, clock, cameraController, interactionController, factories, legacy, frameCallbacks, runFrame };
+  return { app, canvas, root, calls, renderer, scene, camera, particles, pipeline, clock, cameraController, interactionController, factories, frameCallbacks, runFrame };
 }
 
 describe("ShowcaseApp", () => {
@@ -143,7 +132,6 @@ describe("ShowcaseApp", () => {
     h.canvas.dispatchEvent(new Event("webglcontextrestored"));
     expect(h.factories.createParticles).toHaveBeenCalledTimes(2);
     expect(h.factories.createPipeline).toHaveBeenCalledTimes(2);
-    expect(h.legacy.createProtoStar).not.toHaveBeenCalled();
     expect(h.root.dataset.showcaseState).toBe("loading");
     h.app.dispose();
   });
