@@ -89,6 +89,23 @@ describe("ShowcaseApp", () => {
     h.app.dispose();
   });
 
+  it("falls back on compile rejection and ignores a late compile after stop", async () => {
+    const failed = makeHarness();
+    Object.assign(failed.renderer, { compileAsync: vi.fn(() => Promise.reject(new Error("shader compile failed"))) });
+    failed.app.start();
+    await Promise.resolve(); await Promise.resolve();
+    expect(failed.root.dataset.showcaseState).toBe("fallback");
+    expect(failed.root.dataset.showcaseError).toContain("shader compile failed");
+
+    let resolveCompile!: () => void;
+    const stopped = makeHarness();
+    Object.assign(stopped.renderer, { compileAsync: vi.fn(() => new Promise<void>((resolve) => { resolveCompile = resolve; })) });
+    stopped.app.start(); stopped.app.stop(); resolveCompile();
+    await Promise.resolve(); await Promise.resolve();
+    expect(stopped.frameCallbacks.size).toBe(0);
+    stopped.app.dispose();
+  });
+
   it("pauses while hidden and resumes without catch-up", () => {
     const h = makeHarness();
     h.app.start();
@@ -112,6 +129,27 @@ describe("ShowcaseApp", () => {
     Object.defineProperty(h.canvas, "clientWidth", { value: 0, configurable: true });
     window.dispatchEvent(new Event("resize")); vi.advanceTimersByTime(100);
     expect(h.pipeline.resize).toHaveBeenCalledTimes(2);
+    h.app.dispose();
+  });
+
+  it("enters fallback when settled resize allocation fails", () => {
+    vi.useFakeTimers();
+    const h = makeHarness();
+    h.pipeline.resize.mockImplementationOnce(() => { throw new Error("resize allocation failed"); });
+
+    window.dispatchEvent(new Event("resize"));
+    vi.advanceTimersByTime(100);
+
+    expect(h.root.dataset.showcaseState).toBe("fallback");
+    expect(h.root.dataset.showcaseError).toContain("resize allocation failed");
+    expect(h.app.isDisposed()).toBe(true);
+  });
+
+  it("uses a one-pixel viewport for an initially zero-sized canvas", () => {
+    const h = makeHarness({ width: 0, height: 0 });
+
+    expect(h.renderer.setSize).toHaveBeenCalledWith(1, 1, false);
+    expect(h.pipeline.resize).toHaveBeenCalledWith(1, 1, 1);
     h.app.dispose();
   });
 
@@ -153,6 +191,16 @@ describe("ShowcaseApp", () => {
     expect(h.root.dataset.showcaseState).toBe("fallback");
     expect(h.frameCallbacks.size).toBe(0);
     expect(h.calls.slice(-4)).toEqual(["pipeline.dispose", "particles.dispose", "camera.dispose", "interaction.dispose"]);
+    expect(h.renderer.dispose).toHaveBeenCalledOnce();
+  });
+
+  it("disposes an explicitly stopped app idempotently", () => {
+    const h = makeHarness();
+    h.app.start(); h.app.stop(); h.app.dispose(); h.app.dispose();
+
+    expect(h.frameCallbacks.size).toBe(0);
+    expect(h.pipeline.dispose).toHaveBeenCalledOnce();
+    expect(h.particles.dispose).toHaveBeenCalledOnce();
     expect(h.renderer.dispose).toHaveBeenCalledOnce();
   });
 

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
 import { describe, expect, it, vi } from "vitest";
 import { RenderPipeline } from "./RenderPipeline";
 
@@ -58,5 +59,42 @@ describe("RenderPipeline", () => {
     expect(renderer.toneMapping).toBe(THREE.NoToneMapping);
     expect(renderer.outputColorSpace).toBe(THREE.LinearSRGBColorSpace);
     expect(renderer.shadowMap.enabled).toBe(true);
+  });
+
+  it("disposes an unclaimed render target when composer construction fails", () => {
+    const renderer = {
+      toneMapping: THREE.NoToneMapping,
+      outputColorSpace: THREE.LinearSRGBColorSpace,
+      shadowMap: { enabled: true, type: THREE.PCFShadowMap },
+    } as unknown as THREE.WebGLRenderer;
+    const targetDispose = vi.spyOn(THREE.WebGLRenderTarget.prototype, "dispose");
+
+    expect(() => new RenderPipeline({ renderer, scene: new THREE.Scene(), camera: new THREE.PerspectiveCamera() })).toThrow();
+
+    expect(targetDispose).toHaveBeenCalledTimes(1);
+    expect(renderer.toneMapping).toBe(THREE.NoToneMapping);
+    expect(renderer.outputColorSpace).toBe(THREE.LinearSRGBColorSpace);
+    expect(renderer.shadowMap.enabled).toBe(true);
+    targetDispose.mockRestore();
+  });
+
+  it("fully disposes bloom when a later pass fails to construct", () => {
+    const renderer = rendererHarness();
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.65, 0.4, 0.55);
+    const bloomDispose = vi.spyOn(bloom, "dispose");
+    const highPassDispose = vi.spyOn(bloom.materialHighPassFilter, "dispose");
+
+    expect(() => new RenderPipeline({
+      renderer,
+      scene: new THREE.Scene(),
+      camera: new THREE.PerspectiveCamera(),
+      factories: {
+        createBloomPass: () => bloom,
+        createOutputPass: () => { throw new Error("output allocation failed"); },
+      },
+    })).toThrow("output allocation failed");
+
+    expect(bloomDispose).toHaveBeenCalledTimes(1);
+    expect(highPassDispose).toHaveBeenCalledTimes(1);
   });
 });

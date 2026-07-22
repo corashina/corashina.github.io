@@ -10,6 +10,15 @@ export type RenderPipelineOptions = {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.Camera;
+  factories?: Partial<RenderPipelineFactories>;
+};
+
+export type RenderPipelineFactories = {
+  createTarget: () => THREE.WebGLRenderTarget;
+  createComposer: (renderer: THREE.WebGLRenderer, target: THREE.WebGLRenderTarget) => EffectComposer;
+  createRenderPass: (scene: THREE.Scene, camera: THREE.Camera) => RenderPass;
+  createBloomPass: () => UnrealBloomPass;
+  createOutputPass: () => OutputPass;
 };
 
 type RendererSettings = {
@@ -18,6 +27,24 @@ type RendererSettings = {
   shadowEnabled: boolean;
   shadowType: THREE.ShadowMapType;
 };
+
+const productionFactories: RenderPipelineFactories = {
+  createTarget: () => new THREE.WebGLRenderTarget(1, 1, {
+    type: THREE.HalfFloatType,
+    format: THREE.RGBAFormat,
+    depthBuffer: true,
+  }),
+  createComposer: (renderer, target) => new EffectComposer(renderer, target),
+  createRenderPass: (scene, camera) => new RenderPass(scene, camera),
+  createBloomPass: () => new UnrealBloomPass(new THREE.Vector2(1, 1), 0.65, 0.4, 0.55),
+  createOutputPass: () => new OutputPass(),
+};
+
+function disposeBloom(pass: UnrealBloomPass): void {
+  pass.dispose();
+  // UnrealBloomPass r185 omits this owned material from dispose().
+  pass.materialHighPassFilter.dispose();
+}
 
 /** Minimal particle scene → restrained luminance bloom → display output graph. */
 export class RenderPipeline {
@@ -41,19 +68,18 @@ export class RenderPipeline {
     let renderPass: RenderPass | undefined;
     let bloomPass: UnrealBloomPass | undefined;
     let outputPass: OutputPass | undefined;
+    let target: THREE.WebGLRenderTarget | undefined;
+    const factories = { ...productionFactories, ...options.factories };
     try {
       renderer.toneMapping = THREE.AgXToneMapping;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.shadowMap.enabled = false;
-      const target = new THREE.WebGLRenderTarget(1, 1, {
-        type: THREE.HalfFloatType,
-        format: THREE.RGBAFormat,
-        depthBuffer: true,
-      });
-      composer = new EffectComposer(renderer, target);
-      renderPass = new RenderPass(scene, camera);
-      bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.65, 0.4, 0.55);
-      outputPass = new OutputPass();
+      target = factories.createTarget();
+      composer = factories.createComposer(renderer, target);
+      target = undefined;
+      renderPass = factories.createRenderPass(scene, camera);
+      bloomPass = factories.createBloomPass();
+      outputPass = factories.createOutputPass();
       composer.addPass(renderPass);
       composer.addPass(bloomPass);
       composer.addPass(outputPass);
@@ -63,8 +89,9 @@ export class RenderPipeline {
       this.outputPass = outputPass;
     } catch (error) {
       outputPass?.dispose();
-      bloomPass?.dispose();
+      if (bloomPass !== undefined) disposeBloom(bloomPass);
       composer?.dispose();
+      target?.dispose();
       this.restoreRenderer();
       throw error;
     }
@@ -85,8 +112,7 @@ export class RenderPipeline {
     if (this.disposed) return;
     this.disposed = true;
     this.outputPass.dispose();
-    this.bloomPass.dispose();
-    this.bloomPass.materialHighPassFilter.dispose();
+    disposeBloom(this.bloomPass);
     this.composer.dispose();
     this.restoreRenderer();
   }

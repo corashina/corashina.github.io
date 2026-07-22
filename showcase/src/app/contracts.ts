@@ -28,7 +28,3 @@ export interface SceneSystem {
   update(frame: FrameContext): void;
   dispose(): void;
 }
-
-export interface QualityAwareSystem<TProfile> extends SceneSystem {
-  setQuality(profile: TProfile): void;
-}

@@ -21,6 +21,40 @@ async function expectReady(page: Page): Promise<void> {
   await expect(page.locator("#showcase-canvas")).toBeVisible();
 }
 
+async function expectVisibleParticles(page: Page): Promise<void> {
+  const snapshot = await page.locator("#showcase-canvas").screenshot({
+    style: ".showcase-controls, .showcase-status { visibility: hidden !important; }",
+  });
+  const distribution = await page.evaluate(async (dataUrl) => {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error("Could not decode the rendered canvas snapshot"));
+      element.src = dataUrl;
+    });
+    const copy = document.createElement("canvas");
+    copy.width = image.naturalWidth;
+    copy.height = image.naturalHeight;
+    const context = copy.getContext("2d", { willReadFrequently: true });
+    if (context === null) throw new Error("2D canvas context unavailable");
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, copy.width, copy.height).data;
+    let dark = 0; let luminous = 0; let white = 0; let samples = 0;
+    for (let index = 0; index < pixels.length; index += 32) {
+      const red = pixels[index]!; const green = pixels[index + 1]!; const blue = pixels[index + 2]!;
+      const maximum = Math.max(red, green, blue); const minimum = Math.min(red, green, blue);
+      if (maximum < 18) dark += 1;
+      if (maximum > 36) luminous += 1;
+      if (minimum > 245) white += 1;
+      samples += 1;
+    }
+    return { dark: dark / samples, luminous: luminous / samples, white: white / samples };
+  }, `data:image/png;base64,${snapshot.toString("base64")}`);
+  expect(distribution.dark).toBeGreaterThan(0.2);
+  expect(distribution.luminous).toBeGreaterThan(0.001);
+  expect(distribution.white).toBeLessThan(0.1);
+}
+
 async function readTelemetry(page: Page): Promise<Record<string, string | null>> {
   return page.locator("html").evaluate((root, names) => Object.fromEntries(names.map((name) => [name, root.getAttribute(name)])), telemetryAttributes);
 }
@@ -42,6 +76,7 @@ test("loads the WebGL showcase at its testable production base path", async ({ p
   await page.goto("/showcase/?test=1");
   await expectReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-rendered-frames", /[1-9]\d*/);
+  await expectVisibleParticles(page);
 });
 
 test("serves direct /showcase/ navigation without test instrumentation", async ({ page }) => {

@@ -62,8 +62,7 @@ const productionFactories: ShowcaseAppFactories = {
   requestFrame: (callback) => requestAnimationFrame(callback),
   cancelFrame: (id) => cancelAnimationFrame(id),
   createRenderer: (canvas) => {
-    const capture = new URLSearchParams(window.location.search).get("capture") === "1";
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: capture });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
     renderer.shadowMap.enabled = false;
     return renderer;
   },
