@@ -24,8 +24,15 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
   const renderer = { setSize: vi.fn(), setPixelRatio: vi.fn(), dispose: vi.fn() };
   const scene = { add: vi.fn(), remove: vi.fn() };
   const camera = { aspect: 1, updateProjectionMatrix: vi.fn() };
-  const particles = { object: {}, update: vi.fn(() => calls.push("particles.update")), getPositionTexture: vi.fn(), dispose: vi.fn(() => calls.push("particles.dispose")) };
-  const pipeline = { render: vi.fn(() => calls.push("pipeline.render")), resize: vi.fn(), dispose: vi.fn(() => calls.push("pipeline.dispose")) };
+  const particles = {
+    object: {}, update: vi.fn(() => calls.push("particles.update")), setParameters: vi.fn(),
+    getPositionTexture: vi.fn(), dispose: vi.fn(() => calls.push("particles.dispose")),
+  };
+  const pipeline = {
+    render: vi.fn(() => calls.push("pipeline.render")), resize: vi.fn(),
+    setBloomStrength: vi.fn(), dispose: vi.fn(() => calls.push("pipeline.dispose")),
+  };
+  const fps = { sample: vi.fn(), reset: vi.fn(), dispose: vi.fn() };
   const clock = { advance: vi.fn((_: number, step: () => void) => { step(); return 0; }), pause: vi.fn(), resume: vi.fn() };
   const cameraController = { projectPointer: vi.fn(() => [4, 5, 6] as const), update: vi.fn(() => calls.push("camera.update")), reset: vi.fn(() => calls.push("camera.reset")), dispose: vi.fn(() => calls.push("camera.dispose")) };
   const interactionController = { sample: vi.fn(() => ({ ...interaction })), dispose: vi.fn(() => calls.push("interaction.dispose")) };
@@ -40,6 +47,7 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
     createInteractionController: vi.fn(() => { calls.push("interaction"); return interactionController; }),
     createCameraController: vi.fn(() => { calls.push("controls"); return cameraController; }),
     createClock: vi.fn(() => clock),
+    createFpsCounter: vi.fn(() => fps),
     createParticles: vi.fn(() => { calls.push("particles"); return particles; }),
     createPipeline: vi.fn(() => { calls.push("pipeline"); return pipeline; }),
   } satisfies ShowcaseAppFactories;
@@ -51,7 +59,7 @@ function makeHarness(dimensions = { width: 900, height: 500 }) {
     frameCallbacks.clear();
     callback?.(now);
   };
-  return { app, canvas, root, calls, renderer, scene, camera, particles, pipeline, clock, cameraController, interactionController, factories, frameCallbacks, runFrame };
+  return { app, canvas, root, calls, renderer, scene, camera, particles, pipeline, fps, clock, cameraController, interactionController, factories, frameCallbacks, runFrame };
 }
 
 describe("ShowcaseApp", () => {
@@ -76,6 +84,26 @@ describe("ShowcaseApp", () => {
     expect(h.cameraController.update).toHaveBeenCalledWith(expect.objectContaining({ interaction: expect.objectContaining({ pointerWorld: [4, 5, 6] }) }));
     expect(h.root.dataset.showcaseReady).toBe("true");
     h.app.dispose();
+  });
+
+  it("applies the 3x preset, routes updates, samples FPS, and reapplies after recovery", () => {
+    const h = makeHarness();
+    expect(h.particles.setParameters).toHaveBeenCalledWith(expect.objectContaining({ speed: 3 }));
+    expect(h.pipeline.setBloomStrength).toHaveBeenCalledWith(0.65);
+    h.app.setSceneParameters({
+      speed: 4, orbitStrength: 1, turbulence: 0.5, drag: 0.1,
+      particleSize: 20, bloomStrength: 1.1, pulseStrength: 1.5,
+    });
+    expect(h.particles.setParameters).toHaveBeenLastCalledWith(expect.objectContaining({ speed: 4 }));
+    expect(h.pipeline.setBloomStrength).toHaveBeenLastCalledWith(1.1);
+    h.app.start(); h.runFrame(116);
+    expect(h.fps.sample).toHaveBeenCalledWith(116);
+    h.canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
+    h.canvas.dispatchEvent(new Event("webglcontextrestored"));
+    expect(h.particles.setParameters).toHaveBeenLastCalledWith(expect.objectContaining({ speed: 4 }));
+    expect(h.root.dataset.sceneSpeed).toBe("4");
+    h.app.dispose();
+    expect(h.fps.dispose).toHaveBeenCalledOnce();
   });
 
   it("compiles before scheduling its first frame", async () => {
@@ -212,7 +240,7 @@ describe("ShowcaseApp", () => {
     h.canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true }));
 
     expect(h.root.dataset.showcaseState).toBe("fallback");
-    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"]) {
+    for (const key of ["showcaseReady", "qualityTier", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom", "sceneSpeed"]) {
       expect(h.root.dataset[key]).toBeUndefined();
     }
   });

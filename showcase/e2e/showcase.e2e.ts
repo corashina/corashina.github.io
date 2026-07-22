@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const browserErrors = new WeakMap<Page, string[]>();
 const telemetryAttributes = [
   "data-showcase-ready", "data-last-pulse", "data-last-reset", "data-reduced-motion",
-  "data-showcase-layers", "data-rendered-frames", "data-last-orbit", "data-last-zoom",
+  "data-showcase-layers", "data-rendered-frames", "data-last-orbit", "data-last-zoom", "data-scene-speed",
 ] as const;
 
 test.beforeEach(({ page }) => {
@@ -76,7 +76,23 @@ test("loads the WebGL showcase at its testable production base path", async ({ p
   await page.goto("/showcase/?test=1");
   await expectReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-rendered-frames", /[1-9]\d*/);
+  await expect(page.locator("html")).toHaveAttribute("data-scene-speed", "3");
   await expectVisibleParticles(page);
+});
+
+test("exposes live particle controls, fps, reset, and collapse", async ({ page }) => {
+  await page.goto("/showcase/?test=1");
+  await expectReady(page);
+  await expect(page.locator("[data-fps]")).toHaveText(/\d+ FPS/);
+  const speed = page.locator('[data-parameter="speed"]');
+  await expect(speed).toHaveValue("3");
+  await speed.fill("4.5");
+  await expect(page.locator("html")).toHaveAttribute("data-scene-speed", "4.5");
+  await page.getByRole("button", { name: "Reset parameters" }).click();
+  await expect(speed).toHaveValue("3");
+  const toggle = page.getByRole("button", { name: "Toggle Particle Lab" });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
 });
 
 test("serves direct /showcase/ navigation without test instrumentation", async ({ page }) => {
@@ -120,6 +136,7 @@ test("creates a pulse from a touch PointerEvent sequence at a mobile viewport", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/showcase/?test=1");
   await expectReady(page);
+  await expect(page.getByRole("button", { name: "Toggle Particle Lab" })).toHaveAttribute("aria-expanded", "false");
   await page.evaluate(() => {
     const canvas = document.querySelector<HTMLCanvasElement>("#showcase-canvas")!;
     const init = { bubbles: true, pointerType: "touch", pointerId: 7, clientX: 160, clientY: 300 };

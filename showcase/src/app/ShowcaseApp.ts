@@ -5,6 +5,12 @@ import { MAX_PIXEL_RATIO } from "../particles/particleConfig";
 import { ParticleSimulation } from "../particles/ParticleSimulation";
 import { RenderPipeline } from "../rendering/RenderPipeline";
 import { FixedStepClock } from "../runtime/FixedStepClock";
+import {
+  DEFAULT_SCENE_PARAMETERS,
+  normalizeSceneParameters,
+  type SceneParameters,
+} from "../runtime/SceneParameters";
+import { FpsCounter, type FpsSampler } from "../ui/FpsCounter";
 import type { CapabilityReport } from "./capabilities";
 import type { FrameContext, InteractionSnapshot } from "./contracts";
 
@@ -24,8 +30,12 @@ type Renderer = Disposable & {
 };
 type Scene = { add(...objects: unknown[]): void; remove(...objects: unknown[]): void };
 type Camera = { aspect: number; updateProjectionMatrix(): void };
-type ParticleSystem = Disposable & { object: unknown; update(frame: FrameContext): void };
-type Pipeline = Disposable & { render(frame: Pick<FrameContext, "deltaSeconds">): void; resize(width: number, height: number, dpr: number): void };
+type ParticleSystem = Disposable & { object: unknown; update(frame: FrameContext): void; setParameters(parameters: SceneParameters): void };
+type Pipeline = Disposable & {
+  render(frame: Pick<FrameContext, "deltaSeconds">): void;
+  resize(width: number, height: number, dpr: number): void;
+  setBloomStrength(strength: number): void;
+};
 type Clock = { advance(nowMs: number, step: () => void): number; pause(): void; resume(nowMs: number): void };
 type CameraControls = { projectPointer(pointer: readonly [number, number]): readonly [number, number, number]; update(frame: FrameContext): void; dispose?: () => void };
 type InteractionControls = Disposable & { sample(deltaSeconds: number): InteractionSnapshot };
@@ -40,6 +50,7 @@ export type ShowcaseAppFactories = {
   createInteractionController: (input: { canvas: HTMLCanvasElement; reducedMotion: boolean }) => InteractionControls;
   createCameraController: (input: { camera: Camera; reducedMotion: boolean }) => CameraControls;
   createClock: () => Clock;
+  createFpsCounter: (publish: (fps: number) => void) => FpsSampler;
   createParticles: (renderer: Renderer) => ParticleSystem;
   createPipeline: (input: { renderer: Renderer; scene: Scene; camera: Camera; particles: ParticleSystem }) => Pipeline;
 };
@@ -53,6 +64,7 @@ export type ShowcaseAppOptions = {
   factories?: Partial<ShowcaseAppFactories>;
   onStateChange?: (state: "loading" | "ready" | "recovering" | "fallback", message?: string) => void;
   onFirstFrame?: () => void;
+  onFps?: (fps: number) => void;
 };
 
 type GpuSystems = { particles: ParticleSystem; pipeline: Pipeline };
@@ -75,6 +87,7 @@ const productionFactories: ShowcaseAppFactories = {
   createInteractionController: ({ canvas, reducedMotion }) => new InteractionController({ canvas, eventTarget: window, reducedMotion }),
   createCameraController: ({ camera, reducedMotion }) => new CameraController(camera as THREE.PerspectiveCamera, CAMERA_BOUNDS, reducedMotion),
   createClock: () => new FixedStepClock(STEP_SECONDS),
+  createFpsCounter: (publish) => new FpsCounter(publish),
   createParticles: (renderer) => new ParticleSimulation(renderer as THREE.WebGLRenderer),
   createPipeline: ({ renderer, scene, camera }) => new RenderPipeline({
     renderer: renderer as THREE.WebGLRenderer,
@@ -93,7 +106,9 @@ export class ShowcaseApp {
   private readonly interactionController: InteractionControls;
   private readonly cameraController: CameraControls;
   private readonly clock: Clock;
+  private readonly fpsCounter: FpsSampler;
   private systems: GpuSystems;
+  private parameters: SceneParameters = { ...DEFAULT_SCENE_PARAMETERS };
   private rafId: number | null = null;
   private running = false;
   private desiredRunning = false;
@@ -123,7 +138,9 @@ export class ShowcaseApp {
       this.interactionController = this.factories.createInteractionController({ canvas: options.canvas, reducedMotion: options.capabilities.reducedMotion });
       this.cameraController = this.factories.createCameraController({ camera: this.camera, reducedMotion: options.capabilities.reducedMotion });
       this.clock = this.factories.createClock();
+      this.fpsCounter = this.factories.createFpsCounter(options.onFps ?? (() => undefined));
       this.systems = this.createGpuSystems();
+      this.applyParameters();
       this.setTestLayersReady();
       this.frame = { deltaSeconds: 0, elapsedSeconds: 0, interaction: { ...EMPTY_INTERACTION, reducedMotion: options.capabilities.reducedMotion } };
       this.resize();
@@ -162,6 +179,13 @@ export class ShowcaseApp {
     this.cameraController.update({ ...this.frame, interaction: { ...this.frame.interaction, resetRequested: true } });
   }
 
+  setSceneParameters(parameters: SceneParameters): void {
+    if (this.disposed) return;
+    this.parameters = normalizeSceneParameters(parameters, this.parameters);
+    this.applyParameters();
+    if (this.testMode) this.root.dataset.sceneSpeed = String(this.parameters.speed);
+  }
+
   isDisposed(): boolean { return this.disposed; }
 
   dispose(): void {
@@ -178,6 +202,7 @@ export class ShowcaseApp {
     for (const cleanup of this.cleanups) cleanup();
     this.cleanups.clear();
     this.disposeGpuSystems();
+    this.fpsCounter.dispose();
     this.cameraController.dispose?.();
     this.interactionController.dispose();
     this.renderer.dispose();
@@ -242,12 +267,13 @@ export class ShowcaseApp {
   }
 
   private disposePartiallyConstructed(): void {
-    const partial = this as unknown as { systems?: GpuSystems; scene?: Scene; cameraController?: CameraControls; interactionController?: InteractionControls; renderer?: Renderer };
+    const partial = this as unknown as { systems?: GpuSystems; scene?: Scene; fpsCounter?: FpsSampler; cameraController?: CameraControls; interactionController?: InteractionControls; renderer?: Renderer };
     if (partial.systems !== undefined) {
       partial.systems.pipeline.dispose();
       partial.systems.particles.dispose();
       partial.scene?.remove(partial.systems.particles.object);
     }
+    partial.fpsCounter?.dispose();
     partial.cameraController?.dispose?.();
     partial.interactionController?.dispose();
     partial.renderer?.dispose();
@@ -264,6 +290,7 @@ export class ShowcaseApp {
       this.lastFrameNowMs = nowMs;
       this.clock.advance(nowMs, () => this.step());
       this.systems.pipeline.render(this.frame);
+      this.fpsCounter.sample(nowMs);
       this.recordTestFrame();
       if (this.firstFrame) {
         this.firstFrame = false;
@@ -295,7 +322,7 @@ export class ShowcaseApp {
 
   private readonly onVisibilityChange = (): void => {
     if (this.disposed) return;
-    if (document.hidden) { this.clock.pause(); this.pauseFrameLoop(); return; }
+    if (document.hidden) { this.clock.pause(); this.fpsCounter.reset(); this.pauseFrameLoop(); return; }
     this.clock.resume(this.factories.now());
     this.lastFrameNowMs = this.factories.now();
     if (this.desiredRunning) this.start();
@@ -346,6 +373,7 @@ export class ShowcaseApp {
     this.compileGeneration += 1;
     this.compiling = false;
     this.compiled = false;
+    this.fpsCounter.reset();
     this.pauseFrameLoop();
     this.firstFrame = true;
     if (this.testMode) delete this.root.dataset.showcaseReady;
@@ -357,6 +385,7 @@ export class ShowcaseApp {
     try {
       this.disposeGpuSystems();
       this.systems = this.createGpuSystems();
+      this.applyParameters();
       this.resize();
       this.recovering = false;
       this.compiled = false;
@@ -378,6 +407,7 @@ export class ShowcaseApp {
     if (!this.testMode) return;
     this.root.dataset.showcaseLayers = "1";
     this.root.dataset.reducedMotion = String(this.options.capabilities.reducedMotion);
+    this.root.dataset.sceneSpeed = String(this.parameters.speed);
   }
 
   private recordTestFrame(): void {
@@ -386,9 +416,14 @@ export class ShowcaseApp {
 
   private clearTestTelemetry(): void {
     if (!this.testMode) return;
-    for (const key of ["showcaseReady", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) {
+    for (const key of ["showcaseReady", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom", "sceneSpeed"] as const) {
       delete this.root.dataset[key];
     }
+  }
+
+  private applyParameters(): void {
+    this.systems.particles.setParameters(this.parameters);
+    this.systems.pipeline.setBloomStrength(this.parameters.bloomStrength);
   }
 
   private showFallback(message: string): void {

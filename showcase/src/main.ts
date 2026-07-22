@@ -1,8 +1,10 @@
 import { ShowcaseApp, type ShowcaseAppOptions } from "./app/ShowcaseApp";
 import { detectCapabilities } from "./app/capabilities";
+import { DEFAULT_SCENE_PARAMETERS } from "./runtime/SceneParameters";
+import { ParameterPanel } from "./ui/ParameterPanel";
 import "./styles.css";
 
-type AppControls = Pick<ShowcaseApp, "start" | "resetView" | "dispose"> & { registerCleanup?: (cleanup: () => void) => void };
+type AppControls = Pick<ShowcaseApp, "start" | "resetView" | "setSceneParameters" | "dispose"> & { registerCleanup?: (cleanup: () => void) => void };
 export type BootstrapOptions = {
   document?: Document;
   media?: typeof window.matchMedia;
@@ -15,6 +17,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const activeDocument = options.document ?? document;
   const canvas = activeDocument.querySelector<HTMLCanvasElement>("#showcase-canvas");
   const status = activeDocument.querySelector<HTMLElement>(".showcase-status");
+  const fpsOutput = activeDocument.querySelector<HTMLOutputElement>("[data-fps]");
   const root = activeDocument.documentElement;
   if (canvas === null) return null;
 
@@ -23,7 +26,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
   const testMode = options.testMode ?? query.get("test") === "1";
   const capabilities = detectCapabilities(canvas, media);
   const clearTestTelemetry = (): void => {
-    for (const key of ["showcaseReady", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom"] as const) delete root.dataset[key];
+    for (const key of ["showcaseReady", "lastPulse", "lastReset", "reducedMotion", "showcaseLayers", "renderedFrames", "lastOrbit", "lastZoom", "sceneSpeed"] as const) delete root.dataset[key];
   };
   const updateStatus = (state: "loading" | "ready" | "recovering" | "fallback", message?: string): void => {
     if (status === null) return;
@@ -52,9 +55,20 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
         else root.dataset.showcaseError = message;
         updateStatus(state, message);
       },
+      onFps: (fps) => { if (fpsOutput !== null) fpsOutput.value = `${fps} FPS`; },
     });
   } catch (error) {
     return showFallback(error instanceof Error ? error.message : "The interactive scene could not be created.");
+  }
+  const panelRoot = activeDocument.querySelector<HTMLElement>(".particle-lab");
+  if (panelRoot !== null) {
+    const panel = new ParameterPanel({
+      root: panelRoot,
+      initial: { ...DEFAULT_SCENE_PARAMETERS },
+      collapsed: media("(max-width: 700px)").matches,
+      onChange: (parameters) => app.setSceneParameters(parameters),
+    });
+    app.registerCleanup?.(() => panel.dispose());
   }
   const reset = activeDocument.querySelector<HTMLButtonElement>("button[type='button']");
   const onReset = (): void => { try { app.resetView(); } catch (error) { showFallback(error instanceof Error ? error.message : "View reset failed.", app); } };
