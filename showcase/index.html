@@ -16,6 +16,15 @@
         <p class="interaction-hint">Drag to orbit · Scroll to zoom · Click or tap to pulse</p>
         <button type="button">Reset view</button>
       </section>
+      <aside class="particle-lab" aria-label="Particle Lab controls">
+        <header class="particle-lab__header">
+          <strong>Particle Lab</strong>
+          <output class="particle-lab__fps" data-fps aria-live="off">-- FPS</output>
+          <button class="particle-lab__toggle" type="button" data-panel-toggle aria-label="Toggle Particle Lab">⌃</button>
+        </header>
+        <div class="particle-lab__body" data-panel-body></div>
+        <button class="particle-lab__reset" type="button" data-parameter-reset>Reset parameters</button>
+      </aside>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

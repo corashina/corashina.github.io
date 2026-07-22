@@ -50,6 +50,78 @@ body { margin: 0; overflow: hidden; }
 .interaction-hint { margin: 0; }
 button { font: inherit; }
 
+.particle-lab {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  right: 1rem;
+  width: min(19rem, calc(100vw - 2rem));
+  padding: 0.85rem;
+  border: 1px solid rgb(174 222 255 / 20%);
+  border-radius: 0.9rem;
+  background: rgb(3 5 13 / 78%);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 28%);
+  backdrop-filter: blur(14px);
+}
+
+.particle-lab__header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.particle-lab__fps {
+  color: #80f4ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.particle-lab__toggle, .particle-lab__reset {
+  color: inherit;
+  border: 1px solid rgb(174 222 255 / 28%);
+  background: rgb(14 26 48 / 82%);
+}
+
+.particle-lab__body {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.particle-lab__control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.3rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.particle-lab__control output {
+  color: #b9f8ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.particle-lab__control input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #6debf5;
+}
+
+.particle-lab__reset {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+}
+
+.particle-lab button:focus-visible, .particle-lab input:focus-visible {
+  outline: 2px solid #8ff7ff;
+  outline-offset: 2px;
+}
+
+.particle-lab[data-collapsed="true"] .particle-lab__reset {
+  display: none;
+}
+
 html[data-showcase-state="ready"] .showcase-fallback,
 html[data-showcase-state="fallback"] #showcase-canvas {
   display: none;
@@ -60,4 +132,16 @@ html[data-showcase-state="ready"] .showcase-status { display: none; }
 html[data-showcase-state="recovering"] .showcase-controls,
 html[data-showcase-state="fallback"] .showcase-controls {
   display: none;
+}
+
+html[data-showcase-state="recovering"] .particle-lab,
+html[data-showcase-state="fallback"] .particle-lab {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .particle-lab {
+    width: auto;
+    min-width: 12rem;
+  }
 }
