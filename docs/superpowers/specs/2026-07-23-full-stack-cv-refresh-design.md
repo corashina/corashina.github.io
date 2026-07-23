@@ -227,16 +227,21 @@ The folder must contain:
 - `Tomasz-Zielinski-Full-Stack-CV.docx`
 - `Tomasz-Zielinski-Full-Stack-CV.pdf`
 - `sources/current-editable-cv.docx`
-- `sources/Xelto-CV-Experience-Shareable.docx`
-- `sources/xelto-proof-of-work-README.md`
+- `sources/xelto-public-evidence.md`
 - `sources/website-projects.ts`
 - `sources/website-contact.tsx`
 - `sources/source-manifest.md`
 
 `source-manifest.md` must record each source's original absolute path, copied
-filename, SHA-256 hash, and the facts it contributed. The copied evidence must
-remain public-safe. Do not copy the full XELTO workspace, repositories, or
-non-shareable CV insert.
+filename or `not copied` status, SHA-256 hash, and the facts it contributed.
+`xelto-public-evidence.md` must be generated from the approved CV content model
+and contain only the public-safe role progression, responsibilities, product
+categories, and technology coverage used in the CV.
+
+The raw Xelto DOCX and proof-of-work README contain excluded client names and
+private metrics. Record their paths and hashes in the manifest, but do not copy
+them into the evidence folder. Do not copy the full XELTO workspace,
+repositories, or non-shareable CV insert.
 
 Original source files must remain unchanged.
 
@@ -303,5 +308,6 @@ evidence folder.
 - Contact and profile links are current and clickable.
 - DOCX and PDF are generated from the same structured content.
 - Both pages pass visual QA.
-- The evidence folder contains all and only the approved supporting files with
-  a source manifest.
+- The evidence folder contains all and only the approved public-safe supporting
+  files, a sanitized Xelto evidence summary, and a source manifest that records
+  uncopied raw-source hashes.

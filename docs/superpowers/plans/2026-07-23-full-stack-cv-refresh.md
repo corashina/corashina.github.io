@@ -4,7 +4,7 @@
 
 **Goal:** Build a recruiter-first, public-safe, two-page Full-Stack Engineer CV and a self-contained evidence folder from the approved local sources.
 
-**Architecture:** Separate verified CV content from rendering so DOCX and PDF consume one structured data model. Extend the existing Python generator with explicit two-page Word/PDF layouts, then use a dedicated packager to copy only approved public-safe sources and produce a SHA-256 manifest.
+**Architecture:** Separate verified CV content from rendering so DOCX and PDF consume one structured data model. Extend the existing Python generator with explicit two-page Word/PDF layouts, then use a dedicated packager to copy approved public-safe sources, generate a sanitized Xelto evidence summary, and record SHA-256 hashes for raw evidence without copying it.
 
 **Tech Stack:** Python 3.13, python-docx, ReportLab, pypdf, Poppler, Aspose.Words diagnostic renderer, unittest
 
@@ -20,7 +20,7 @@
 - List University of Southampton, BSc Computer Science, July 2020.
 - Keep current phone, email, website, GitHub, and LinkedIn links.
 - Preserve all original source files.
-- Package only approved public-safe supporting files.
+- Package only approved public-safe supporting files; record but do not copy raw Xelto evidence that contains excluded metrics or client names.
 - Generate DOCX and PDF from the same structured content model.
 
 ---
@@ -767,21 +767,11 @@ def package_cv(output_dir: Path, cv_docx: Path, cv_pdf: Path) -> Path:
     sources_dir = output_dir / "sources"
     sources_dir.mkdir(parents=True, exist_ok=True)
 
-    source_map = (
+    copied_sources = (
         (
             "current-editable-cv.docx",
             Path(r"C:\Users\Tomasz\Documents\Projects\corashina.github.io\output\docx\tomasz_zielinski_editable.docx"),
             "Baseline reconstructed CV, early experience, education, contact details, consent, and visual reference.",
-        ),
-        (
-            "Xelto-CV-Experience-Shareable.docx",
-            Path(r"C:\Users\Tomasz\Downloads\Xelto-CV-Experience-Shareable.docx"),
-            "Public-safe Xelto role progression, responsibilities, product scope, and technology coverage.",
-        ),
-        (
-            "xelto-proof-of-work-README.md",
-            Path(r"C:\Users\Tomasz\Documents\Work\XELTO\deliverables\xelto-proof-of-work\README.md"),
-            "Corroborating public-safe product categories and technology coverage.",
         ),
         (
             "website-projects.ts",
@@ -794,14 +784,42 @@ def package_cv(output_dir: Path, cv_docx: Path, cv_pdf: Path) -> Path:
             "Public email, GitHub, LinkedIn, and portfolio links.",
         ),
     )
+    uncopied_sources = (
+        (
+            "not copied",
+            Path(r"C:\Users\Tomasz\Downloads\Xelto-CV-Experience-Shareable.docx"),
+            "Raw Xelto role and technology evidence; excluded metrics and client names prevent copying.",
+        ),
+        (
+            "not copied",
+            Path(r"C:\Users\Tomasz\Documents\Work\XELTO\deliverables\xelto-proof-of-work\README.md"),
+            "Raw corroborating work evidence; excluded metrics and client names prevent copying.",
+        ),
+    )
 
     shutil.copy2(cv_docx, output_dir / "Tomasz-Zielinski-Full-Stack-CV.docx")
     shutil.copy2(cv_pdf, output_dir / "Tomasz-Zielinski-Full-Stack-CV.pdf")
-    for copied_name, source_path, _ in source_map:
+    for copied_name, source_path, _ in copied_sources:
         shutil.copy2(source_path, sources_dir / copied_name)
 
+    sanitized_evidence = sources_dir / "xelto-public-evidence.md"
+    sanitized_evidence.write_text(
+        "# Public-Safe Xelto CV Evidence\n\n"
+        "## Role progression\n\n"
+        "- Junior Frontend Developer, 2021–2024\n"
+        "- Full-Stack Engineer, 2024–2026\n\n"
+        "## Approved scope\n\n"
+        "- Business platforms, integrations, mobile applications, logistics, manufacturing, workflow automation, e-invoicing, and document AI.\n"
+        "- React/TypeScript, REST/JWT, React Native/Expo, Flutter, .NET/C#, XSLT/XML, n8n, Oracle JD Edwards, GitHub Actions, and npm package delivery.\n"
+        "- No private repository metrics, client names, source code, internal URLs, credentials, tickets, or customer data are included.\n",
+        encoding="utf-8",
+    )
+
     manifest = sources_dir / "source-manifest.md"
-    manifest.write_text(build_manifest(source_map), encoding="utf-8")
+    manifest.write_text(
+        build_manifest((*copied_sources, *uncopied_sources)),
+        encoding="utf-8",
+    )
     return manifest
 ```
 
@@ -863,7 +881,9 @@ Expected: both files exist and are non-empty.
 & 'C:\Users\Tomasz\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' scripts\package_full_stack_cv.py --docx tmp\Tomasz-Zielinski-Full-Stack-CV.docx --pdf tmp\Tomasz-Zielinski-Full-Stack-CV.pdf --output-dir output\cv-full-stack-2026
 ```
 
-Expected: final DOCX, PDF, five approved copied sources, and the manifest exist.
+Expected: final DOCX, PDF, three approved copied sources, one generated
+public-safe Xelto evidence summary, and the manifest exist. The two raw Xelto
+sources appear only as original paths and hashes in the manifest.
 
 - [ ] **Step 4: Render the final DOCX**
 
