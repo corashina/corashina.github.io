@@ -6,7 +6,8 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.style import WD_STYLE_TYPE
-from docx.enum.text import WD_BREAK, WD_LINE_SPACING, WD_TAB_ALIGNMENT
+from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_LINE_SPACING, WD_TAB_ALIGNMENT
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -17,12 +18,17 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
 
-SERIF_FONT = "Georgia"
-SANS_FONT = "Arial"
+SERIF_FONT = "Times New Roman"
+SANS_FONT = "Calibri"
 INK = RGBColor(0x11, 0x11, 0x11)
 MUTED = RGBColor(0x88, 0x88, 0x88)
-CONTENT_WIDTH = Inches(7.5)
+CONTENT_WIDTH = Inches(7.375)
 PDF_MUTED = Color(0.53, 0.53, 0.53)
+WEBSITE_TEXT = "corashina.github.io"
+WEBSITE_URL = "https://corashina.github.io"
+EMAIL_TEXT = "corashina@gmail.com"
+EMAIL_URL = "mailto:corashina@gmail.com"
+PHONE_TEXT = "+48 791 748 226"
 
 
 @dataclass(frozen=True)
@@ -103,7 +109,7 @@ def add_hyperlink(paragraph, text: str, url: str, color: str = "888888") -> None
     run_properties.append(fonts)
 
     size = OxmlElement("w:sz")
-    size.set(qn("w:val"), "19")
+    size.set(qn("w:val"), "20")
     run_properties.append(size)
 
     run_color = OxmlElement("w:color")
@@ -126,32 +132,51 @@ def _add_right_tab(paragraph) -> None:
     paragraph.paragraph_format.tab_stops.add_tab_stop(CONTENT_WIDTH, WD_TAB_ALIGNMENT.RIGHT)
 
 
-def add_title_date(document: Document, title_runs: tuple[tuple[str, bool], ...], date: str) -> None:
+def add_title_date(
+    document: Document,
+    title_runs: tuple[tuple[str, bool], ...],
+    date: str,
+    *,
+    before: float | None = None,
+):
     paragraph = document.add_paragraph(style="CV Entry")
+    if before is not None:
+        paragraph.paragraph_format.space_before = Pt(before)
     paragraph.paragraph_format.keep_with_next = True
     _add_right_tab(paragraph)
 
     for text, bold in title_runs:
         run = paragraph.add_run(text)
-        _set_font(run, SANS_FONT, 9.4, INK, bold=bold)
+        _set_font(run, SANS_FONT, 9, INK, bold=bold)
 
     paragraph.add_run("\t")
     date_run = paragraph.add_run(date)
-    _set_font(date_run, SANS_FONT, 9.2, MUTED)
+    _set_font(date_run, SANS_FONT, 9, MUTED)
+    return paragraph
 
 
-def _add_description(document: Document, text: str, *, before: float = 0) -> None:
+def _add_description(
+    document: Document,
+    text: str,
+    *,
+    before: float = 0,
+    after: float | None = None,
+):
     paragraph = document.add_paragraph(style="CV Description")
     paragraph.paragraph_format.space_before = Pt(before)
+    if after is not None:
+        paragraph.paragraph_format.space_after = Pt(after)
     paragraph.add_run(text)
+    return paragraph
 
 
-def _add_labeled_line(document: Document, label: str, value: str) -> None:
-    paragraph = document.add_paragraph(style="CV Description")
+def _add_labeled_line(document: Document, label: str, value: str, *, after: float) -> None:
+    paragraph = document.add_paragraph(style="CV Skill")
+    paragraph.paragraph_format.space_after = Pt(after)
     label_run = paragraph.add_run(label)
-    _set_font(label_run, SANS_FONT, 9.3, INK, bold=True)
+    _set_font(label_run, SANS_FONT, 9, INK, bold=True)
     value_run = paragraph.add_run(value)
-    _set_font(value_run, SANS_FONT, 9.3, INK)
+    _set_font(value_run, SANS_FONT, 9, INK)
 
 
 def _next_numbering_id(numbering, element_name: str, attribute_name: str) -> int:
@@ -246,7 +271,7 @@ def configure_document(document: Document) -> None:
     section = document.sections[0]
     section.page_width = Inches(8.5)
     section.page_height = Inches(11)
-    section.top_margin = Inches(0.52)
+    section.top_margin = Inches(0.398)
     section.bottom_margin = Inches(0.42)
     section.left_margin = Inches(0.5)
     section.right_margin = Inches(0.5)
@@ -254,68 +279,139 @@ def configure_document(document: Document) -> None:
     section.footer_distance = Inches(0.2)
 
     normal = document.styles["Normal"]
-    _set_style_font(normal, SANS_FONT, 9.3, INK)
+    _set_style_font(normal, SANS_FONT, 9, INK)
     normal.paragraph_format.space_before = Pt(0)
     normal.paragraph_format.space_after = Pt(0)
     normal.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     heading = document.styles["Heading 1"]
-    _set_style_font(heading, SERIF_FONT, 18, MUTED)
+    _set_style_font(heading, SERIF_FONT, 16, MUTED)
     heading.paragraph_format.space_before = Pt(9)
     heading.paragraph_format.space_after = Pt(5)
     heading.paragraph_format.keep_with_next = True
     heading.paragraph_format.keep_together = True
 
     title = _add_style(document, "CV Title")
-    _set_style_font(title, SERIF_FONT, 30, INK)
+    _set_style_font(title, SERIF_FONT, 28, INK)
     title.paragraph_format.space_before = Pt(0)
     title.paragraph_format.space_after = Pt(8)
     title.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
+    contact = _add_style(document, "CV Contact")
+    _set_style_font(contact, SANS_FONT, 10, MUTED)
+    contact.paragraph_format.space_before = Pt(0)
+    contact.paragraph_format.space_after = Pt(0)
+    contact.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
     entry = _add_style(document, "CV Entry")
-    _set_style_font(entry, SANS_FONT, 9.4, INK, bold=True)
+    _set_style_font(entry, SANS_FONT, 9, INK, bold=True)
     entry.paragraph_format.space_before = Pt(2.5)
     entry.paragraph_format.space_after = Pt(0)
     entry.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    entry.paragraph_format.left_indent = Pt(3.8)
 
     description = _add_style(document, "CV Description")
-    _set_style_font(description, SANS_FONT, 9.3, INK)
+    _set_style_font(description, SANS_FONT, 9, INK)
     description.paragraph_format.space_before = Pt(0)
     description.paragraph_format.space_after = Pt(1)
     description.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    description.paragraph_format.left_indent = Pt(3.8)
+
+    skill = _add_style(document, "CV Skill")
+    _set_style_font(skill, SANS_FONT, 9, INK)
+    skill.paragraph_format.space_before = Pt(0)
+    skill.paragraph_format.space_after = Pt(10.3)
+    skill.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     bullet = _add_style(document, "CV Bullet")
-    _set_style_font(bullet, SANS_FONT, 9.3, INK)
+    _set_style_font(bullet, SANS_FONT, 9, INK)
     bullet.paragraph_format.space_before = Pt(0)
     bullet.paragraph_format.space_after = Pt(0)
     bullet.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     footer = _add_style(document, "CV Footer")
-    _set_style_font(footer, SANS_FONT, 8.4, INK)
-    footer.paragraph_format.space_before = Pt(10)
+    _set_style_font(footer, SANS_FONT, 9, INK)
+    footer.paragraph_format.space_before = Pt(30.5)
     footer.paragraph_format.space_after = Pt(0)
     footer.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
 
+def _set_cell_margins(cell, value: int = 0) -> None:
+    cell_properties = cell._tc.get_or_add_tcPr()
+    margins = cell_properties.first_child_found_in("w:tcMar")
+    if margins is None:
+        margins = OxmlElement("w:tcMar")
+        cell_properties.append(margins)
+    for edge in ("top", "left", "bottom", "right"):
+        element = margins.find(qn(f"w:{edge}"))
+        if element is None:
+            element = OxmlElement(f"w:{edge}")
+            margins.append(element)
+        element.set(qn("w:w"), str(value))
+        element.set(qn("w:type"), "dxa")
+
+
+def _set_header_table_geometry(table) -> None:
+    column_widths = (7800, 2880)
+    table_properties = table._tbl.tblPr
+
+    table_width = table_properties.first_child_found_in("w:tblW")
+    table_width.set(qn("w:type"), "dxa")
+    table_width.set(qn("w:w"), str(sum(column_widths)))
+
+    table_indent = table_properties.first_child_found_in("w:tblInd")
+    if table_indent is None:
+        table_indent = OxmlElement("w:tblInd")
+        table_properties.append(table_indent)
+    table_indent.set(qn("w:type"), "dxa")
+    table_indent.set(qn("w:w"), "0")
+
+    grid = table._tbl.tblGrid
+    for column in list(grid):
+        grid.remove(column)
+    for width in column_widths:
+        column = OxmlElement("w:gridCol")
+        column.set(qn("w:w"), str(width))
+        grid.append(column)
+
+
 def _add_header(document: Document) -> None:
-    paragraph = document.add_paragraph(style="CV Title")
-    _add_right_tab(paragraph)
+    table = document.add_table(rows=1, cols=2)
+    table.autofit = False
+    left, right = table.rows[0].cells
+    left.width = Inches(5.417)
+    right.width = Inches(2.0)
+    _set_header_table_geometry(table)
+    for cell in (left, right):
+        _set_cell_margins(cell)
+        cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
 
-    name = paragraph.add_run("Tomasz Zielinski")
-    _set_font(name, SERIF_FONT, 30, INK)
-    paragraph.add_run("\t")
-    add_hyperlink(paragraph, "www.zielin.ski", "https://www.zielin.ski")
+    name_paragraph = left.paragraphs[0]
+    name_paragraph.style = "CV Title"
+    name = name_paragraph.add_run("Tomasz Zielinski")
+    _set_font(name, SERIF_FONT, 28, INK)
 
-    line_break = paragraph.add_run()
+    contact = right.paragraphs[0]
+    contact.style = "CV Contact"
+    contact.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    contact.paragraph_format.line_spacing = Pt(12)
+    add_hyperlink(contact, WEBSITE_TEXT, WEBSITE_URL)
+
+    line_break = contact.add_run()
     line_break.add_break(WD_BREAK.LINE)
-    paragraph.add_run("\t")
-    add_hyperlink(paragraph, "contact@zielin.ski", "mailto:contact@zielin.ski")
+    add_hyperlink(contact, EMAIL_TEXT, EMAIL_URL)
 
-    line_break = paragraph.add_run()
+    line_break = contact.add_run()
     line_break.add_break(WD_BREAK.LINE)
-    paragraph.add_run("\t")
-    phone = paragraph.add_run("07519554924")
-    _set_font(phone, SANS_FONT, 9.5, MUTED)
+    phone = contact.add_run(PHONE_TEXT)
+    _set_font(phone, SANS_FONT, 10, MUTED)
+
+
+def _add_heading(document: Document, text: str, *, before: float, after: float):
+    paragraph = document.add_heading(text, level=1)
+    paragraph.paragraph_format.space_before = Pt(before)
+    paragraph.paragraph_format.space_after = Pt(after)
+    return paragraph
 
 
 def build_cv(output_path: Path) -> Path:
@@ -331,7 +427,7 @@ def build_cv(output_path: Path) -> Path:
     bullet_number_id = _create_bullet_numbering(document)
     _add_header(document)
 
-    document.add_heading("Professional Experience", level=1)
+    _add_heading(document, "Professional Experience", before=13, after=17.7)
     add_title_date(
         document,
         (("Freelance Web Development", True), ("  ·  Poznan, Poland", True)),
@@ -345,7 +441,7 @@ def build_cv(output_path: Path) -> Path:
     )
     _add_bullet(document, "Developed using primarily MERN stack", bullet_number_id)
 
-    document.add_heading("Education", level=1)
+    _add_heading(document, "Education", before=18.9, after=17.7)
     add_title_date(
         document,
         (("University of Southampton", True), ("  ·  Southampton, United Kingdom", True)),
@@ -353,39 +449,51 @@ def build_cv(output_path: Path) -> Path:
     )
     _add_description(document, "Bachelor of Science in Computer Science, expected in July 2020")
     coursework = document.add_paragraph(style="CV Description")
-    coursework.paragraph_format.space_before = Pt(4)
+    coursework.paragraph_format.space_before = Pt(5.9)
+    coursework.paragraph_format.left_indent = Pt(3.8)
     label = coursework.add_run("Relevant Coursework: ")
-    _set_font(label, SANS_FONT, 9.3, INK, bold=True)
+    _set_font(label, SANS_FONT, 9, INK, bold=True)
     value = coursework.add_run(
         "Algorithmics, Cloud Application Development, Computer Systems, Data Management,\n"
         "Distributed Systems and Networks, Theory of Computing, Intelligent Systems, Web Infrastructure"
     )
-    _set_font(value, SANS_FONT, 9.3, INK)
+    _set_font(value, SANS_FONT, 9, INK)
 
     add_title_date(
         document,
         (("Poznan University of Technology", True), ("  ·  Poznan, Poland", True)),
         "August 2016 - May 2017",
+        before=21.5,
     )
     _add_description(
         document,
         "First-year Bachelor of Science in Information Engineering, Faculty of Electrical Engineering",
     )
 
-    document.add_heading("Projects", level=1)
-    for project in PROJECTS:
+    _add_heading(document, "Projects", before=16.8, after=17.8)
+    for index, project in enumerate(PROJECTS):
         add_title_date(document, project.title_runs, project.date)
         for description in project.descriptions:
-            _add_description(document, description)
+            _add_description(
+                document,
+                description,
+                after=14 if index < len(PROJECTS) - 1 else None,
+            )
 
-    document.add_heading("Technical Skills", level=1)
+    _add_heading(document, "Technical Skills", before=16.8, after=11.8)
     _add_labeled_line(
         document,
         "Programming:  ",
         "Javascript, React, Node.js, SCSS, Java, SQL, Bash, TypeScript, WebGL, C++",
+        after=10.7,
     )
-    _add_labeled_line(document, "Software:  ", "Visual Studio Code, Git, MongoDB, Photoshop")
-    _add_labeled_line(document, "Languages:  ", "English, Polish")
+    _add_labeled_line(
+        document,
+        "Software:  ",
+        "Visual Studio Code, Git, MongoDB, Photoshop",
+        after=10,
+    )
+    _add_labeled_line(document, "Languages:  ", "English, Polish", after=10.3)
 
     consent = document.add_paragraph(style="CV Footer")
     consent.add_run(
@@ -451,9 +559,9 @@ def build_pdf(output_path: Path) -> Path:
     pdf.drawString(36, 711, "Tomasz Zielinski")
 
     contact_rows = (
-        ("www.zielin.ski", "https://www.zielin.ski", 730),
-        ("contact@zielin.ski", "mailto:contact@zielin.ski", 716),
-        ("07519554924", None, 702),
+        (WEBSITE_TEXT, WEBSITE_URL, 730),
+        (EMAIL_TEXT, EMAIL_URL, 716),
+        (PHONE_TEXT, None, 702),
     )
     pdf.setFillColor(PDF_MUTED)
     pdf.setFont("Helvetica", 8.5)
