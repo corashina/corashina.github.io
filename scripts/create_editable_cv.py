@@ -296,7 +296,7 @@ def configure_document(document: Document) -> None:
 
     heading = document.styles["Heading 1"]
     _set_style_font(heading, SERIF_FONT, 13.5, MUTED)
-    heading.paragraph_format.space_before = Pt(5.5)
+    heading.paragraph_format.space_before = Pt(8.5)
     heading.paragraph_format.space_after = Pt(1.5)
     heading.paragraph_format.keep_with_next = True
     heading.paragraph_format.keep_together = True
@@ -352,7 +352,7 @@ def configure_document(document: Document) -> None:
     bullet.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     footer = _add_style(document, "CV Footer")
-    _set_style_font(footer, SANS_FONT, 7.5, INK)
+    _set_style_font(footer, SANS_FONT, 8.5, INK)
     footer.paragraph_format.space_before = Pt(3)
     footer.paragraph_format.space_after = Pt(0)
     footer.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -554,6 +554,7 @@ PDF_SANS_BOLD = "CvCalibriBold"
 PDF_BODY = 8.5
 PDF_LEADING = 9.5
 PDF_SECTION = 13.5
+PDF_SECTION_GAP = 2.75
 
 
 def _register_pdf_fonts() -> None:
@@ -591,6 +592,7 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
 
 
 def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
+    y -= PDF_SECTION_GAP
     pdf.setFillColor(PDF_MUTED)
     pdf.setFont(PDF_SERIF, PDF_SECTION)
     pdf.drawString(40, y, title)
@@ -733,7 +735,7 @@ def build_pdf(output_path: Path) -> Path:
     _register_pdf_fonts()
 
     pdf = canvas.Canvas(str(output_path), pagesize=letter, pageCompression=1)
-    pdf.setTitle("Tomasz Zielinski - Full-Stack Engineer CV")
+    pdf.setTitle("Tomasz Zielinski - Full-Stack Developer CV")
     pdf.setAuthor(CV_DATA.identity.name)
     pdf.setSubject("Curriculum Vitae")
 

@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from xml.etree import ElementTree
 from zipfile import ZipFile
 
 from docx import Document
@@ -77,7 +78,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 
         expected_fragments = [
             "Tomasz Zielinski",
-            "Full-Stack Engineer",
+            "Full-Stack Developer",
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
@@ -144,7 +145,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "CV Description": ("Calibri", 8.5),
             "CV Bullet": ("Calibri", 8.5),
             "CV Skill": ("Calibri", 8.5),
-            "CV Footer": ("Calibri", 7.5),
+            "CV Footer": ("Calibri", 8.5),
         }
 
         for style_name, (font_name, font_size) in expected_styles.items():
@@ -153,9 +154,15 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertAlmostEqual(style.font.size.pt, font_size, delta=0.01)
 
     def test_uses_compact_body_fonts_and_keep_rules(self) -> None:
-        for style_name in ("CV Description", "CV Bullet", "CV Skill"):
+        for style_name in ("CV Description", "CV Bullet", "CV Skill", "CV Footer"):
             style = self.document.styles[style_name]
             self.assertAlmostEqual(style.font.size.pt, 8.5, delta=0.01)
+        heading_style = self.document.styles["Heading 1"]
+        self.assertAlmostEqual(
+            heading_style.paragraph_format.space_before.pt,
+            8.5,
+            delta=0.01,
+        )
         for paragraph in self.document.paragraphs:
             if paragraph.style.name == "Heading 1":
                 self.assertTrue(paragraph.paragraph_format.keep_with_next)
@@ -165,14 +172,14 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertNotIn(forbidden, self.text)
 
     def test_full_stack_content_model_contains_approved_current_facts(self) -> None:
-        self.assertEqual(CV_DATA.identity.role, "Full-Stack Engineer")
+        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
         self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
         self.assertEqual(
             [(role.title, role.period) for role in CV_DATA.employment.roles],
             [
-                ("Full-Stack Engineer", "2024–2026"),
+                ("Full-Stack Developer", "2024–2026"),
                 ("Junior Frontend Developer", "2021–2024"),
             ],
         )
@@ -197,6 +204,19 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertNotIn(b"linkedin.com/in/", document_xml)
         self.assertNotIn(b"View project", document_xml)
         self.assertNotIn(b"github.com/corashina", relationships_xml)
+        relationships = ElementTree.fromstring(relationships_xml)
+        external_targets = {
+            relationship.attrib["Target"]
+            for relationship in relationships
+            if relationship.attrib.get("TargetMode") == "External"
+        }
+        self.assertEqual(
+            external_targets,
+            {
+                CV_DATA.identity.website_url,
+                f"mailto:{CV_DATA.identity.email}",
+            },
+        )
 
     def test_docx_distinguishes_company_from_role(self) -> None:
         company_paragraph = next(
@@ -205,7 +225,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         role_paragraph = next(
             paragraph for paragraph in self.document.paragraphs
-            if paragraph.text.startswith("Full-Stack Engineer")
+            if paragraph.text.startswith("Full-Stack Developer")
         )
         self.assertEqual(company_paragraph.style.name, "CV Company")
         self.assertEqual(role_paragraph.style.name, "CV Entry")
@@ -251,7 +271,8 @@ class EditableCvBuilderTest(unittest.TestCase):
         with ZipFile(self.output_path) as archive:
             document_xml = archive.read("word/document.xml")
         self.assertEqual(document_xml.count(b'w:type="page"'), 0)
-        self.assertIn(b"Full-Stack Engineer", document_xml)
+        self.assertIn(b"Full-Stack Developer", document_xml)
+        self.assertNotIn(b"Full-Stack Engineer", document_xml)
         self.assertNotIn(b"expected in July 2020", document_xml)
 
     def test_docx_has_only_approved_contact_rows_and_projects(self) -> None:
@@ -338,6 +359,10 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertLessEqual(
                 max(word["bottom"] for word in words),
                 rendered_page.height - 28.8,
+            )
+            self.assertGreaterEqual(
+                max(word["bottom"] for word in words),
+                rendered_page.height - 34,
             )
 
 

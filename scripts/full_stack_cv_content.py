@@ -90,7 +90,7 @@ class CvData:
 CV_DATA = CvData(
     identity=Identity(
         name="Tomasz Zielinski",
-        role="Full-Stack Engineer",
+        role="Full-Stack Developer",
         phone="+48 791 748 226",
         email="corashina@gmail.com",
         website_text="corashina.github.io",
@@ -101,7 +101,7 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack engineer with five years of commercial software delivery across "
+        "Full-stack developer with five years of commercial software delivery across "
         "business platforms, integrations, mobile applications, logistics, manufacturing, "
         "workflow automation, e-invoicing, and document AI. I work from user-facing "
         "applications and APIs through integration, delivery, and release. I translate "
@@ -119,7 +119,7 @@ CV_DATA = CvData(
         period="2021–2026",
         roles=(
             Role(
-                title="Full-Stack Engineer",
+                title="Full-Stack Developer",
                 period="2024–2026",
                 bullets=(
                     "Delivered platform applications, integrations, reusable components, "
