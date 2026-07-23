@@ -44,15 +44,15 @@ class EditableCvBuilderTest(unittest.TestCase):
             CV_DATA.profile,
         )
 
-    def test_builds_letter_document_with_readable_two_page_margins(self) -> None:
+    def test_builds_letter_document_with_compact_one_page_margins(self) -> None:
         section = self.document.sections[0]
 
         self.assertEqual(section.page_width, Inches(8.5))
         self.assertEqual(section.page_height, Inches(11))
-        self.assertAlmostEqual(section.top_margin, Inches(0.5), delta=Pt(0.1))
-        self.assertAlmostEqual(section.bottom_margin, Inches(0.45), delta=Pt(0.1))
-        self.assertAlmostEqual(section.left_margin, Inches(0.55), delta=Pt(0.1))
-        self.assertAlmostEqual(section.right_margin, Inches(0.55), delta=Pt(0.1))
+        self.assertAlmostEqual(section.top_margin, Inches(0.42), delta=Pt(0.1))
+        self.assertAlmostEqual(section.bottom_margin, Inches(0.4), delta=Pt(0.1))
+        self.assertAlmostEqual(section.left_margin, Inches(0.5), delta=Pt(0.1))
+        self.assertAlmostEqual(section.right_margin, Inches(0.5), delta=Pt(0.1))
 
     def test_preserves_section_order_and_visible_content(self) -> None:
         headings = [
@@ -65,12 +65,11 @@ class EditableCvBuilderTest(unittest.TestCase):
             headings,
             [
                 "Profile",
-                "Core Technologies",
-                "Professional Experience",
-                "Selected Product Work",
-                "Earlier Experience",
-                "Selected Projects",
                 "Education",
+                "Professional Experience",
+                "Commercial Experience",
+                "Technologies",
+                "Selected Projects",
                 "Additional Information",
             ],
         )
@@ -81,20 +80,18 @@ class EditableCvBuilderTest(unittest.TestCase):
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
-            "github.com/corashina",
-            "linkedin.com/in/tomasz-zielinski-a97999161",
             "Profile",
+            "Education",
+            "University of Southampton",
+            "July 2020",
             "Xelto",
-            "Selected Product Work",
-            "Earlier Experience",
             "Freelance Web Development",
+            "Commercial Experience",
+            "Technologies",
             "Selected Projects",
             "Endless City",
             "Flappy-Pixie",
             "Fitmed",
-            "Education",
-            "University of Southampton",
-            "July 2020",
             "Additional Information",
             "I hereby consent to the processing of personal data",
         ]
@@ -113,6 +110,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         required_styles = {
             "CV Title",
             "CV Role",
+            "CV Company",
             "CV Entry",
             "CV Description",
             "CV Bullet",
@@ -134,17 +132,18 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertNotIn(b"<w:txbxContent", document_xml)
         self.assertIn(b"relationships/hyperlink", relationships_xml)
 
-    def test_matches_the_source_pdf_font_roles(self) -> None:
+    def test_uses_compact_one_page_font_roles(self) -> None:
         expected_styles = {
-            "CV Title": ("Times New Roman", 28.0),
-            "Heading 1": ("Times New Roman", 16.0),
-            "CV Contact": ("Calibri", 9.0),
+            "CV Title": ("Times New Roman", 26.0),
+            "Heading 1": ("Times New Roman", 13.5),
+            "CV Contact": ("Calibri", 8.5),
             "CV Role": ("Calibri", 11.0),
+            "CV Company": ("Times New Roman", 10.5),
             "CV Entry": ("Calibri", 9.0),
-            "CV Description": ("Calibri", 9.0),
-            "CV Bullet": ("Calibri", 9.0),
-            "CV Skill": ("Calibri", 9.0),
-            "CV Footer": ("Calibri", 8.0),
+            "CV Description": ("Calibri", 8.5),
+            "CV Bullet": ("Calibri", 8.5),
+            "CV Skill": ("Calibri", 8.5),
+            "CV Footer": ("Calibri", 7.5),
         }
 
         for style_name, (font_name, font_size) in expected_styles.items():
@@ -152,10 +151,10 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertEqual(style.font.name, font_name)
             self.assertAlmostEqual(style.font.size.pt, font_size, delta=0.01)
 
-    def test_uses_readable_body_fonts_and_keep_rules(self) -> None:
-        for style_name in ("CV Entry", "CV Description", "CV Bullet", "CV Skill"):
+    def test_uses_compact_body_fonts_and_keep_rules(self) -> None:
+        for style_name in ("CV Description", "CV Bullet", "CV Skill"):
             style = self.document.styles[style_name]
-            self.assertGreaterEqual(style.font.size.pt, 9)
+            self.assertAlmostEqual(style.font.size.pt, 8.5, delta=0.01)
         for paragraph in self.document.paragraphs:
             if paragraph.style.name == "Heading 1":
                 self.assertTrue(paragraph.paragraph_format.keep_with_next)
@@ -187,7 +186,50 @@ class EditableCvBuilderTest(unittest.TestCase):
         for forbidden in FORBIDDEN_PUBLIC_TERMS:
             self.assertNotIn(forbidden.casefold(), visible.casefold())
 
-    def test_builds_two_page_full_stack_docx_structure(self) -> None:
+    def test_docx_uses_one_page_structure_without_social_links(self) -> None:
+        with ZipFile(self.output_path) as archive:
+            document_xml = archive.read("word/document.xml")
+            relationships_xml = archive.read("word/_rels/document.xml.rels")
+
+        self.assertEqual(document_xml.count(b'w:type="page"'), 0)
+        self.assertNotIn(b"github.com/corashina", document_xml)
+        self.assertNotIn(b"linkedin.com/in/", document_xml)
+        self.assertNotIn(b"View project", document_xml)
+        self.assertNotIn(b"github.com/corashina", relationships_xml)
+
+    def test_docx_distinguishes_company_from_role(self) -> None:
+        company_paragraph = next(
+            paragraph for paragraph in self.document.paragraphs
+            if paragraph.text.startswith("Xelto")
+        )
+        role_paragraph = next(
+            paragraph for paragraph in self.document.paragraphs
+            if paragraph.text.startswith("Full-Stack Engineer")
+        )
+        self.assertEqual(company_paragraph.style.name, "CV Company")
+        self.assertEqual(role_paragraph.style.name, "CV Entry")
+        self.assertNotEqual(
+            company_paragraph.style.font.name,
+            role_paragraph.style.font.name,
+        )
+        self.assertGreater(
+            company_paragraph.style.font.size.pt,
+            role_paragraph.style.font.size.pt,
+        )
+
+    def test_freelance_work_is_inside_professional_experience(self) -> None:
+        texts = [paragraph.text for paragraph in self.document.paragraphs]
+        professional = texts.index("Professional Experience")
+        commercial = texts.index("Commercial Experience")
+        freelance = next(
+            index for index, text in enumerate(texts)
+            if text.startswith("Freelance Web Development")
+        )
+        self.assertLess(professional, freelance)
+        self.assertLess(freelance, commercial)
+        self.assertNotIn("Earlier Experience", texts)
+
+    def test_builds_one_page_full_stack_docx_structure(self) -> None:
         headings = [
             paragraph.text
             for paragraph in self.document.paragraphs
@@ -197,50 +239,44 @@ class EditableCvBuilderTest(unittest.TestCase):
             headings,
             [
                 "Profile",
-                "Core Technologies",
-                "Professional Experience",
-                "Selected Product Work",
-                "Earlier Experience",
-                "Selected Projects",
                 "Education",
+                "Professional Experience",
+                "Commercial Experience",
+                "Technologies",
+                "Selected Projects",
                 "Additional Information",
             ],
         )
         with ZipFile(self.output_path) as archive:
             document_xml = archive.read("word/document.xml")
-        self.assertEqual(document_xml.count(b'w:type="page"'), 1)
+        self.assertEqual(document_xml.count(b'w:type="page"'), 0)
         self.assertIn(b"Full-Stack Engineer", document_xml)
         self.assertNotIn(b"expected in July 2020", document_xml)
 
-    def test_page_break_balances_complete_sections_between_pages(self) -> None:
-        break_indices = [
-            index
-            for index, paragraph in enumerate(self.document.paragraphs)
-            if paragraph._p.xpath(".//w:br[@w:type='page']")
-        ]
-        self.assertEqual(len(break_indices), 1)
-
-        paragraph_positions = {
-            paragraph.text: index
-            for index, paragraph in enumerate(self.document.paragraphs)
-        }
-        break_index = break_indices[0]
-        self.assertLess(paragraph_positions["Selected Product Work"], break_index)
-        self.assertGreater(paragraph_positions["Earlier Experience"], break_index)
-
-    def test_docx_has_current_links_and_only_approved_projects(self) -> None:
+    def test_docx_has_only_approved_contact_rows_and_projects(self) -> None:
+        contact_rows = tuple(
+            self.document.tables[0].rows[0].cells[1].paragraphs[0].text.splitlines()
+        )
+        self.assertEqual(
+            contact_rows,
+            ("corashina.github.io", "corashina@gmail.com", "+48 791 748 226"),
+        )
         for value in (
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
-            "github.com/corashina",
-            "linkedin.com/in/tomasz-zielinski-a97999161",
             "Endless City",
             "Flappy-Pixie",
             "Fitmed",
         ):
             self.assertIn(value, self.text)
-        for obsolete in ("Haskell Interpreter", "GPU Particles", "Sushi-Go"):
+        for obsolete in (
+            "github.com/corashina",
+            "linkedin.com/in/tomasz-zielinski-a97999161",
+            "Haskell Interpreter",
+            "GPU Particles",
+            "Sushi-Go",
+        ):
             self.assertNotIn(obsolete, self.text)
 
     def test_builds_two_page_pdf_with_shared_current_content(self) -> None:
