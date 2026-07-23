@@ -5,8 +5,7 @@
   gap: 2rem;
 }
 
-.introduction,
-.toolkit {
+.introduction {
   min-width: 0;
 }
 
@@ -14,8 +13,16 @@
   text-align: left;
 }
 
-.toolkitGroup + .toolkitGroup {
-  margin-top: 0.75rem;
+.toolkit {
+  display: grid;
+  gap: 0.75rem 1.5rem;
+  grid-template-columns: 1fr;
+  min-width: 0;
+}
+
+.toolkit > h2 {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 
 .toolkitGroup h3 {
@@ -33,22 +40,23 @@
 }
 
 .toolPill {
-  border: 1px solid $color-25;
+  background: $color-25;
+  border: 1px solid $color-2;
   border-radius: 999px;
-  color: $color-2;
+  color: $color-1;
   line-height: 1.35;
   margin: 0;
   padding: 0.2rem 0.55rem;
 }
 
 .toolPill:hover {
+  background: $color-3;
   border-color: $color-3;
-  color: $color-accent-text;
+  color: $color-bg;
 }
 
 @media (min-width: $media-md) {
-  .home {
-    align-items: start;
-    grid-template-columns: minmax(0, 3fr) minmax(16rem, 2fr);
+  .toolkit {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -11,11 +11,12 @@ const readStyles = async () => {
     readFile(resolve(process.cwd(), "src/styles/global.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/work.module.scss"), "utf8"),
     readFile(resolve(process.cwd(), "src/styles/contact.module.scss"), "utf8"),
+    readFile(resolve(process.cwd(), "src/styles/home.module.scss"), "utf8"),
   ]);
-  const [themes, layout, global, work, contact] = sources.map((source) =>
+  const [themes, layout, global, work, contact, home] = sources.map((source) =>
     source.replace(/\r\n/g, "\n"),
   );
-  return { contact, global, layout, themes, work };
+  return { contact, global, home, layout, themes, work };
 };
 
 const findBlock = (source: string, header: string): string => {
@@ -184,6 +185,29 @@ describe("original style contracts", () => {
     expect(flair).toMatch(/width: fit-content;/);
     expect(flair).not.toContain("position: relative");
     expect(flair).not.toContain("left: 50%");
+  });
+
+  it("stacks the Home toolkit below the description with filled theme pills", async () => {
+    const { home } = await readStyles();
+    const homeLayout = findBlock(home, ".home");
+    const toolkit = findBlock(home, ".toolkit");
+    const pill = findBlock(home, ".toolPill");
+    const pillHover = findBlock(home, ".toolPill:hover");
+    const mediumViewport = findBlock(home, "@media (min-width: $media-md)");
+
+    expect(homeLayout).not.toContain("grid-template-columns");
+    expect(toolkit).toMatch(/display: grid;/);
+    expect(toolkit).toMatch(/grid-template-columns: 1fr;/);
+    expect(findBlock(mediumViewport, ".home")).toBe("");
+    expect(findBlock(mediumViewport, ".toolkit")).toMatch(
+      /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
+    );
+    expect(pill).toMatch(/background: \$color-25;/);
+    expect(pill).toMatch(/border: 1px solid \$color-2;/);
+    expect(pill).toMatch(/color: \$color-1;/);
+    expect(pillHover).toMatch(/background: \$color-3;/);
+    expect(pillHover).toMatch(/border-color: \$color-3;/);
+    expect(pillHover).toMatch(/color: \$color-bg;/);
   });
 
 });
