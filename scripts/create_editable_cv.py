@@ -17,18 +17,20 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfgen import canvas
 
+from full_stack_cv_content import CV_DATA, CvData, Project, Role
+
 
 SERIF_FONT = "Times New Roman"
 SANS_FONT = "Calibri"
 INK = RGBColor(0x11, 0x11, 0x11)
 MUTED = RGBColor(0x88, 0x88, 0x88)
-CONTENT_WIDTH = Inches(7.375)
+CONTENT_WIDTH = Inches(7.4)
 PDF_MUTED = Color(0.53, 0.53, 0.53)
-WEBSITE_TEXT = "corashina.github.io"
-WEBSITE_URL = "https://corashina.github.io"
-EMAIL_TEXT = "corashina@gmail.com"
-EMAIL_URL = "mailto:corashina@gmail.com"
-PHONE_TEXT = "+48 791 748 226"
+WEBSITE_TEXT = CV_DATA.identity.website_text
+WEBSITE_URL = CV_DATA.identity.website_url
+EMAIL_TEXT = CV_DATA.identity.email
+EMAIL_URL = f"mailto:{CV_DATA.identity.email}"
+PHONE_TEXT = CV_DATA.identity.phone
 
 
 @dataclass(frozen=True)
@@ -95,7 +97,13 @@ def _set_style_font(style, name: str, size: float, color: RGBColor, bold: bool =
     r_pr.rFonts.set(qn("w:hAnsi"), name)
 
 
-def add_hyperlink(paragraph, text: str, url: str, color: str = "888888") -> None:
+def add_hyperlink(
+    paragraph,
+    text: str,
+    url: str,
+    color: str = "888888",
+    size: float = 9,
+) -> None:
     relationship_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
     hyperlink = OxmlElement("w:hyperlink")
     hyperlink.set(qn("r:id"), relationship_id)
@@ -108,9 +116,9 @@ def add_hyperlink(paragraph, text: str, url: str, color: str = "888888") -> None
     fonts.set(qn("w:hAnsi"), SANS_FONT)
     run_properties.append(fonts)
 
-    size = OxmlElement("w:sz")
-    size.set(qn("w:val"), "20")
-    run_properties.append(size)
+    size_element = OxmlElement("w:sz")
+    size_element.set(qn("w:val"), str(int(round(size * 2))))
+    run_properties.append(size_element)
 
     run_color = OxmlElement("w:color")
     run_color.set(qn("w:val"), color)
@@ -271,10 +279,10 @@ def configure_document(document: Document) -> None:
     section = document.sections[0]
     section.page_width = Inches(8.5)
     section.page_height = Inches(11)
-    section.top_margin = Inches(0.398)
-    section.bottom_margin = Inches(0.42)
-    section.left_margin = Inches(0.5)
-    section.right_margin = Inches(0.5)
+    section.top_margin = Inches(0.5)
+    section.bottom_margin = Inches(0.45)
+    section.left_margin = Inches(0.55)
+    section.right_margin = Inches(0.55)
     section.header_distance = Inches(0.2)
     section.footer_distance = Inches(0.2)
 
@@ -286,52 +294,58 @@ def configure_document(document: Document) -> None:
 
     heading = document.styles["Heading 1"]
     _set_style_font(heading, SERIF_FONT, 16, MUTED)
-    heading.paragraph_format.space_before = Pt(9)
-    heading.paragraph_format.space_after = Pt(5)
+    heading.paragraph_format.space_before = Pt(10)
+    heading.paragraph_format.space_after = Pt(4)
     heading.paragraph_format.keep_with_next = True
     heading.paragraph_format.keep_together = True
 
     title = _add_style(document, "CV Title")
     _set_style_font(title, SERIF_FONT, 28, INK)
     title.paragraph_format.space_before = Pt(0)
-    title.paragraph_format.space_after = Pt(8)
+    title.paragraph_format.space_after = Pt(0)
     title.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     contact = _add_style(document, "CV Contact")
-    _set_style_font(contact, SANS_FONT, 10, MUTED)
+    _set_style_font(contact, SANS_FONT, 9, MUTED)
     contact.paragraph_format.space_before = Pt(0)
     contact.paragraph_format.space_after = Pt(0)
-    contact.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
+    contact.paragraph_format.line_spacing = Pt(10.5)
+
+    role = _add_style(document, "CV Role")
+    _set_style_font(role, SANS_FONT, 11, MUTED, bold=True)
+    role.paragraph_format.space_before = Pt(2)
+    role.paragraph_format.space_after = Pt(0)
+    role.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     entry = _add_style(document, "CV Entry")
     _set_style_font(entry, SANS_FONT, 9, INK, bold=True)
-    entry.paragraph_format.space_before = Pt(2.5)
+    entry.paragraph_format.space_before = Pt(4)
     entry.paragraph_format.space_after = Pt(0)
     entry.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-    entry.paragraph_format.left_indent = Pt(3.8)
+    entry.paragraph_format.left_indent = Pt(0)
 
     description = _add_style(document, "CV Description")
     _set_style_font(description, SANS_FONT, 9, INK)
     description.paragraph_format.space_before = Pt(0)
-    description.paragraph_format.space_after = Pt(1)
+    description.paragraph_format.space_after = Pt(2)
     description.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
-    description.paragraph_format.left_indent = Pt(3.8)
+    description.paragraph_format.left_indent = Pt(0)
 
     skill = _add_style(document, "CV Skill")
     _set_style_font(skill, SANS_FONT, 9, INK)
     skill.paragraph_format.space_before = Pt(0)
-    skill.paragraph_format.space_after = Pt(10.3)
+    skill.paragraph_format.space_after = Pt(1.5)
     skill.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     bullet = _add_style(document, "CV Bullet")
     _set_style_font(bullet, SANS_FONT, 9, INK)
     bullet.paragraph_format.space_before = Pt(0)
-    bullet.paragraph_format.space_after = Pt(0)
+    bullet.paragraph_format.space_after = Pt(1.2)
     bullet.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     footer = _add_style(document, "CV Footer")
-    _set_style_font(footer, SANS_FONT, 9, INK)
-    footer.paragraph_format.space_before = Pt(30.5)
+    _set_style_font(footer, SANS_FONT, 8, INK)
+    footer.paragraph_format.space_before = Pt(7)
     footer.paragraph_format.space_after = Pt(0)
     footer.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
@@ -352,7 +366,7 @@ def _set_cell_margins(cell, value: int = 0) -> None:
 
 
 def _set_header_table_geometry(table) -> None:
-    column_widths = (7800, 2880)
+    column_widths = (6300, 4356)
     table_properties = table._tbl.tblPr
 
     table_width = table_properties.first_child_found_in("w:tblW")
@@ -375,12 +389,12 @@ def _set_header_table_geometry(table) -> None:
         grid.append(column)
 
 
-def _add_header(document: Document) -> None:
+def _add_header(document: Document, data: CvData) -> None:
     table = document.add_table(rows=1, cols=2)
     table.autofit = False
     left, right = table.rows[0].cells
-    left.width = Inches(5.417)
-    right.width = Inches(2.0)
+    left.width = Inches(4.375)
+    right.width = Inches(3.025)
     _set_header_table_geometry(table)
     for cell in (left, right):
         _set_cell_margins(cell)
@@ -388,30 +402,78 @@ def _add_header(document: Document) -> None:
 
     name_paragraph = left.paragraphs[0]
     name_paragraph.style = "CV Title"
-    name = name_paragraph.add_run("Tomasz Zielinski")
+    name = name_paragraph.add_run(data.identity.name)
     _set_font(name, SERIF_FONT, 28, INK)
+
+    role_paragraph = left.add_paragraph(style="CV Role")
+    role_paragraph.add_run(data.identity.role)
 
     contact = right.paragraphs[0]
     contact.style = "CV Contact"
     contact.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    contact.paragraph_format.line_spacing = Pt(12)
-    add_hyperlink(contact, WEBSITE_TEXT, WEBSITE_URL)
+    contact.paragraph_format.line_spacing = Pt(10.5)
+    contact_rows = (
+        (
+            data.identity.website_text,
+            data.identity.website_url,
+            True,
+        ),
+        (
+            data.identity.email,
+            f"mailto:{data.identity.email}",
+            True,
+        ),
+        (data.identity.phone, "", False),
+        (
+            data.identity.github_text,
+            data.identity.github_url,
+            True,
+        ),
+        (
+            data.identity.linkedin_text,
+            data.identity.linkedin_url,
+            True,
+        ),
+    )
+    for index, (text, url, linked) in enumerate(contact_rows):
+        if index:
+            line_break = contact.add_run()
+            line_break.add_break(WD_BREAK.LINE)
+        if linked:
+            add_hyperlink(contact, text, url, size=9)
+        else:
+            phone = contact.add_run(text)
+            _set_font(phone, SANS_FONT, 9, MUTED)
 
-    line_break = contact.add_run()
-    line_break.add_break(WD_BREAK.LINE)
-    add_hyperlink(contact, EMAIL_TEXT, EMAIL_URL)
 
-    line_break = contact.add_run()
-    line_break.add_break(WD_BREAK.LINE)
-    phone = contact.add_run(PHONE_TEXT)
-    _set_font(phone, SANS_FONT, 10, MUTED)
-
-
-def _add_heading(document: Document, text: str, *, before: float, after: float):
+def _add_section_heading(document: Document, text: str):
     paragraph = document.add_heading(text, level=1)
-    paragraph.paragraph_format.space_before = Pt(before)
-    paragraph.paragraph_format.space_after = Pt(after)
+    paragraph.paragraph_format.keep_with_next = True
     return paragraph
+
+
+def _add_role(document: Document, role: Role, bullet_number_id: int) -> None:
+    add_title_date(document, ((role.title, True),), role.period)
+    for bullet in role.bullets:
+        _add_bullet(document, bullet, bullet_number_id)
+
+
+def _add_project(document: Document, project: Project) -> None:
+    add_title_date(
+        document,
+        ((project.title, True), (f"  ·  {project.tools}", True)),
+        project.period,
+    )
+    paragraph = _add_description(document, project.description)
+    if project.url:
+        paragraph.add_run("  ")
+        add_hyperlink(
+            paragraph,
+            "View project",
+            project.url,
+            color="555555",
+            size=8.5,
+        )
 
 
 def build_cv(output_path: Path) -> Path:
@@ -425,81 +487,61 @@ def build_cv(output_path: Path) -> Path:
     document.core_properties.subject = "Curriculum Vitae"
 
     bullet_number_id = _create_bullet_numbering(document)
-    _add_header(document)
+    _add_header(document, CV_DATA)
 
-    _add_heading(document, "Professional Experience", before=13, after=17.7)
+    _add_section_heading(document, "Profile")
+    _add_description(document, CV_DATA.profile)
+
+    _add_section_heading(document, "Core Technologies")
+    for label, technologies in CV_DATA.technology_groups:
+        _add_labeled_line(
+            document,
+            f"{label}:  ",
+            ", ".join(technologies),
+            after=1.5,
+        )
+
+    _add_section_heading(document, "Professional Experience")
     add_title_date(
         document,
-        (("Freelance Web Development", True), ("  ·  Poznan, Poland", True)),
-        "May - August 2018",
+        ((CV_DATA.employment.company, True),),
+        CV_DATA.employment.period,
     )
-    _add_bullet(document, "Created responsive single page app components for clients", bullet_number_id)
-    _add_bullet(
-        document,
-        "Improved speed and scalability, optimized websites for search engines",
-        bullet_number_id,
-    )
-    _add_bullet(document, "Developed using primarily MERN stack", bullet_number_id)
+    for role in CV_DATA.employment.roles:
+        _add_role(document, role, bullet_number_id)
 
-    _add_heading(document, "Education", before=18.9, after=17.7)
-    add_title_date(
-        document,
-        (("University of Southampton", True), ("  ·  Southampton, United Kingdom", True)),
-        "August 2017 - Present",
-    )
-    _add_description(document, "Bachelor of Science in Computer Science, expected in July 2020")
-    coursework = document.add_paragraph(style="CV Description")
-    coursework.paragraph_format.space_before = Pt(5.9)
-    coursework.paragraph_format.left_indent = Pt(3.8)
-    label = coursework.add_run("Relevant Coursework: ")
-    _set_font(label, SANS_FONT, 9, INK, bold=True)
-    value = coursework.add_run(
-        "Algorithmics, Cloud Application Development, Computer Systems, Data Management,\n"
-        "Distributed Systems and Networks, Theory of Computing, Intelligent Systems, Web Infrastructure"
-    )
-    _set_font(value, SANS_FONT, 9, INK)
+    document.add_page_break()
 
-    add_title_date(
-        document,
-        (("Poznan University of Technology", True), ("  ·  Poznan, Poland", True)),
-        "August 2016 - May 2017",
-        before=21.5,
-    )
-    _add_description(
-        document,
-        "First-year Bachelor of Science in Information Engineering, Faculty of Electrical Engineering",
-    )
+    _add_section_heading(document, "Selected Product Work")
+    for project in CV_DATA.commercial_projects:
+        _add_project(document, project)
 
-    _add_heading(document, "Projects", before=16.8, after=17.8)
-    for index, project in enumerate(PROJECTS):
-        add_title_date(document, project.title_runs, project.date)
-        for description in project.descriptions:
-            _add_description(
-                document,
-                description,
-                after=14 if index < len(PROJECTS) - 1 else None,
-            )
+    _add_section_heading(document, "Earlier Experience")
+    _add_description(document, CV_DATA.earlier_experience[0])
+    _add_description(document, CV_DATA.earlier_experience[1])
 
-    _add_heading(document, "Technical Skills", before=16.8, after=11.8)
+    _add_section_heading(document, "Selected Projects")
+    for project in CV_DATA.personal_projects:
+        _add_project(document, project)
+
+    _add_section_heading(document, "Education")
+    for education in CV_DATA.education:
+        add_title_date(
+            document,
+            ((education.institution, True),),
+            education.period,
+        )
+        _add_description(document, education.qualification)
+
+    _add_section_heading(document, "Additional Information")
     _add_labeled_line(
         document,
-        "Programming:  ",
-        "Javascript, React, Node.js, SCSS, Java, SQL, Bash, TypeScript, WebGL, C++",
-        after=10.7,
+        "Languages:  ",
+        ", ".join(CV_DATA.languages),
+        after=1.5,
     )
-    _add_labeled_line(
-        document,
-        "Software:  ",
-        "Visual Studio Code, Git, MongoDB, Photoshop",
-        after=10,
-    )
-    _add_labeled_line(document, "Languages:  ", "English, Polish", after=10.3)
-
     consent = document.add_paragraph(style="CV Footer")
-    consent.add_run(
-        "I hereby consent to the processing of personal data in this document  by anyone who receives it "
-        "for the sole purpose of consideration of my skills\nand experience for professional opportunities"
-    )
+    consent.add_run(CV_DATA.consent)
 
     document.save(output_path)
     return output_path

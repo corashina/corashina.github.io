@@ -37,15 +37,15 @@ class EditableCvBuilderTest(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls._temp_dir.cleanup()
 
-    def test_builds_letter_document_with_compact_explicit_margins(self) -> None:
+    def test_builds_letter_document_with_readable_two_page_margins(self) -> None:
         section = self.document.sections[0]
 
         self.assertEqual(section.page_width, Inches(8.5))
         self.assertEqual(section.page_height, Inches(11))
-        self.assertAlmostEqual(section.top_margin, Inches(0.398), delta=Pt(0.1))
-        self.assertAlmostEqual(section.bottom_margin, Inches(0.42), delta=Pt(0.1))
-        self.assertAlmostEqual(section.left_margin, Inches(0.5), delta=Pt(0.1))
-        self.assertAlmostEqual(section.right_margin, Inches(0.5), delta=Pt(0.1))
+        self.assertAlmostEqual(section.top_margin, Inches(0.5), delta=Pt(0.1))
+        self.assertAlmostEqual(section.bottom_margin, Inches(0.45), delta=Pt(0.1))
+        self.assertAlmostEqual(section.left_margin, Inches(0.55), delta=Pt(0.1))
+        self.assertAlmostEqual(section.right_margin, Inches(0.55), delta=Pt(0.1))
 
     def test_preserves_section_order_and_visible_content(self) -> None:
         headings = [
@@ -57,29 +57,38 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(
             headings,
             [
+                "Profile",
+                "Core Technologies",
                 "Professional Experience",
+                "Selected Product Work",
+                "Earlier Experience",
+                "Selected Projects",
                 "Education",
-                "Projects",
-                "Technical Skills",
+                "Additional Information",
             ],
         )
 
         expected_fragments = [
             "Tomasz Zielinski",
+            "Full-Stack Engineer",
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
+            "github.com/corashina",
+            "linkedin.com/in/tomasz-zielinski-a97999161",
+            "Profile",
+            "Xelto",
+            "Selected Product Work",
+            "Earlier Experience",
             "Freelance Web Development",
-            "University of Southampton",
-            "Haskell Interpreter",
-            "GPU Particles",
+            "Selected Projects",
+            "Endless City",
             "Flappy-Pixie",
-            "Endless-City",
-            "Sushi-Go",
             "Fitmed",
-            "Programming:",
-            "Software:",
-            "Languages:",
+            "Education",
+            "University of Southampton",
+            "July 2020",
+            "Additional Information",
             "I hereby consent to the processing of personal data",
         ]
 
@@ -96,6 +105,7 @@ class EditableCvBuilderTest(unittest.TestCase):
     def test_uses_named_styles_and_editable_word_structures(self) -> None:
         required_styles = {
             "CV Title",
+            "CV Role",
             "CV Entry",
             "CV Description",
             "CV Bullet",
@@ -121,12 +131,13 @@ class EditableCvBuilderTest(unittest.TestCase):
         expected_styles = {
             "CV Title": ("Times New Roman", 28.0),
             "Heading 1": ("Times New Roman", 16.0),
-            "CV Contact": ("Calibri", 10.0),
+            "CV Contact": ("Calibri", 9.0),
+            "CV Role": ("Calibri", 11.0),
             "CV Entry": ("Calibri", 9.0),
             "CV Description": ("Calibri", 9.0),
             "CV Bullet": ("Calibri", 9.0),
             "CV Skill": ("Calibri", 9.0),
-            "CV Footer": ("Calibri", 9.0),
+            "CV Footer": ("Calibri", 8.0),
         }
 
         for style_name, (font_name, font_size) in expected_styles.items():
@@ -134,51 +145,13 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertEqual(style.font.name, font_name)
             self.assertAlmostEqual(style.font.size.pt, font_size, delta=0.01)
 
-    def test_uses_measured_vertical_spacing_from_the_source(self) -> None:
-        projects = next(
-            paragraph
-            for paragraph in self.document.paragraphs
-            if paragraph.text == "Projects"
-        )
-        technical = next(
-            paragraph
-            for paragraph in self.document.paragraphs
-            if paragraph.text == "Technical Skills"
-        )
-        project_descriptions = [
-            paragraph
-            for paragraph in self.document.paragraphs
-            if paragraph.style.name == "CV Description"
-            and paragraph.text.startswith(
-                (
-                    "Language and interpreter",
-                    "WebGL particle",
-                    "Flappy Bird",
-                    "Interactive infinite",
-                    "Multithreaded business",
-                )
-            )
-        ]
-        skill_lines = [
-            paragraph
-            for paragraph in self.document.paragraphs
-            if paragraph.style.name == "CV Skill"
-        ]
-
-        self.assertAlmostEqual(projects.paragraph_format.space_after, Pt(17.8), delta=Pt(0.1))
-        self.assertAlmostEqual(technical.paragraph_format.space_after, Pt(11.8), delta=Pt(0.1))
-        self.assertEqual(len(project_descriptions), 5)
-        self.assertTrue(
-            all(
-                abs(paragraph.paragraph_format.space_after - Pt(14)) <= Pt(0.1)
-                for paragraph in project_descriptions
-            )
-        )
-        self.assertEqual(len(skill_lines), 3)
-        self.assertEqual(
-            [round(paragraph.paragraph_format.space_after.pt, 1) for paragraph in skill_lines],
-            [10.7, 10.0, 10.3],
-        )
+    def test_uses_readable_body_fonts_and_keep_rules(self) -> None:
+        for style_name in ("CV Entry", "CV Description", "CV Bullet", "CV Skill"):
+            style = self.document.styles[style_name]
+            self.assertGreaterEqual(style.font.size.pt, 9)
+        for paragraph in self.document.paragraphs:
+            if paragraph.style.name == "Heading 1":
+                self.assertTrue(paragraph.paragraph_format.keep_with_next)
 
     def test_has_no_placeholders_or_extraction_artifacts(self) -> None:
         for forbidden in ("TBD", "TODO", "\u200b", "\ufffd"):
@@ -206,6 +179,46 @@ class EditableCvBuilderTest(unittest.TestCase):
         visible = CV_DATA.visible_text()
         for forbidden in FORBIDDEN_PUBLIC_TERMS:
             self.assertNotIn(forbidden.casefold(), visible.casefold())
+
+    def test_builds_two_page_full_stack_docx_structure(self) -> None:
+        headings = [
+            paragraph.text
+            for paragraph in self.document.paragraphs
+            if paragraph.style.name == "Heading 1"
+        ]
+        self.assertEqual(
+            headings,
+            [
+                "Profile",
+                "Core Technologies",
+                "Professional Experience",
+                "Selected Product Work",
+                "Earlier Experience",
+                "Selected Projects",
+                "Education",
+                "Additional Information",
+            ],
+        )
+        with ZipFile(self.output_path) as archive:
+            document_xml = archive.read("word/document.xml")
+        self.assertEqual(document_xml.count(b'w:type="page"'), 1)
+        self.assertIn(b"Full-Stack Engineer", document_xml)
+        self.assertNotIn(b"expected in July 2020", document_xml)
+
+    def test_docx_has_current_links_and_only_approved_projects(self) -> None:
+        for value in (
+            "corashina.github.io",
+            "corashina@gmail.com",
+            "+48 791 748 226",
+            "github.com/corashina",
+            "linkedin.com/in/tomasz-zielinski-a97999161",
+            "Endless City",
+            "Flappy-Pixie",
+            "Fitmed",
+        ):
+            self.assertIn(value, self.text)
+        for obsolete in ("Haskell Interpreter", "GPU Particles", "Sushi-Go"):
+            self.assertNotIn(obsolete, self.text)
 
     def test_builds_one_page_letter_pdf_with_source_content(self) -> None:
         pdf_path = Path(self._temp_dir.name) / "cv.pdf"
