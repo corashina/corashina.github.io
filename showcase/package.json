@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.15.0", "npm": ">=11.12.0" },
+  "engines": {
+    "node": ">=24.15.0",
+    "npm": ">=11.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
@@ -15,9 +18,12 @@
     "capture:fallback": "node scripts/capture-fallback.mjs",
     "verify": "npm run test && npm run build && npm run test:browser -- --project=chromium"
   },
-  "dependencies": { "three": "0.185.1" },
+  "dependencies": {
+    "three": "0.185.1"
+  },
   "devDependencies": {
     "@playwright/test": "1.61.1",
+    "@types/node": "26.1.1",
     "@types/three": "0.185.1",
     "jsdom": "29.1.1",
     "typescript": "7.0.2",
