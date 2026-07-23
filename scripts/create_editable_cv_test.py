@@ -220,23 +220,38 @@ class EditableCvBuilderTest(unittest.TestCase):
         for obsolete in ("Haskell Interpreter", "GPU Particles", "Sushi-Go"):
             self.assertNotIn(obsolete, self.text)
 
-    def test_builds_one_page_letter_pdf_with_source_content(self) -> None:
+    def test_builds_two_page_pdf_with_shared_current_content(self) -> None:
         pdf_path = Path(self._temp_dir.name) / "cv.pdf"
         build_pdf(pdf_path)
 
         reader = PdfReader(pdf_path)
-        self.assertEqual(len(reader.pages), 1)
-        page = reader.pages[0]
-        self.assertEqual(float(page.mediabox.width), 612)
-        self.assertEqual(float(page.mediabox.height), 792)
-        extracted = page.extract_text()
-        self.assertIn("Tomasz Zielinski", extracted)
-        self.assertIn("Professional Experience", extracted)
-        self.assertIn("I hereby consent", extracted)
-        self.assertIn("corashina.github.io", extracted)
-        self.assertIn("corashina@gmail.com", extracted)
-        self.assertIn("+48 791 748 226", extracted)
-        self.assertNotIn("contact@zielin.ski", extracted)
+        self.assertEqual(len(reader.pages), 2)
+        self.assertTrue(
+            all(
+                float(page.mediabox.width) == 612
+                and float(page.mediabox.height) == 792
+                for page in reader.pages
+            )
+        )
+        extracted = "\n".join(page.extract_text() or "" for page in reader.pages)
+        for expected in (
+            "Tomasz Zielinski",
+            "Full-Stack Engineer",
+            "Professional Experience",
+            "Xelto",
+            "2021",
+            "2026",
+            "Endless City",
+            "Flappy-Pixie",
+            "Fitmed",
+            "BSc Computer Science",
+            "July 2020",
+            "corashina@gmail.com",
+            "I hereby consent",
+        ):
+            self.assertIn(expected, extracted)
+        for forbidden in FORBIDDEN_PUBLIC_TERMS:
+            self.assertNotIn(forbidden.casefold(), extracted.casefold())
 
 
 if __name__ == "__main__":
