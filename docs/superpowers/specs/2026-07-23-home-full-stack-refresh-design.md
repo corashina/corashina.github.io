@@ -48,12 +48,12 @@ Keep labels in their standard product casing. Store the groups in a typed data s
 
 ## Layout
 
-Keep an editorial two-column composition on wide screens:
+Use a single-column Home composition:
 
-- The main column contains the name, role, and two introduction paragraphs.
-- The narrower column contains the grouped toolkit.
-- Toolkit content aligns left. Remove the current right-aligned treatment.
-- Use a breakpoint that gives both columns enough room for readable copy and wrapping pills. Stack the toolkit below the introduction on narrower screens.
+- The name, role, and two introduction paragraphs span the available content width.
+- The grouped toolkit sits directly below both introduction paragraphs.
+- Toolkit content aligns left.
+- Arrange the four toolkit groups in two columns on desktop and one column on narrower screens.
 - Preserve the site's existing maximum content width, theme system, navigation spacing, and animated background.
 
 The page should remain a compact introduction rather than a multi-section résumé.
@@ -63,10 +63,10 @@ The page should remain a compact introduction rather than a multi-section résum
 Render each technology as a CSS pill instead of an external badge image:
 
 - Use a one-pixel theme border, compact horizontal padding, and a rounded capsule shape.
-- Use existing theme variables for text, border, background, and accent colors.
+- Use `$color-25` for the pill background, `$color-1` for text, and `$color-2` for the border so pills remain distinct in both themes.
 - Let pills wrap within each group.
 - Keep group spacing tighter than the space between the introduction and toolkit.
-- Apply the accent color to the pill border and text on hover.
+- On hover, use `$color-3` for the background and border, with `$color-bg` for contrasting text.
 - Do not load external badge images, logos, brand colors, or new dependencies.
 
 ## Semantics and Accessibility
@@ -104,6 +104,6 @@ Run the full test suite, typecheck, and production build. Inspect Home at deskto
 - Home presents Tomasz as a Full-Stack Developer who builds platforms.
 - The copy covers platform work, multiple languages, integrations, mobile development, and business domains without naming Xelto.
 - WebGL appears only as a short side-project note.
-- The broader toolkit appears as four groups of CSS pills.
+- The broader toolkit appears below the description as four groups of high-contrast CSS pills.
 - The Home layout stays compact and responsive.
 - No application file or behavior outside the Home section changes.
