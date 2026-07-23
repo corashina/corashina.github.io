@@ -13,6 +13,7 @@ from pypdf import PdfReader
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from create_editable_cv import build_cv, build_pdf
+from full_stack_cv_content import CV_DATA, FORBIDDEN_PUBLIC_TERMS
 
 
 class EditableCvBuilderTest(unittest.TestCase):
@@ -182,6 +183,29 @@ class EditableCvBuilderTest(unittest.TestCase):
     def test_has_no_placeholders_or_extraction_artifacts(self) -> None:
         for forbidden in ("TBD", "TODO", "\u200b", "\ufffd"):
             self.assertNotIn(forbidden, self.text)
+
+    def test_full_stack_content_model_contains_approved_current_facts(self) -> None:
+        self.assertEqual(CV_DATA.identity.role, "Full-Stack Engineer")
+        self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
+        self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
+        self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
+        self.assertEqual(
+            [(role.title, role.period) for role in CV_DATA.employment.roles],
+            [
+                ("Full-Stack Engineer", "2024–2026"),
+                ("Junior Frontend Developer", "2021–2024"),
+            ],
+        )
+        self.assertEqual(
+            [project.title for project in CV_DATA.personal_projects],
+            ["Endless City", "Flappy-Pixie", "Fitmed"],
+        )
+        self.assertEqual(CV_DATA.education[0].period, "July 2020")
+
+    def test_public_content_excludes_private_metrics_and_client_names(self) -> None:
+        visible = CV_DATA.visible_text()
+        for forbidden in FORBIDDEN_PUBLIC_TERMS:
+            self.assertNotIn(forbidden.casefold(), visible.casefold())
 
     def test_builds_one_page_letter_pdf_with_source_content(self) -> None:
         pdf_path = Path(self._temp_dir.name) / "cv.pdf"
