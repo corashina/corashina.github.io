@@ -37,6 +37,13 @@ class EditableCvBuilderTest(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls._temp_dir.cleanup()
 
+    def test_profile_contains_the_approved_ownership_sentence(self) -> None:
+        self.assertIn(
+            "I translate operational requirements into maintainable systems and "
+            "take ownership across the delivery lifecycle.",
+            CV_DATA.profile,
+        )
+
     def test_builds_letter_document_with_readable_two_page_margins(self) -> None:
         section = self.document.sections[0]
 

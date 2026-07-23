@@ -104,7 +104,9 @@ CV_DATA = CvData(
         "Full-stack engineer with five years of commercial software delivery across "
         "business platforms, integrations, mobile applications, logistics, manufacturing, "
         "workflow automation, e-invoicing, and document AI. I work from user-facing "
-        "applications and APIs through integration, delivery, and release."
+        "applications and APIs through integration, delivery, and release. I translate "
+        "operational requirements into maintainable systems and take ownership across the "
+        "delivery lifecycle."
     ),
     technology_groups=(
         ("Languages", ("TypeScript", "JavaScript", "C#", "Dart", "XSLT/XML")),
