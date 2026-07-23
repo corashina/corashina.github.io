@@ -187,27 +187,54 @@ describe("original style contracts", () => {
     expect(flair).not.toContain("left: 50%");
   });
 
-  it("stacks the Home toolkit below the description with filled theme pills", async () => {
+  it("presents the Home toolkit as responsive themed cards", async () => {
     const { home } = await readStyles();
     const homeLayout = findBlock(home, ".home");
     const toolkit = findBlock(home, ".toolkit");
+    const group = findBlock(home, ".toolkitGroup");
+    const groupHeading = findBlock(home, ".toolkitGroup h3");
+    const groupAccent = findBlock(home, ".toolkitGroup h3::before");
+    const toolList = findBlock(home, ".toolList");
     const pill = findBlock(home, ".toolPill");
     const pillHover = findBlock(home, ".toolPill:hover");
     const mediumViewport = findBlock(home, "@media (min-width: $media-md)");
 
     expect(homeLayout).not.toContain("grid-template-columns");
     expect(toolkit).toMatch(/display: grid;/);
+    expect(toolkit).toMatch(/gap: 1rem;/);
     expect(toolkit).toMatch(/grid-template-columns: 1fr;/);
     expect(findBlock(mediumViewport, ".home")).toBe("");
     expect(findBlock(mediumViewport, ".toolkit")).toMatch(
       /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
     );
-    expect(pill).toMatch(/background: \$color-25;/);
+
+    expect(group).toMatch(
+      /background: color-mix\(in srgb, \$color-bg 92%, \$color-1\);/,
+    );
+    expect(group).toMatch(/border: 1px solid \$color-25;/);
+    expect(group).toMatch(/border-radius: 0\.75rem;/);
+    expect(group).toMatch(/display: grid;/);
+    expect(group).toMatch(/gap: 0\.5rem;/);
+    expect(group).toMatch(/padding: 0\.85rem;/);
+
+    expect(groupHeading).toMatch(/font-size: 0\.78rem;/);
+    expect(groupHeading).toMatch(/letter-spacing: 0\.08em;/);
+    expect(groupHeading).toMatch(/text-transform: uppercase;/);
+    expect(groupAccent).toMatch(/background: \$color-3;/);
+    expect(groupAccent).toMatch(/height: 2px;/);
+    expect(groupAccent).toMatch(/width: 1\.25rem;/);
+
+    expect(toolList).toMatch(/gap: 0\.4rem;/);
+    expect(pill).toMatch(/align-items: center;/);
+    expect(pill).toMatch(/background: \$color-bg;/);
     expect(pill).toMatch(/border: 1px solid \$color-2;/);
     expect(pill).toMatch(/color: \$color-1;/);
+    expect(pill).toMatch(/display: inline-flex;/);
+    expect(pill).toMatch(/padding: 0\.25rem 0\.65rem;/);
     expect(pillHover).toMatch(/background: \$color-3;/);
     expect(pillHover).toMatch(/border-color: \$color-3;/);
     expect(pillHover).toMatch(/color: \$color-bg;/);
+    expect(pillHover).not.toMatch(/transform:/);
   });
 
 });
