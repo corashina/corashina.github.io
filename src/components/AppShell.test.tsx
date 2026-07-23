@@ -235,7 +235,7 @@ describe("AppShell", () => {
 
     let mains = [...container.querySelectorAll("main")];
     const contactExit = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
-    const workEnter = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workEnter = mains.find((main) => main.textContent?.includes("commercial"));
     expect(contactExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
     expect(workEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
 
@@ -243,7 +243,7 @@ describe("AppShell", () => {
     act(() => navigate?.(1));
 
     mains = [...container.querySelectorAll("main")];
-    const workExit = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workExit = mains.find((main) => main.textContent?.includes("commercial"));
     const contactEnter = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
@@ -272,7 +272,7 @@ describe("AppShell", () => {
     });
 
     const mains = [...container.querySelectorAll("main")];
-    const workExit = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workExit = mains.find((main) => main.textContent?.includes("commercial"));
     const contactEnter = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
     expect(workExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
@@ -297,7 +297,7 @@ describe("AppShell", () => {
     act(() => navigate?.(-1));
 
     let mains = [...container.querySelectorAll("main")];
-    const workExit = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workExit = mains.find((main) => main.textContent?.includes("commercial"));
     const homeEnter = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
     expect(workExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);
     expect(homeEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
@@ -351,7 +351,7 @@ describe("AppShell", () => {
     let mains = [...container.querySelectorAll("main")];
     expect(mains).toHaveLength(2);
     const homeExit = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
-    const workEnter = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workEnter = mains.find((main) => main.textContent?.includes("commercial"));
     expect(homeExit).toHaveAttribute("aria-hidden", "true");
     expect(homeExit).toHaveAttribute("inert");
     expect(homeExit).toHaveClass(styles.forwardExit, styles.forwardExitActive);
@@ -372,7 +372,7 @@ describe("AppShell", () => {
     mains = [...container.querySelectorAll("main")];
     expect(mains).toHaveLength(2);
     const contactExit = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
-    const workEnterBack = mains.find((main) => main.textContent?.includes("Commercial work"));
+    const workEnterBack = mains.find((main) => main.textContent?.includes("commercial"));
     expect(contactExit).toHaveAttribute("aria-hidden", "true");
     expect(contactExit).toHaveAttribute("inert");
     expect(contactExit).toHaveClass(styles.backwardExit, styles.backwardExitActive);

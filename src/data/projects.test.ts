@@ -10,9 +10,9 @@ const expectedProjects = [
   ["fitmed", "Fitmed", "Prototype system for dieteticians", ["javascript", "react", "redux", "node", "express", "mongodb"], "July 2018", "/portfolio/fitmed.png", "https://github.com/corashina/Fitmed"],
   ["kiteprint", "Kiteprint", "Simple PSD to HTML", ["javscript", "react"], "September 2018", "/portfolio/kiteprint.png", "https://github.com/corashina/Kiteprint"],
   ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "typescript", "javascript", "i18next", "oracle jd edwards"], "2021–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/"],
-  ["icr", "ICR", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
+  ["icr", "Doc AI", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
   ["workflow", "Workflow", "Approval and operational workflow modules for business-process handling.", ["react", "typescript", "rest api"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
-  ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+  ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/holiday.mp4", "https://xelto.ai/en/live-demo"],
   ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "pdf", "xml"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo"],
   ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo"],
 ] as const;
@@ -51,9 +51,9 @@ describe("projects", () => {
 
   it.each([
     ["xelcode", "Xelcode", "/portfolio/xelcode.mp4", "https://xelcode.com/product/"],
-    ["icr", "ICR", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
+    ["icr", "Doc AI", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],
     ["workflow", "Workflow", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
-    ["holiday", "Holiday", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo"],
+    ["holiday", "Holiday", "/portfolio/holiday.mp4", "https://xelto.ai/en/live-demo"],
     ["einvoicing", "eInvoicing", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo"],
     ["xelapps", "XELapps", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo"],
   ])("adds the public-safe %s project record", (slug, title, mediaSrc, sourceUrl) => {
@@ -84,6 +84,8 @@ describe("projects", () => {
     expect(getProjectBySlug("administration")).toBeUndefined();
     expect(getProjectBySlug("ksef")).toBeUndefined();
     expect(getProjectBySlug("xelapps")?.category).toBe("commercial");
+    expect(getProjectBySlug("kiteprint")?.category).toBe("freelance");
+    expect(getProjectBySlug("fitmed")?.category).toBe("freelance");
     expect(getProjectBySlug("particle-simulation")?.category).toBe("experiments");
     expect(getProjectBySlug("xelcode")).toMatchObject({ startedAt: "2021", startedLabel: "2021" });
     expect(getProjectBySlug("icr")).toMatchObject({ startedAt: "2025", startedLabel: "2025" });

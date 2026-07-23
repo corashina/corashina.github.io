@@ -28,8 +28,9 @@ describe("WorksPage", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Commercial work" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "Experiments" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "commercial" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "freelance" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "experiments" })).toBeInTheDocument();
 
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(13);

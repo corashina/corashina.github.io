@@ -4,7 +4,7 @@ export type ProjectMedia = {
   alt: string;
 };
 
-export type ProjectCategory = "commercial" | "experiments";
+export type ProjectCategory = "commercial" | "freelance" | "experiments";
 
 export type Project = {
   slug: string;
@@ -29,9 +29,9 @@ const projectData = [
   ["fitmed", "Fitmed", "Prototype system for dieteticians", ["javascript", "react", "redux", "node", "express", "mongodb"], "July 2018", "/portfolio/fitmed.png", "https://github.com/corashina/Fitmed"],
   ["kiteprint", "Kiteprint", "Simple PSD to HTML", ["javscript", "react"], "September 2018", "/portfolio/kiteprint.png", "https://github.com/corashina/Kiteprint"],
   ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "typescript", "javascript", "i18next", "oracle jd edwards"], "2021–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/", "Product overview →"],
-  ["icr", "ICR", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
+  ["icr", "Doc AI", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["workflow", "Workflow", "Approval and operational workflow modules for business-process handling.", ["react", "typescript", "rest api"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
-  ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
+  ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/holiday.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "pdf", "xml"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
 ] as const;
@@ -45,9 +45,9 @@ const projectMediaAlt: Record<string, string> = {
   fitmed: "Fitmed interface",
   kiteprint: "Kiteprint interface",
   xelcode: "Xelcode scanner workflow interface",
-  icr: "ICR document analysis interface",
+  icr: "Doc AI document analysis interface",
   workflow: "Workflow approval interface",
-  holiday: "Workflow dashboard used for Holiday",
+  holiday: "Holiday leave administration interface",
   einvoicing: "eInvoicing integration interface",
   xelapps: "XELapps configuration interface",
 };
@@ -75,8 +75,8 @@ const projectCategories: Record<string, ProjectCategory> = {
   holiday: "commercial",
   einvoicing: "commercial",
   xelcode: "commercial",
-  kiteprint: "commercial",
-  fitmed: "commercial",
+  kiteprint: "freelance",
+  fitmed: "freelance",
   "particle-simulation": "experiments",
   civio: "experiments",
   "flappy-pixie": "experiments",
