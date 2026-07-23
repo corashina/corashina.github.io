@@ -8,6 +8,7 @@ from zipfile import ZipFile
 
 from docx import Document
 from docx.shared import Inches, Pt
+import pdfplumber
 from pypdf import PdfReader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -285,7 +286,10 @@ class EditableCvBuilderTest(unittest.TestCase):
             build_pdf(output)
             reader = PdfReader(output)
             self.assertEqual(len(reader.pages), 1)
-            text = reader.pages[0].extract_text()
+            page = reader.pages[0]
+            self.assertEqual(float(page.mediabox.width), 612)
+            self.assertEqual(float(page.mediabox.height), 792)
+            text = page.extract_text() or ""
             for heading in (
                 "Profile",
                 "Education",
@@ -306,13 +310,35 @@ class EditableCvBuilderTest(unittest.TestCase):
             ):
                 self.assertNotIn(removed, text)
 
-            annotations = reader.pages[0].get("/Annots", [])
+            annotations = page.get("/Annots", [])
             uris = [
                 annotation.get_object().get("/A", {}).get("/URI", "")
                 for annotation in annotations
             ]
-            self.assertFalse(any("github.com" in uri for uri in uris))
-            self.assertFalse(any("linkedin.com" in uri for uri in uris))
+            self.assertEqual(
+                set(uris),
+                {
+                    CV_DATA.identity.website_url,
+                    f"mailto:{CV_DATA.identity.email}",
+                },
+            )
+            for removed_uri in (
+                CV_DATA.identity.github_url,
+                CV_DATA.identity.linkedin_url,
+                *(project.url for project in CV_DATA.personal_projects),
+            ):
+                self.assertNotIn(removed_uri, uris)
+            for forbidden in FORBIDDEN_PUBLIC_TERMS:
+                self.assertNotIn(forbidden.casefold(), text.casefold())
+
+            with pdfplumber.open(output) as pdf:
+                rendered_page = pdf.pages[0]
+                words = rendered_page.extract_words()
+            self.assertTrue(words)
+            self.assertLessEqual(
+                max(word["bottom"] for word in words),
+                rendered_page.height - 28.8,
+            )
 
 
 if __name__ == "__main__":

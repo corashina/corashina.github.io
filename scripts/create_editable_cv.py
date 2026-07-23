@@ -695,7 +695,7 @@ def _pdf_bullet(pdf: canvas.Canvas, text: str, y: float) -> float:
         size=PDF_BODY,
         leading=PDF_LEADING,
     )
-    return next_y - 2
+    return next_y
 
 
 def _pdf_project(
@@ -724,7 +724,7 @@ def _pdf_project(
         width = stringWidth(label, PDF_SANS, PDF_BODY)
         pdf.linkURL(project.url, (40, y - 1, 40 + width, y + 8), relative=0)
         y -= PDF_LEADING
-    return y - 2
+    return y
 
 
 def build_pdf(output_path: Path) -> Path:
@@ -739,12 +739,12 @@ def build_pdf(output_path: Path) -> Path:
 
     y = _pdf_header(pdf, CV_DATA)
     y = _pdf_section(pdf, "Profile", y)
-    y = _pdf_wrapped_text(pdf, CV_DATA.profile, 40, y, 532) - 7
+    y = _pdf_wrapped_text(pdf, CV_DATA.profile, 40, y, 532) - 5
 
     y = _pdf_section(pdf, "Education", y)
     for education in CV_DATA.education:
         y = _pdf_title_date(pdf, education.institution, education.period, y)
-        y = _pdf_wrapped_text(pdf, education.qualification, 40, y, 532) - 3
+        y = _pdf_wrapped_text(pdf, education.qualification, 40, y, 532) - 2
 
     y = _pdf_section(pdf, "Professional Experience", y)
     y = _pdf_company(
@@ -757,7 +757,7 @@ def build_pdf(output_path: Path) -> Path:
         y = _pdf_title_date(pdf, role.title, role.period, y)
         for bullet in role.bullets:
             y = _pdf_bullet(pdf, bullet, y)
-        y -= 2
+        y -= 1
 
     y = _pdf_title_date(
         pdf,
@@ -765,7 +765,7 @@ def build_pdf(output_path: Path) -> Path:
         "May\N{EN DASH}August 2018",
         y,
     )
-    y = _pdf_wrapped_text(pdf, CV_DATA.earlier_experience[1], 40, y, 532) - 5
+    y = _pdf_wrapped_text(pdf, CV_DATA.earlier_experience[1], 40, y, 532) - 3
 
     y = _pdf_section(pdf, "Commercial Experience", y)
     for project in CV_DATA.commercial_projects:
@@ -773,15 +773,15 @@ def build_pdf(output_path: Path) -> Path:
 
     y = _pdf_section(pdf, "Technologies", y)
     for label, technologies in CV_DATA.technology_groups:
-        y = _pdf_labeled_line(pdf, f"{label}:  ", ", ".join(technologies), y) - 2
-    y -= 4
+        y = _pdf_labeled_line(pdf, f"{label}:  ", ", ".join(technologies), y) - 1
+    y -= 2
 
     y = _pdf_section(pdf, "Selected Projects", y)
     for project in CV_DATA.personal_projects:
         y = _pdf_project(pdf, project, y, include_link=False)
 
     y = _pdf_section(pdf, "Additional Information", y)
-    y = _pdf_labeled_line(pdf, "Languages:  ", ", ".join(CV_DATA.languages), y) - 6
+    y = _pdf_labeled_line(pdf, "Languages:  ", ", ".join(CV_DATA.languages), y) - 4
     _pdf_wrapped_text(
         pdf,
         CV_DATA.consent,
