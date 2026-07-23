@@ -512,11 +512,11 @@ def build_cv(output_path: Path) -> Path:
     for role in CV_DATA.employment.roles:
         _add_role(document, role, bullet_number_id)
 
-    document.add_page_break()
-
     _add_section_heading(document, "Selected Product Work")
     for project in CV_DATA.commercial_projects:
         _add_project(document, project)
+
+    document.add_page_break()
 
     _add_section_heading(document, "Earlier Experience")
     _add_description(document, CV_DATA.earlier_experience[0])
@@ -740,13 +740,13 @@ def build_pdf(output_path: Path) -> Path:
             y = _pdf_bullet(pdf, bullet, y)
         y -= 2
 
-    pdf.showPage()
-
-    y = 744
     y = _pdf_section(pdf, "Selected Product Work", y)
     for project in CV_DATA.commercial_projects:
         y = _pdf_project(pdf, project, y)
 
+    pdf.showPage()
+
+    y = 744
     y = _pdf_section(pdf, "Earlier Experience", y)
     y = _pdf_wrapped_text(
         pdf,

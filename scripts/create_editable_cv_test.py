@@ -205,6 +205,22 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertIn(b"Full-Stack Engineer", document_xml)
         self.assertNotIn(b"expected in July 2020", document_xml)
 
+    def test_page_break_balances_complete_sections_between_pages(self) -> None:
+        break_indices = [
+            index
+            for index, paragraph in enumerate(self.document.paragraphs)
+            if paragraph._p.xpath(".//w:br[@w:type='page']")
+        ]
+        self.assertEqual(len(break_indices), 1)
+
+        paragraph_positions = {
+            paragraph.text: index
+            for index, paragraph in enumerate(self.document.paragraphs)
+        }
+        break_index = break_indices[0]
+        self.assertLess(paragraph_positions["Selected Product Work"], break_index)
+        self.assertGreater(paragraph_positions["Earlier Experience"], break_index)
+
     def test_docx_has_current_links_and_only_approved_projects(self) -> None:
         for value in (
             "corashina.github.io",
