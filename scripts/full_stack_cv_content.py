@@ -214,7 +214,7 @@ CV_DATA = CvData(
         ),
     ),
     education=(
-        Education("University of Southampton", "BSc Computer Science", "July 2020"),
+        Education("University of Southampton", "BSc Computer Science", "2017–2020"),
         Education(
             "Poznan University of Technology",
             "Information Engineering",

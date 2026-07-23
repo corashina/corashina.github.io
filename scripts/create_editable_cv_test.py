@@ -85,7 +85,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Profile",
             "Education",
             "University of Southampton",
-            "July 2020",
+            "2017–2020",
             "Xelto",
             "Freelance Web Development",
             "Commercial Experience",
@@ -187,7 +187,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             [project.title for project in CV_DATA.personal_projects],
             ["Endless City", "Flappy-Pixie", "Fitmed"],
         )
-        self.assertEqual(CV_DATA.education[0].period, "July 2020")
+        self.assertEqual(CV_DATA.education[0].period, "2017–2020")
 
     def test_public_content_excludes_private_metrics_and_client_names(self) -> None:
         visible = CV_DATA.visible_text()
