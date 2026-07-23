@@ -23,7 +23,7 @@ async function expectReady(page: Page): Promise<void> {
 
 async function expectVisibleParticles(page: Page): Promise<void> {
   const snapshot = await page.locator("#showcase-canvas").screenshot({
-    style: ".showcase-controls, .showcase-status { visibility: hidden !important; }",
+    style: ".showcase-controls, .showcase-status, .particle-lab { visibility: hidden !important; }",
   });
   const distribution = await page.evaluate(async (dataUrl) => {
     const image = await new Promise<HTMLImageElement>((resolve, reject) => {

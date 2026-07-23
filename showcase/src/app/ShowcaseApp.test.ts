@@ -140,6 +140,7 @@ describe("ShowcaseApp", () => {
     Object.defineProperty(document, "hidden", { value: true, configurable: true });
     document.dispatchEvent(new Event("visibilitychange"));
     expect(h.clock.pause).toHaveBeenCalledOnce();
+    expect(h.fps.reset).toHaveBeenCalledOnce();
     Object.defineProperty(document, "hidden", { value: false, configurable: true });
     document.dispatchEvent(new Event("visibilitychange"));
     expect(h.clock.resume).toHaveBeenCalledWith(100);
@@ -195,6 +196,7 @@ describe("ShowcaseApp", () => {
     const lost = new Event("webglcontextlost", { cancelable: true }); h.canvas.dispatchEvent(lost);
     expect(lost.defaultPrevented).toBe(true);
     expect(h.root.dataset.showcaseState).toBe("recovering");
+    expect(h.fps.reset).toHaveBeenCalledOnce();
     h.canvas.dispatchEvent(new Event("webglcontextrestored"));
     expect(h.factories.createParticles).toHaveBeenCalledTimes(2);
     expect(h.factories.createPipeline).toHaveBeenCalledTimes(2);

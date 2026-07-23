@@ -12,6 +12,7 @@ describe("particle-only showcase shell", () => {
     expect(document.querySelector("[data-quality-selector]")).toBeNull();
     expect(document.querySelectorAll("button")).toHaveLength(3);
     expect(document.querySelector(".interaction-hint")?.textContent).toContain("Click or tap to pulse");
+    expect(document.querySelector("[data-reset-view]")?.textContent).toBe("Reset view");
     expect(document.querySelector("aside.particle-lab")?.getAttribute("aria-label")).toBe("Particle Lab controls");
     expect(document.querySelector("[data-panel-toggle]")?.getAttribute("aria-label")).toBe("Toggle Particle Lab");
     expect(document.querySelector("[data-fps]")?.textContent).toBe("-- FPS");

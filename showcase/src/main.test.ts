@@ -9,10 +9,10 @@ afterEach(() => {
 });
 
 function page(): { canvas: HTMLCanvasElement; reset: HTMLButtonElement; hint: HTMLElement; status: HTMLElement } {
-  document.documentElement.innerHTML = `<body><main id="showcase-root"><canvas id="showcase-canvas"></canvas><p class="showcase-status" role="status" aria-live="polite">Preparing Cosmic Genesis…</p><section class="showcase-controls"><p class="interaction-hint">Drag to orbit · Scroll to zoom · Click or tap to pulse</p><button type="button">Reset view</button></section><aside class="particle-lab"><output data-fps>-- FPS</output><button type="button" data-panel-toggle></button><div data-panel-body></div><button type="button" data-parameter-reset>Reset parameters</button></aside></main></body>`;
+  document.documentElement.innerHTML = `<body><main id="showcase-root"><canvas id="showcase-canvas"></canvas><p class="showcase-status" role="status" aria-live="polite">Preparing Cosmic Genesis…</p><section class="showcase-controls"><p class="interaction-hint">Drag to orbit · Scroll to zoom · Click or tap to pulse</p><button type="button" data-unrelated-control>Unrelated control</button><button type="button" data-reset-view>Reset view</button></section><aside class="particle-lab"><output data-fps>-- FPS</output><button type="button" data-panel-toggle></button><div data-panel-body></div><button type="button" data-parameter-reset>Reset parameters</button></aside></main></body>`;
   const canvas = document.querySelector<HTMLCanvasElement>("#showcase-canvas")!;
   vi.spyOn(canvas, "getContext").mockReturnValue({} as WebGL2RenderingContext);
-  return { canvas, reset: document.querySelector("button")!, hint: document.querySelector(".interaction-hint")!, status: document.querySelector(".showcase-status")! };
+  return { canvas, reset: document.querySelector("[data-reset-view]")!, hint: document.querySelector(".interaction-hint")!, status: document.querySelector(".showcase-status")! };
 }
 
 describe("bootstrapShowcase", () => {

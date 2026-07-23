@@ -48,8 +48,16 @@ describe("ParameterPanel", () => {
 
     panel.dispose();
     onChange.mockClear();
+    const speed = root.querySelector<HTMLInputElement>('[data-parameter="speed"]')!;
+    const reset = root.querySelector<HTMLButtonElement>("[data-parameter-reset]")!;
+    const speedBeforeDispose = speed.value;
     toggle.click();
+    speed.value = "4.5";
+    speed.dispatchEvent(new Event("input", { bubbles: true }));
+    reset.click();
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(speed.value).toBe("4.5");
+    expect(speedBeforeDispose).toBe("3");
     expect(onChange).not.toHaveBeenCalled();
   });
 });

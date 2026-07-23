@@ -70,7 +70,7 @@ export function bootstrapShowcase(options: BootstrapOptions = {}): AppControls |
     });
     app.registerCleanup?.(() => panel.dispose());
   }
-  const reset = activeDocument.querySelector<HTMLButtonElement>("button[type='button']");
+  const reset = activeDocument.querySelector<HTMLButtonElement>("[data-reset-view]");
   const onReset = (): void => { try { app.resetView(); } catch (error) { showFallback(error instanceof Error ? error.message : "View reset failed.", app); } };
   reset?.addEventListener("click", onReset);
 

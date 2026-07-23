@@ -48,6 +48,10 @@ describe("RenderPipeline", () => {
     expect(pipeline.bloomPass.strength).toBe(1.2);
     pipeline.setBloomStrength(-1);
     expect(pipeline.bloomPass.strength).toBe(0);
+    pipeline.setBloomStrength(2);
+    expect(pipeline.bloomPass.strength).toBe(1.5);
+    pipeline.setBloomStrength(Number.NaN);
+    expect(pipeline.bloomPass.strength).toBe(1.5);
     pipeline.dispose();
   });
 
