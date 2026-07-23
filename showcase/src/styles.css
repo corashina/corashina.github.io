@@ -88,6 +88,8 @@ button { font: inherit; }
   margin-top: 0.9rem;
 }
 
+.particle-lab__body[hidden] { display: none; }
+
 .particle-lab__control {
   display: grid;
   grid-template-columns: 1fr auto;
