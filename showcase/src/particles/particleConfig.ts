@@ -1,3 +1,0 @@
-export const PARTICLE_TEXTURE_SIZE = 128 as const;
-export const PARTICLE_COUNT = PARTICLE_TEXTURE_SIZE * PARTICLE_TEXTURE_SIZE;
-export const MAX_PIXEL_RATIO = 1 as const;
