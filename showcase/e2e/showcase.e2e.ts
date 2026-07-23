@@ -73,7 +73,7 @@ async function loseWebGlContext(page: Page, restore = false): Promise<boolean> {
 }
 
 test("loads the WebGL showcase at its testable production base path", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-rendered-frames", /[1-9]\d*/);
   await expect(page.locator("html")).toHaveAttribute("data-scene-speed", "3");
@@ -81,7 +81,7 @@ test("loads the WebGL showcase at its testable production base path", async ({ p
 });
 
 test("exposes live particle controls, fps, reset, and collapse", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   await expect(page.locator("[data-fps]")).toHaveText(/\d+ FPS/);
   const speed = page.locator('[data-parameter="speed"]');
@@ -95,15 +95,15 @@ test("exposes live particle controls, fps, reset, and collapse", async ({ page }
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
 });
 
-test("serves direct /showcase/ navigation without test instrumentation", async ({ page }) => {
-  await page.goto("/showcase/");
+test("serves direct root navigation without test instrumentation", async ({ page }) => {
+  await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-showcase-state", "ready");
   await expect(page.locator("#showcase-canvas")).toBeVisible();
   expect(Object.values(await readTelemetry(page))).toEqual(telemetryAttributes.map(() => null));
 });
 
 test("accepts direct interaction", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   const canvas = page.locator("#showcase-canvas");
   await canvas.hover({ position: { x: 300, y: 220 } });
@@ -112,7 +112,7 @@ test("accepts direct interaction", async ({ page }) => {
 });
 
 test("keeps the scene ready after a keyboard reset", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   await page.keyboard.press("r");
   await expect(page.locator("html")).toHaveAttribute("data-last-reset", "1");
@@ -121,7 +121,7 @@ test("keeps the scene ready after a keyboard reset", async ({ page }) => {
 
 test("supports reduced motion with pulse, keyboard orbit, and zoom controls", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   await expect(page.locator("html")).toHaveAttribute("data-reduced-motion", "true");
   await page.locator("#showcase-canvas").click({ position: { x: 300, y: 220 } });
@@ -134,7 +134,7 @@ test("supports reduced motion with pulse, keyboard orbit, and zoom controls", as
 
 test("creates a pulse from a touch PointerEvent sequence at a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   await expect(page.getByRole("button", { name: "Toggle Particle Lab" })).toHaveAttribute("aria-expanded", "false");
   await page.evaluate(() => {
@@ -147,7 +147,7 @@ test("creates a pulse from a touch PointerEvent sequence at a mobile viewport", 
 });
 
 test("restores after a first WebGL context loss", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   expect(await loseWebGlContext(page)).toBe(true);
   await expect(page.locator("html")).toHaveAttribute("data-showcase-state", "recovering");
@@ -157,7 +157,7 @@ test("restores after a first WebGL context loss", async ({ page }) => {
 });
 
 test("shows a loaded static fallback after a second WebGL context loss", async ({ page }) => {
-  await page.goto("/showcase/?test=1");
+  await page.goto("/?test=1");
   await expectReady(page);
   const canvas = page.locator("#showcase-canvas");
   await canvas.dispatchEvent("webglcontextlost");
