@@ -7,7 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from scripts.full_stack_cv_content import CV_DATA, CvData
+if __package__:
+    from .full_stack_cv_content import CV_DATA, CvData
+else:
+    from full_stack_cv_content import CV_DATA, CvData
 
 
 @dataclass(frozen=True)

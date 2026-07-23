@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import hashlib
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +12,19 @@ from scripts.package_full_stack_cv import package_bundle, sha256_file
 
 
 class FullStackCvPackagerTest(unittest.TestCase):
+    def test_cli_can_be_invoked_by_script_path(self) -> None:
+        script = Path(__file__).with_name("package_full_stack_cv.py")
+
+        completed = subprocess.run(
+            [sys.executable, str(script), "--help"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("--output-dir", completed.stdout)
+
     def test_sha256_file_matches_known_digest(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             source = Path(temporary_directory) / "source.txt"
