@@ -26,12 +26,8 @@
 }
 
 .toolkitGroup {
-  background: color-mix(in srgb, $color-bg 92%, $color-1);
-  border: 1px solid $color-25;
-  border-radius: 0.75rem;
   display: grid;
   gap: 0.5rem;
-  padding: 0.85rem;
 }
 
 .toolkitGroup h3 {

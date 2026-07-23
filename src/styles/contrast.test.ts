@@ -208,14 +208,12 @@ describe("original style contracts", () => {
       /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/,
     );
 
-    expect(group).toMatch(
-      /background: color-mix\(in srgb, \$color-bg 92%, \$color-1\);/,
-    );
-    expect(group).toMatch(/border: 1px solid \$color-25;/);
-    expect(group).toMatch(/border-radius: 0\.75rem;/);
     expect(group).toMatch(/display: grid;/);
     expect(group).toMatch(/gap: 0\.5rem;/);
-    expect(group).toMatch(/padding: 0\.85rem;/);
+    expect(group).not.toMatch(/background:/);
+    expect(group).not.toMatch(/border:/);
+    expect(group).not.toMatch(/border-radius:/);
+    expect(group).not.toMatch(/padding:/);
 
     expect(groupHeading).toMatch(/font-size: 0\.78rem;/);
     expect(groupHeading).toMatch(/letter-spacing: 0\.08em;/);
