@@ -551,6 +551,9 @@ def build_cv(output_path: Path) -> Path:
 PDF_SERIF = "CvTimes"
 PDF_SANS = "CvCalibri"
 PDF_SANS_BOLD = "CvCalibriBold"
+PDF_BODY = 8.5
+PDF_LEADING = 9.5
+PDF_SECTION = 13.5
 
 
 def _register_pdf_fonts() -> None:
@@ -576,24 +579,22 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
         (data.identity.website_text, data.identity.website_url, 748),
         (data.identity.email, f"mailto:{data.identity.email}", 735),
         (data.identity.phone, "", 722),
-        (data.identity.github_text, data.identity.github_url, 709),
-        (data.identity.linkedin_text, data.identity.linkedin_url, 696),
     )
-    pdf.setFont(PDF_SANS, 9)
+    pdf.setFont(PDF_SANS, PDF_BODY)
     pdf.setFillColor(PDF_MUTED)
     for text, url, y in contact_rows:
         pdf.drawRightString(572, y, text)
         if url:
-            width = stringWidth(text, PDF_SANS, 9)
+            width = stringWidth(text, PDF_SANS, PDF_BODY)
             pdf.linkURL(url, (572 - width, y - 1, 572, y + 9), relative=0)
-    return 674
+    return 700
 
 
 def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
     pdf.setFillColor(PDF_MUTED)
-    pdf.setFont(PDF_SERIF, 16)
+    pdf.setFont(PDF_SERIF, PDF_SECTION)
     pdf.drawString(40, y, title)
-    return y - 25
+    return y - 18
 
 
 def _pdf_wrapped_text(
@@ -603,8 +604,8 @@ def _pdf_wrapped_text(
     y: float,
     width: float,
     font_name: str = PDF_SANS,
-    size: float = 9,
-    leading: float = 11,
+    size: float = PDF_BODY,
+    leading: float = PDF_LEADING,
 ) -> float:
     words = text.split()
     lines: list[str] = []
@@ -636,12 +637,26 @@ def _pdf_title_date(
     x: float = 40,
 ) -> float:
     pdf.setFillColor(black)
-    pdf.setFont(PDF_SANS_BOLD, 9)
+    pdf.setFont(PDF_SANS_BOLD, PDF_BODY)
     pdf.drawString(x, y, title)
     pdf.setFillColor(PDF_MUTED)
-    pdf.setFont(PDF_SANS, 9)
+    pdf.setFont(PDF_SANS, PDF_BODY)
     pdf.drawRightString(572, y, date)
     return y - 12
+
+
+def _pdf_company(
+    pdf: canvas.Canvas,
+    company: str,
+    date: str,
+    y: float,
+) -> float:
+    pdf.setFillColor(PDF_MUTED)
+    pdf.setFont(PDF_SERIF, 10.5)
+    pdf.drawString(40, y, company)
+    pdf.setFont(PDF_SANS, 8.5)
+    pdf.drawRightString(572, y, date)
+    return y - 11
 
 
 def _pdf_labeled_line(
@@ -651,9 +666,9 @@ def _pdf_labeled_line(
     y: float,
 ) -> float:
     pdf.setFillColor(black)
-    pdf.setFont(PDF_SANS_BOLD, 9)
+    pdf.setFont(PDF_SANS_BOLD, PDF_BODY)
     pdf.drawString(40, y, label)
-    label_width = stringWidth(label, PDF_SANS_BOLD, 9)
+    label_width = stringWidth(label, PDF_SANS_BOLD, PDF_BODY)
     return _pdf_wrapped_text(
         pdf,
         value,
@@ -661,14 +676,14 @@ def _pdf_labeled_line(
         y=y,
         width=532 - label_width,
         font_name=PDF_SANS,
-        size=9,
-        leading=11,
+        size=PDF_BODY,
+        leading=PDF_LEADING,
     )
 
 
 def _pdf_bullet(pdf: canvas.Canvas, text: str, y: float) -> float:
     pdf.setFillColor(black)
-    pdf.setFont(PDF_SANS, 9)
+    pdf.setFont(PDF_SANS, PDF_BODY)
     pdf.drawString(41, y, "•")
     next_y = _pdf_wrapped_text(
         pdf,
@@ -677,13 +692,18 @@ def _pdf_bullet(pdf: canvas.Canvas, text: str, y: float) -> float:
         y=y,
         width=519,
         font_name=PDF_SANS,
-        size=9,
-        leading=11,
+        size=PDF_BODY,
+        leading=PDF_LEADING,
     )
     return next_y - 2
 
 
-def _pdf_project(pdf: canvas.Canvas, project: Project, y: float) -> float:
+def _pdf_project(
+    pdf: canvas.Canvas,
+    project: Project,
+    y: float,
+    include_link: bool = False,
+) -> float:
     y = _pdf_title_date(pdf, project.title, project.period, y)
     y = _pdf_wrapped_text(
         pdf,
@@ -692,19 +712,19 @@ def _pdf_project(pdf: canvas.Canvas, project: Project, y: float) -> float:
         y=y,
         width=532,
         font_name=PDF_SANS_BOLD,
-        size=8.5,
-        leading=10,
+        size=PDF_BODY,
+        leading=PDF_LEADING,
     )
     y = _pdf_wrapped_text(pdf, project.description, 40, y, 532)
-    if project.url:
+    if include_link and project.url:
         pdf.setFillColor(PDF_MUTED)
-        pdf.setFont(PDF_SANS, 8)
+        pdf.setFont(PDF_SANS, PDF_BODY)
         label = "View project"
         pdf.drawString(40, y, label)
-        width = stringWidth(label, PDF_SANS, 8)
+        width = stringWidth(label, PDF_SANS, PDF_BODY)
         pdf.linkURL(project.url, (40, y - 1, 40 + width, y + 8), relative=0)
-        y -= 10
-    return y - 4
+        y -= PDF_LEADING
+    return y - 2
 
 
 def build_pdf(output_path: Path) -> Path:
@@ -721,13 +741,13 @@ def build_pdf(output_path: Path) -> Path:
     y = _pdf_section(pdf, "Profile", y)
     y = _pdf_wrapped_text(pdf, CV_DATA.profile, 40, y, 532) - 7
 
-    y = _pdf_section(pdf, "Core Technologies", y)
-    for label, technologies in CV_DATA.technology_groups:
-        y = _pdf_labeled_line(pdf, f"{label}:  ", ", ".join(technologies), y) - 2
-    y -= 4
+    y = _pdf_section(pdf, "Education", y)
+    for education in CV_DATA.education:
+        y = _pdf_title_date(pdf, education.institution, education.period, y)
+        y = _pdf_wrapped_text(pdf, education.qualification, 40, y, 532) - 3
 
     y = _pdf_section(pdf, "Professional Experience", y)
-    y = _pdf_title_date(
+    y = _pdf_company(
         pdf,
         CV_DATA.employment.company,
         CV_DATA.employment.period,
@@ -739,32 +759,26 @@ def build_pdf(output_path: Path) -> Path:
             y = _pdf_bullet(pdf, bullet, y)
         y -= 2
 
-    y = _pdf_section(pdf, "Selected Product Work", y)
-    for project in CV_DATA.commercial_projects:
-        y = _pdf_project(pdf, project, y)
-
-    pdf.showPage()
-
-    y = 744
-    y = _pdf_section(pdf, "Earlier Experience", y)
-    y = _pdf_wrapped_text(
+    y = _pdf_title_date(
         pdf,
-        CV_DATA.earlier_experience[0],
-        40,
+        "Freelance Web Development \N{MIDDLE DOT} Poznan, Poland",
+        "May\N{EN DASH}August 2018",
         y,
-        532,
-        font_name=PDF_SANS_BOLD,
     )
     y = _pdf_wrapped_text(pdf, CV_DATA.earlier_experience[1], 40, y, 532) - 5
 
+    y = _pdf_section(pdf, "Commercial Experience", y)
+    for project in CV_DATA.commercial_projects:
+        y = _pdf_project(pdf, project, y, include_link=False)
+
+    y = _pdf_section(pdf, "Technologies", y)
+    for label, technologies in CV_DATA.technology_groups:
+        y = _pdf_labeled_line(pdf, f"{label}:  ", ", ".join(technologies), y) - 2
+    y -= 4
+
     y = _pdf_section(pdf, "Selected Projects", y)
     for project in CV_DATA.personal_projects:
-        y = _pdf_project(pdf, project, y)
-
-    y = _pdf_section(pdf, "Education", y)
-    for education in CV_DATA.education:
-        y = _pdf_title_date(pdf, education.institution, education.period, y)
-        y = _pdf_wrapped_text(pdf, education.qualification, 40, y, 532) - 3
+        y = _pdf_project(pdf, project, y, include_link=False)
 
     y = _pdf_section(pdf, "Additional Information", y)
     y = _pdf_labeled_line(pdf, "Languages:  ", ", ".join(CV_DATA.languages), y) - 6
@@ -775,8 +789,8 @@ def build_pdf(output_path: Path) -> Path:
         y,
         532,
         font_name=PDF_SANS,
-        size=8,
-        leading=9.5,
+        size=PDF_BODY,
+        leading=PDF_LEADING,
     )
 
     pdf.showPage()

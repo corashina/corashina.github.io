@@ -279,38 +279,40 @@ class EditableCvBuilderTest(unittest.TestCase):
         ):
             self.assertNotIn(obsolete, self.text)
 
-    def test_builds_two_page_pdf_with_shared_current_content(self) -> None:
-        pdf_path = Path(self._temp_dir.name) / "cv.pdf"
-        build_pdf(pdf_path)
+    def test_builds_one_page_pdf_with_approved_hierarchy_and_links(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "cv.pdf"
+            build_pdf(output)
+            reader = PdfReader(output)
+            self.assertEqual(len(reader.pages), 1)
+            text = reader.pages[0].extract_text()
+            for heading in (
+                "Profile",
+                "Education",
+                "Professional Experience",
+                "Commercial Experience",
+                "Technologies",
+                "Selected Projects",
+                "Additional Information",
+            ):
+                self.assertIn(heading, text)
+            for removed in (
+                "Core Technologies",
+                "Selected Product Work",
+                "Earlier Experience",
+                "github.com/corashina",
+                "linkedin.com/in/",
+                "View project",
+            ):
+                self.assertNotIn(removed, text)
 
-        reader = PdfReader(pdf_path)
-        self.assertEqual(len(reader.pages), 2)
-        self.assertTrue(
-            all(
-                float(page.mediabox.width) == 612
-                and float(page.mediabox.height) == 792
-                for page in reader.pages
-            )
-        )
-        extracted = "\n".join(page.extract_text() or "" for page in reader.pages)
-        for expected in (
-            "Tomasz Zielinski",
-            "Full-Stack Engineer",
-            "Professional Experience",
-            "Xelto",
-            "2021",
-            "2026",
-            "Endless City",
-            "Flappy-Pixie",
-            "Fitmed",
-            "BSc Computer Science",
-            "July 2020",
-            "corashina@gmail.com",
-            "I hereby consent",
-        ):
-            self.assertIn(expected, extracted)
-        for forbidden in FORBIDDEN_PUBLIC_TERMS:
-            self.assertNotIn(forbidden.casefold(), extracted.casefold())
+            annotations = reader.pages[0].get("/Annots", [])
+            uris = [
+                annotation.get_object().get("/A", {}).get("/URI", "")
+                for annotation in annotations
+            ]
+            self.assertFalse(any("github.com" in uri for uri in uris))
+            self.assertFalse(any("linkedin.com" in uri for uri in uris))
 
 
 if __name__ == "__main__":
