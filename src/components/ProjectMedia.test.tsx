@@ -122,6 +122,18 @@ describe("ProjectMedia", () => {
     );
   });
 
+  it("reveals eager video that is already ready when effects run", async () => {
+    vi.spyOn(HTMLMediaElement.prototype, "readyState", "get").mockReturnValue(
+      HTMLMediaElement.HAVE_CURRENT_DATA,
+    );
+    render(<ProjectMedia interactive loadingMode="eager" media={videoMedia} />);
+
+    const video = screen.getByLabelText("Demo interface");
+    const poster = screen.getByAltText("Demo interface");
+    await waitFor(() => expect(video).toHaveClass(styles.mediaVideoLoaded));
+    expect(poster).toHaveClass(styles.mediaPosterHidden);
+  });
+
   it("keeps reduced-motion cards poster-only and gives eager details controls", () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();

@@ -37,6 +37,19 @@ function ProjectMediaInstance({
   });
 
   useEffect(() => {
+    const video = videoRef.current;
+    if (
+      media.kind === "video"
+      && active
+      && !videoFailed
+      && video
+      && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
+    ) {
+      setVideoLoaded(true);
+    }
+  }, [active, media.kind, videoFailed]);
+
+  useEffect(() => {
     const container = containerRef.current;
     let video = videoRef.current;
 
