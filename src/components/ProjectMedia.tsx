@@ -148,6 +148,7 @@ function ProjectMediaInstance({
       aria-label={standaloneInteraction ? `${media.alt} video preview` : undefined}
       className={`${styles.media} ${showFallback ? styles.mediaFallback : ""}`}
       ref={containerRef}
+      role={standaloneInteraction ? "group" : undefined}
       tabIndex={standaloneInteraction ? 0 : undefined}
     >
       {!posterFailed && (

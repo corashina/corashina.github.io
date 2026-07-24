@@ -136,8 +136,11 @@ describe("ProjectMedia", () => {
       </>,
     );
 
+    const surface = screen.getByRole("group", {
+      name: "Demo interface video preview",
+    });
     const video = screen.getByLabelText("Demo interface") as HTMLVideoElement;
-    const surface = video.parentElement!;
+    expect(video.parentElement).toBe(surface);
     Object.defineProperty(video, "currentTime", {
       configurable: true,
       value: 12,
