@@ -11,15 +11,15 @@ describe("App routes", () => {
     ["/works", "Work"],
     ["/contact", "Contact"],
     ["/missing", "404"]
-  ])("renders %s", (path, heading) => {
+  ])("renders %s", async (path, heading) => {
     render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>);
-    expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: heading })).toBeInTheDocument();
   });
 
-  it("uses one main landmark for a missing project route", () => {
+  it("uses one main landmark for a missing project route", async () => {
     render(<MemoryRouter initialEntries={["/works/missing-project"]}><App /></MemoryRouter>);
 
-    expect(screen.getByRole("heading", { level: 1, name: "404" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "404" })).toBeInTheDocument();
     expect(screen.getAllByRole("main")).toHaveLength(1);
   });
 });

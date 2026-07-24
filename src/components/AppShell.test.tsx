@@ -13,6 +13,11 @@ const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
 }));
 
+const waitForPageHeading = async (name: string) => {
+  await act(async () => {});
+  expect(screen.getByRole("heading", { name })).toBeInTheDocument();
+};
+
 vi.mock("../three/backgroundScene", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../three/backgroundScene")>()),
   createBackgroundScene: sceneMocks.createBackgroundScene,
@@ -62,6 +67,7 @@ describe("AppShell", () => {
         <App />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
 
     const navigation = screen.getByRole("navigation", {
       name: "Primary navigation",
@@ -84,19 +90,20 @@ describe("AppShell", () => {
     expect(menuButton).toHaveAccessibleName("Close navigation menu");
 
     await user.click(within(navigation).getByRole("link", { name: "Contact" }));
-    expect(screen.getByRole("heading", { name: "Contact" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Contact" })).toBeInTheDocument();
     expect(menuButton).toHaveAttribute("aria-expanded", "false");
   });
 
   it.each([
-    ["/works/webgl-minecraft", "Work"],
-    ["/contact/missing", "Contact"],
-  ])("does not mark %s parent navigation as current", (path, linkName) => {
+    ["/works/webgl-minecraft", "Work", "WebGL-Minecraft"],
+    ["/contact/missing", "Contact", "404"],
+  ])("does not mark %s parent navigation as current", async (path, linkName, heading) => {
     render(
       <MemoryRouter initialEntries={[path]}>
         <App />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: heading });
 
     const navigation = screen.getByRole("navigation", {
       name: "Primary navigation",
@@ -124,9 +131,11 @@ describe("AppShell", () => {
         <App />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
     const initialClassName = container.firstElementChild?.className;
 
     await user.click(screen.getByRole("link", { name: "Work" }));
+    await screen.findByRole("heading", { name: "Work" });
 
     expect(container.firstElementChild).toHaveClass(styles.layout);
     expect(container.firstElementChild?.className).toBe(initialClassName);
@@ -139,6 +148,7 @@ describe("AppShell", () => {
         <App />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Work" });
 
     await user.click(screen.getByRole("link", { name: "Work" }));
 
@@ -191,7 +201,7 @@ describe("AppShell", () => {
     expect(document.title).toBe(title);
   });
 
-  it("updates the exact original document title after navigation", () => {
+  it("updates the exact original document title after navigation", async () => {
     let navigate: NavigateFunction | undefined;
 
     function RouterHarness() {
@@ -204,15 +214,15 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
     expect(document.title).toBe("Home");
 
-    act(() => navigate?.("/works/webgl-minecraft"));
+    await act(async () => navigate?.("/works/webgl-minecraft"));
 
     expect(document.title).toBe("Webgl-minecraft");
   });
 
-  it("uses backward classes for browser Back and forward classes for browser Forward", () => {
-    vi.useFakeTimers();
+  it("uses backward classes for browser Back and forward classes for browser Forward", async () => {
     let navigate: NavigateFunction | undefined;
 
     function RouterHarness() {
@@ -225,13 +235,18 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
+    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(500));
-    act(() => navigate?.("/works"));
+    await act(async () => navigate?.("/works"));
+    await waitForPageHeading("Work");
     act(() => vi.advanceTimersByTime(500));
-    act(() => navigate?.("/contact"));
+    await act(async () => navigate?.("/contact"));
+    await waitForPageHeading("Contact");
     act(() => vi.advanceTimersByTime(500));
 
-    act(() => navigate?.(-1));
+    await act(async () => navigate?.(-1));
+    await waitForPageHeading("Work");
 
     let mains = [...container.querySelectorAll("main")];
     const contactExit = mains.find((main) => main.textContent?.includes("corashina@gmail.com"));
@@ -240,7 +255,8 @@ describe("AppShell", () => {
     expect(workEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
 
     act(() => vi.advanceTimersByTime(500));
-    act(() => navigate?.(1));
+    await act(async () => navigate?.(1));
+    await waitForPageHeading("Contact");
 
     mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("commercial"));
@@ -249,8 +265,7 @@ describe("AppShell", () => {
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
 
-  it("uses browser history indices for an unknown Forward POP from an initial middle entry", () => {
-    vi.useFakeTimers();
+  it("uses browser history indices for an unknown Forward POP from an initial middle entry", async () => {
     window.history.replaceState({ idx: 11 }, "", window.location.href);
     let navigate: NavigateFunction | undefined;
 
@@ -264,12 +279,15 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Work" });
+    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(500));
 
-    act(() => {
+    await act(async () => {
       window.history.replaceState({ idx: 12 }, "", window.location.href);
       navigate?.(1);
     });
+    await waitForPageHeading("Contact");
 
     const mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("commercial"));
@@ -278,8 +296,7 @@ describe("AppShell", () => {
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
 
-  it("uses forward classes for replace and a deterministic backward fallback for unknown pops", () => {
-    vi.useFakeTimers();
+  it("uses forward classes for replace and a deterministic backward fallback for unknown pops", async () => {
     let navigate: NavigateFunction | undefined;
 
     function RouterHarness() {
@@ -292,9 +309,12 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Work" });
+    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(500));
 
-    act(() => navigate?.(-1));
+    await act(async () => navigate?.(-1));
+    await waitForPageHeading("Tomasz Zielinski");
 
     let mains = [...container.querySelectorAll("main")];
     const workExit = mains.find((main) => main.textContent?.includes("commercial"));
@@ -303,7 +323,8 @@ describe("AppShell", () => {
     expect(homeEnter).toHaveClass(styles.backwardEnter, styles.backwardEnterActive);
 
     act(() => vi.advanceTimersByTime(500));
-    act(() => navigate?.("/contact", { replace: true }));
+    await act(async () => navigate?.("/contact", { replace: true }));
+    await waitForPageHeading("Contact");
 
     mains = [...container.querySelectorAll("main")];
     const homeExit = mains.find((main) => main.textContent?.includes("Tomasz Zielinski"));
@@ -312,13 +333,14 @@ describe("AppShell", () => {
     expect(contactEnter).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
 
-  it("runs the initial forward appearance for 500ms", () => {
+  it("runs the initial forward appearance for 500ms", async () => {
     vi.useFakeTimers();
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>,
     );
+    await waitForPageHeading("Tomasz Zielinski");
 
     const main = screen.getByRole("main");
     expect(main).toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
@@ -330,8 +352,7 @@ describe("AppShell", () => {
     expect(main).not.toHaveClass(styles.forwardEnter, styles.forwardEnterActive);
   });
 
-  it("keeps captured outlets during push and back transitions while hiding outgoing mains", () => {
-    vi.useFakeTimers();
+  it("keeps captured outlets during push and back transitions while hiding outgoing mains", async () => {
     let navigate: NavigateFunction | undefined;
 
     function RouterHarness() {
@@ -344,9 +365,12 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
+    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(500));
 
-    act(() => navigate?.("/works"));
+    await act(async () => navigate?.("/works"));
+    await waitForPageHeading("Work");
 
     let mains = [...container.querySelectorAll("main")];
     expect(mains).toHaveLength(2);
@@ -363,11 +387,13 @@ describe("AppShell", () => {
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: "Tomasz Zielinski" })).not.toBeInTheDocument();
 
-    act(() => navigate?.("/contact"));
+    await act(async () => navigate?.("/contact"));
+    await waitForPageHeading("Contact");
     act(() => vi.advanceTimersByTime(500));
     expect(container.querySelectorAll("main")).toHaveLength(1);
 
-    act(() => navigate?.(-1));
+    await act(async () => navigate?.(-1));
+    await waitForPageHeading("Work");
 
     mains = [...container.querySelectorAll("main")];
     expect(mains).toHaveLength(2);
@@ -386,8 +412,7 @@ describe("AppShell", () => {
     expect(screen.getByRole("heading", { name: "Work" })).toBeInTheDocument();
   });
 
-  it("restores accessibility when a route re-enters before its PUSH exit settles", () => {
-    vi.useFakeTimers();
+  it("restores accessibility when a route re-enters before its PUSH exit settles", async () => {
     let navigate: NavigateFunction | undefined;
 
     function RouterHarness() {
@@ -400,10 +425,14 @@ describe("AppShell", () => {
         <RouterHarness />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Tomasz Zielinski" });
+    vi.useFakeTimers();
     act(() => vi.advanceTimersByTime(500));
 
-    act(() => navigate?.("/works"));
-    act(() => navigate?.(-1));
+    await act(async () => navigate?.("/works"));
+    await waitForPageHeading("Work");
+    await act(async () => navigate?.(-1));
+    await waitForPageHeading("Tomasz Zielinski");
 
     let restoredHome = [...container.querySelectorAll("main")].find((main) =>
       main.textContent?.includes("Tomasz Zielinski"),
@@ -420,12 +449,13 @@ describe("AppShell", () => {
     expect(restoredHome).not.toHaveAttribute("inert");
   });
 
-  it("renders the current contact address, flair, and footer", () => {
+  it("renders the current contact address, flair, and footer", async () => {
     render(
       <MemoryRouter initialEntries={["/contact"]}>
         <App />
       </MemoryRouter>,
     );
+    await screen.findByRole("heading", { name: "Contact" });
 
     const links = screen.getByRole("list", { name: "Contact links" });
     expect(within(links).getByRole("link", { name: /corashina@gmail\.com/i })).toHaveAttribute(
