@@ -30,7 +30,7 @@ export function HomePage(): JSX.Element {
     <div className={styles.home}>
       <section className={styles.introduction} aria-labelledby="home-title">
         <h1 id="home-title">Tomasz Zielinski</h1>
-        <h2>Full-Stack Developer</h2>
+        <h2>full-stack developer</h2>
         <p>
           I build platforms for business workflows, operational systems, mobile applications,
           integrations, and document processing. I work across TypeScript, C#, Dart, and XSLT,

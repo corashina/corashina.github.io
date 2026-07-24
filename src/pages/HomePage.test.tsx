@@ -18,7 +18,7 @@ it("renders the approved full-stack Home content and grouped toolkit", () => {
   render(<HomePage />);
 
   expect(screen.getByRole("heading", { level: 1, name: "Tomasz Zielinski" })).toBeInTheDocument();
-  expect(screen.getByRole("heading", { level: 2, name: "Full-Stack Developer" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 2, name: "full-stack developer" })).toBeInTheDocument();
   expect(screen.getByRole("heading", { level: 2, name: "Toolkit" })).toBeInTheDocument();
   introduction.forEach((copy) => expect(screen.getByText(copy)).toBeInTheDocument());
 

@@ -126,6 +126,13 @@ describe("original style contracts", () => {
     expect(footer).toMatch(/margin-top: calc\(5rem - #\{\$spacing\}\);/);
   });
 
+  it("reserves a stable scrollbar gutter across routes", async () => {
+    const { global } = await readStyles();
+    const documentRoot = findBlock(global, "html");
+
+    expect(documentRoot).toMatch(/scrollbar-gutter: stable;/);
+  });
+
   it("keeps Works and detail grids at the exact breakpoints", async () => {
     const { work } = await readStyles();
     const baseGrid = findBlock(work, ".grid");
