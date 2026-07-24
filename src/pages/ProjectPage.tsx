@@ -15,7 +15,7 @@ export function ProjectPage(): JSX.Element {
 
   return (
     <article className={styles.detail}>
-      <ProjectMedia interactive media={project.media} />
+      <ProjectMedia interactive loadingMode="eager" media={project.media} />
       <div>
         <h2>{project.title}</h2>
         <h4><time dateTime={project.startedAt}>{project.startedLabel}</time></h4>

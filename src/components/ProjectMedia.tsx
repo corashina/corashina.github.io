@@ -1,31 +1,62 @@
 import { useEffect, useRef, useState, type JSX } from "react";
 import type { ProjectMedia as ProjectMediaData } from "../data/projects";
 import styles from "../styles/work.module.scss";
+import { useDeferredMedia, type MediaLoadingMode } from "./useDeferredMedia";
 
 type ProjectMediaProps = {
   media: ProjectMediaData;
   interactive: boolean;
+  loadingMode: MediaLoadingMode;
 };
 
-export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Element {
+export function ProjectMedia({
+  media,
+  interactive,
+  loadingMode,
+}: ProjectMediaProps): JSX.Element {
   const containerRef = useRef<HTMLSpanElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const cleanupInteractionsRef = useRef<(() => void) | null>(null);
-  const [failed, setFailed] = useState(false);
+  const playRequestedRef = useRef(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const [posterFailed, setPosterFailed] = useState(false);
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const reducedMotion = typeof window !== "undefined"
+    && typeof window.matchMedia === "function"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const { active, activate } = useDeferredMedia({
+    containerRef,
+    enabled: media.kind === "video" && !videoFailed,
+    eager: media.kind === "video" && loadingMode === "eager",
+    reducedMotion,
+  });
 
   useEffect(() => {
     const container = containerRef.current;
     let video = videoRef.current;
 
-    if (!interactive || !container || !video) {
+    if (
+      media.kind !== "video"
+      || !interactive
+      || reducedMotion
+      || videoFailed
+      || !container
+      || !video
+    ) {
       return;
     }
 
     const target = container.closest("a") ?? container;
     const play = () => {
-      video?.play()?.catch(() => {});
+      playRequestedRef.current = true;
+      activate();
+      if (active) {
+        video?.play()?.catch(() => {});
+      }
     };
     const reset = () => {
+      playRequestedRef.current = false;
       if (!video) return;
       video.pause();
       video.currentTime = 0;
@@ -52,37 +83,80 @@ export function ProjectMedia({ media, interactive }: ProjectMediaProps): JSX.Ele
     cleanupInteractionsRef.current = cleanupInteractions;
 
     return cleanupInteractions;
-  }, [interactive, media.kind]);
+  }, [activate, active, interactive, media.kind, reducedMotion, videoFailed]);
 
-  const handleError = () => {
-    cleanupInteractionsRef.current?.();
-    setFailed(true);
-  };
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!active || !playRequestedRef.current || !video || videoFailed || reducedMotion) return;
+    video.play()?.catch(() => {});
+  }, [active, reducedMotion, videoFailed]);
 
-  if (failed) {
+  if (media.kind === "image") {
+    if (imageFailed) {
+      return (
+        <span className={`${styles.media} ${styles.mediaFallback}`} ref={containerRef}>
+          {media.alt}
+        </span>
+      );
+    }
+
     return (
-      <span className={`${styles.media} ${styles.mediaFallback}`} ref={containerRef}>
-        {media.alt}
+      <span className={styles.media} ref={containerRef}>
+        <img
+          alt={media.alt}
+          decoding="async"
+          loading={loadingMode === "eager" ? "eager" : "lazy"}
+          onError={() => setImageFailed(true)}
+          src={media.src}
+        />
       </span>
     );
   }
 
+  const showVideo = videoLoaded && !videoFailed;
+  const showFallback = posterFailed && !showVideo;
+  const handleVideoError = () => {
+    playRequestedRef.current = false;
+    cleanupInteractionsRef.current?.();
+    setVideoLoaded(false);
+    setVideoFailed(true);
+  };
+
   return (
-    <span className={styles.media} ref={containerRef}>
-      {media.kind === "image" ? (
-        <img alt={media.alt} onError={handleError} src={media.src} />
-      ) : (
-        <video
-          aria-label={media.alt}
-          loop
-          muted
-          onError={handleError}
-          playsInline
-          preload="metadata"
-          ref={videoRef}
-          src={media.src}
+    <span
+      className={`${styles.media} ${showFallback ? styles.mediaFallback : ""}`}
+      ref={containerRef}
+    >
+      {!posterFailed && (
+        <img
+          alt={media.alt}
+          className={`${styles.mediaPoster} ${
+            showVideo ? styles.mediaPosterHidden : ""
+          }`}
+          decoding="async"
+          loading={loadingMode === "eager" ? "eager" : "lazy"}
+          onError={() => setPosterFailed(true)}
+          src={media.posterSrc}
         />
       )}
+      {showFallback && media.alt}
+      <video
+        aria-label={media.alt}
+        className={`${styles.mediaVideo} ${
+          showVideo ? styles.mediaVideoLoaded : ""
+        }`}
+        controls={reducedMotion && loadingMode === "eager"}
+        loop
+        muted
+        onError={handleVideoError}
+        onLoadedData={() => {
+          if (!videoFailed) setVideoLoaded(true);
+        }}
+        playsInline
+        preload="metadata"
+        ref={videoRef}
+        src={active ? media.src : undefined}
+      />
     </span>
   );
 }

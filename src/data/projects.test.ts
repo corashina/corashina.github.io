@@ -49,6 +49,21 @@ describe("projects", () => {
     expect(getProjectBySlug("missing")).toBeUndefined();
   });
 
+  it("derives exact poster paths for video media", () => {
+    expect(getProjectBySlug("xelapps")?.media).toEqual({
+      kind: "video",
+      src: "/portfolio/xelapps.mp4",
+      posterSrc: "/portfolio/xelapps.webp",
+      alt: "XELapps configuration interface",
+    });
+    expect(getProjectBySlug("einvoicing")?.media).toEqual({
+      kind: "video",
+      src: "/portfolio/eInvoicing.mp4",
+      posterSrc: "/portfolio/eInvoicing.webp",
+      alt: "eInvoicing integration interface",
+    });
+  });
+
   it.each([
     ["xelcode", "Xelcode", "/portfolio/xelcode.mp4", "https://xelcode.com/product/"],
     ["icr", "Doc AI", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo"],

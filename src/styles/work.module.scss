@@ -48,6 +48,7 @@
   display: flex;
   justify-content: center;
   overflow: hidden;
+  position: relative;
   width: 100%;
 }
 
@@ -58,6 +59,25 @@
   object-fit: cover;
   transition: filter 400ms ease-in-out;
   width: 100%;
+}
+
+.mediaPoster,
+.mediaVideo {
+  inset: 0;
+  position: absolute;
+}
+
+.mediaVideo {
+  opacity: 0;
+  transition: filter 400ms ease-in-out, opacity 200ms ease-in-out;
+}
+
+.mediaVideoLoaded {
+  opacity: 1;
+}
+
+.mediaPosterHidden {
+  visibility: hidden;
 }
 
 .card:hover .media img,

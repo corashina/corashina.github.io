@@ -15,7 +15,7 @@ export function ProjectCard({ project }: ProjectCardProps): JSX.Element {
       className={styles.card}
       to={`/works/${project.slug}`}
     >
-      <ProjectMedia interactive media={project.media} />
+      <ProjectMedia interactive loadingMode="viewport" media={project.media} />
       <span className={styles.cardHeader}>
         <span className={styles.cardTitle}>{project.title}</span>
         <time dateTime={project.startedAt}>{project.startedLabel}</time>

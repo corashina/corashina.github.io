@@ -89,30 +89,33 @@ describe("WorksPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("plays video previews even when reduced motion is reported", async () => {
+  it("keeps card videos poster-only for reduced motion", async () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     renderPage();
 
     const card = screen.getByRole("link", { name: "Endless-City" });
+    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
     fireEvent.mouseEnter(card);
     fireEvent.focus(card);
-    await Promise.resolve();
-
-    expect(play).toHaveBeenCalledTimes(2);
+    expect(video).not.toHaveAttribute("src");
+    expect(play).not.toHaveBeenCalled();
   });
 
-  it("removes video interactions immediately when the media falls back", () => {
+  it("restores the poster and removes video interactions after video failure", () => {
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     const { unmount } = renderPage();
     const card = screen.getByRole("link", { name: "Endless-City" });
     const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
+    const poster = within(card).getByRole("img", {
+      name: "Infinite procedural WebGL city scene",
+    });
     const removeEventListener = vi.spyOn(card, "removeEventListener");
 
     fireEvent.error(video);
 
-    expect(within(card).getByText("Infinite procedural WebGL city scene")).toBeInTheDocument();
-    expect(card.querySelector("video")).not.toBeInTheDocument();
+    expect(poster).toBeInTheDocument();
+    expect(card.querySelector("video")).toBeInTheDocument();
     expect(removeEventListener).toHaveBeenCalledTimes(4);
 
     fireEvent.mouseEnter(card);

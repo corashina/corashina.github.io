@@ -1,8 +1,6 @@
-export type ProjectMedia = {
-  kind: "image" | "video";
-  src: string;
-  alt: string;
-};
+export type ProjectMedia =
+  | { kind: "image"; src: string; alt: string }
+  | { kind: "video"; src: string; posterSrc: string; alt: string };
 
 export type ProjectCategory = "commercial" | "freelance" | "experiments";
 
@@ -91,11 +89,18 @@ export const projects: readonly Project[] = projectData.map(
     description,
     tools,
     date,
-    media: {
-      kind: src.endsWith(".mp4") ? "video" : "image",
-      src,
-      alt: projectMediaAlt[slug],
-    },
+    media: src.endsWith(".mp4")
+      ? {
+          kind: "video",
+          src,
+          posterSrc: src.replace(/\.mp4$/i, ".webp"),
+          alt: projectMediaAlt[slug],
+        }
+      : {
+          kind: "image",
+          src,
+          alt: projectMediaAlt[slug],
+        },
     sourceUrl,
     sourceLabel,
     category: projectCategories[slug],
