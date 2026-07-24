@@ -232,3 +232,28 @@ Implementation will be delivered as focused code, generated media, tests, and
 the reproducible asset and budget scripts. Deployment remains the existing
 GitHub Pages workflow and is outside the implementation step unless explicitly
 requested.
+
+## Task 6 runtime correction: initial-route readiness
+
+The production normal-motion audit found that `BackgroundCanvas` can schedule
+its idle import while the initial lazy route is still suspended. On the
+observed Home load, the background scene request began before the Home heading
+committed, contradicting the deferred-background requirement above.
+
+`AppShell` will therefore provide a narrowly scoped, one-shot readiness signal
+for initial background scheduling. A small wrapper inside each route's
+`Suspense` content will signal from an effect after that content commits. While
+the initial route remains on its fallback, `BackgroundCanvas` will not schedule
+either initialization path. After the signal, it will preserve the existing
+`requestIdleCallback` timeout of 1.5 seconds and the existing cancellable 250 ms
+fallback for browsers without that API.
+
+The signal does not reset during later route navigation. The shared canvas
+therefore retains its identity, route transitions remain unchanged, and all
+existing import, WebGL, listener, observer, failure, and disposal cleanup stays
+within `BackgroundCanvas`.
+
+A focused regression test will render `AppShell` with a deliberately suspended
+initial route. It will prove that no idle callback is scheduled and no scene is
+created while the fallback is visible, then resolve the route and prove that
+the heading commits before the unchanged idle scheduler becomes eligible.
