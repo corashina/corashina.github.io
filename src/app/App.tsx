@@ -1,6 +1,6 @@
 import { lazy, Suspense, type JSX } from "react";
 import { Route, Routes } from "react-router-dom";
-import { AppShell } from "../components/AppShell";
+import { AppShell, InitialRouteContent } from "../components/AppShell";
 
 const HomePage = lazy(() =>
   import("../pages/HomePage").then(({ HomePage }) => ({ default: HomePage })),
@@ -19,7 +19,9 @@ const NotFoundPage = lazy(() =>
 );
 
 const withRouteFallback = (page: JSX.Element): JSX.Element => (
-  <Suspense fallback={<span aria-hidden="true" />}>{page}</Suspense>
+  <Suspense fallback={<span aria-hidden="true" />}>
+    <InitialRouteContent>{page}</InitialRouteContent>
+  </Suspense>
 );
 
 export function App(): JSX.Element {

@@ -1,11 +1,15 @@
 import {
   cloneElement,
+  createContext,
   createRef,
+  useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
   type JSX,
+  type ReactNode,
   type ReactElement,
 } from "react";
 import {
@@ -23,6 +27,18 @@ import { Footer } from "./Footer";
 import { Navigation } from "./Navigation";
 
 export type TransitionDirection = "forward" | "backward";
+
+const InitialRouteReadyContext = createContext<(() => void) | null>(null);
+
+export function InitialRouteContent({ children }: { children: ReactNode }): JSX.Element {
+  const markInitialRouteReady = useContext(InitialRouteReadyContext);
+
+  useEffect(() => {
+    markInitialRouteReady?.();
+  }, [markInitialRouteReady]);
+
+  return <>{children}</>;
+}
 
 type TransitionHistory = {
   browserIndex: number | null;
@@ -104,6 +120,10 @@ export function AppShell(): JSX.Element {
   const nodeRef = useMemo(() => createRef<HTMLElement>(), [location.key]);
   const transitionHistoryRef = useRef<TransitionHistory | null>(null);
   const [theme, setTheme] = useState<Theme>("dark");
+  const [initialRouteReady, setInitialRouteReady] = useState(false);
+  const markInitialRouteReady = useCallback(() => {
+    setInitialRouteReady(true);
+  }, []);
 
   if (transitionHistoryRef.current === null) {
     transitionHistoryRef.current = createTransitionHistory(
@@ -158,37 +178,39 @@ export function AppShell(): JSX.Element {
 
   return (
     <div className={styles.layout}>
-      <BackgroundCanvas theme={theme} />
+      <BackgroundCanvas ready={initialRouteReady} theme={theme} />
       <Navigation
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "white" : "dark"))}
         theme={theme}
       />
-      <div className={styles.routeStage}>
-        <TransitionGroup
-          component={null}
-          childFactory={(child) =>
-            cloneElement(
-              child as ReactElement<{ classNames?: CSSTransitionClassNames }>,
-              { classNames: transitionClasses },
-            )
-          }
-        >
-          <CSSTransition
-            appear
-            classNames={transitionClasses}
-            key={location.key}
-            nodeRef={nodeRef}
-            onEnter={showRoute}
-            onExit={hideRoute}
-            timeout={500}
-            unmountOnExit
+      <InitialRouteReadyContext.Provider value={markInitialRouteReady}>
+        <div className={styles.routeStage}>
+          <TransitionGroup
+            component={null}
+            childFactory={(child) =>
+              cloneElement(
+                child as ReactElement<{ classNames?: CSSTransitionClassNames }>,
+                { classNames: transitionClasses },
+              )
+            }
           >
-            <main className={styles.route} ref={nodeRef}>
-              {outlet}
-            </main>
-          </CSSTransition>
-        </TransitionGroup>
-      </div>
+            <CSSTransition
+              appear
+              classNames={transitionClasses}
+              key={location.key}
+              nodeRef={nodeRef}
+              onEnter={showRoute}
+              onExit={hideRoute}
+              timeout={500}
+              unmountOnExit
+            >
+              <main className={styles.route} ref={nodeRef}>
+                {outlet}
+              </main>
+            </CSSTransition>
+          </TransitionGroup>
+        </div>
+      </InitialRouteReadyContext.Provider>
       <Footer />
     </div>
   );

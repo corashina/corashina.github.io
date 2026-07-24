@@ -26,6 +26,7 @@ const canvasOpacities: Record<Theme, string> = {
 };
 
 type BackgroundCanvasProps = {
+  ready?: boolean;
   theme: Theme;
 };
 
@@ -39,7 +40,7 @@ const scheduleInitialization = (callback: () => void): (() => void) => {
   return () => browserWindow.clearTimeout(handle);
 };
 
-export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element {
+export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
   const themeRef = useRef(theme);
@@ -47,6 +48,8 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
   themeRef.current = theme;
 
   useEffect(() => {
+    if (!ready) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (typeof WebGLRenderingContext === "undefined") {
@@ -221,7 +224,7 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       cancelInitialization = null;
       teardown();
     };
-  }, []);
+  }, [ready]);
 
   useEffect(() => {
     const controller = controllerRef.current;
