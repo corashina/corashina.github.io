@@ -18,10 +18,23 @@ const waitForPageHeading = async (name: string) => {
   expect(screen.getByRole("heading", { name })).toBeInTheDocument();
 };
 
-vi.mock("../three/backgroundScene", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../three/backgroundScene")>()),
+vi.mock("../three/backgroundScene", () => ({
   createBackgroundScene: sceneMocks.createBackgroundScene,
+  normalizePointer: vi.fn(),
+  normalizePointerSpeed: vi.fn(),
 }));
+
+let idleCallback: IdleRequestCallback;
+
+async function flushBackgroundIdle(): Promise<void> {
+  await act(async () => {
+    idleCallback({
+      didTimeout: false,
+      timeRemaining: () => 20,
+    });
+    await Promise.resolve();
+  });
+}
 
 describe("AppShell", () => {
   beforeEach(() => {
@@ -40,6 +53,14 @@ describe("AppShell", () => {
     document.body.style.colorScheme = "";
     vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
     vi.stubGlobal("WebGLRenderingContext", class WebGLRenderingContextStub {});
+    vi.stubGlobal(
+      "requestIdleCallback",
+      vi.fn((callback: IdleRequestCallback) => {
+        idleCallback = callback;
+        return 41;
+      }),
+    );
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
     vi.stubGlobal(
       "ResizeObserver",
       class ResizeObserverStub {
@@ -170,6 +191,7 @@ describe("AppShell", () => {
     });
 
     await user.click(themeButton);
+    await flushBackgroundIdle();
 
     expect(document.body).toHaveClass("white");
     expect(document.body).not.toHaveClass("dark");

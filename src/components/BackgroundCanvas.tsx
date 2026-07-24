@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type JSX } from "react";
 import styles from "../styles/canvas.module.scss";
-import {
-  createBackgroundScene,
-  normalizePointer,
-  normalizePointerSpeed,
-  type BackgroundController,
-  type SceneTheme,
-} from "../three/backgroundScene";
+import type { BackgroundController, SceneTheme } from "../three/backgroundScene";
 import type { Theme } from "../theme/theme";
 
 const sceneThemes: Record<Theme, SceneTheme> = {
@@ -35,10 +29,22 @@ type BackgroundCanvasProps = {
   theme: Theme;
 };
 
+const scheduleInitialization = (callback: () => void): (() => void) => {
+  const browserWindow: Window = window;
+  if ("requestIdleCallback" in window) {
+    const handle = window.requestIdleCallback(callback, { timeout: 1_500 });
+    return () => window.cancelIdleCallback(handle);
+  }
+  const handle = browserWindow.setTimeout(callback, 250);
+  return () => browserWindow.clearTimeout(handle);
+};
+
 export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
+  const themeRef = useRef(theme);
   const [failed, setFailed] = useState(false);
+  themeRef.current = theme;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -50,43 +56,13 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
 
     let controller: BackgroundController | null = null;
     let resizeObserver: ResizeObserver | null = null;
+    let onPointerMove: ((event: PointerEvent) => void) | null = null;
+    let onVisibilityChange: (() => void) | null = null;
     let pointerListenerAttached = false;
     let visibilityListenerAttached = false;
     let closed = false;
     let controllerDisposed = false;
     let previousPointer: { x: number; y: number; time: number } | null = null;
-
-    const onPointerMove = (event: PointerEvent): void => {
-      if (closed) return;
-      if (event.pointerType === "touch") {
-        previousPointer = null;
-        return;
-      }
-      if (!controller) return;
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
-      const pointer = normalizePointer(event.clientX, event.clientY, rect);
-      const speed = previousPointer
-        ? normalizePointerSpeed(
-            event.clientX - previousPointer.x,
-            event.clientY - previousPointer.y,
-            event.timeStamp - previousPointer.time,
-            rect,
-          )
-        : 0;
-      previousPointer = { x: event.clientX, y: event.clientY, time: event.timeStamp };
-      controller.setPointer(pointer.x, pointer.y, speed);
-    };
-
-    const onVisibilityChange = (): void => {
-      if (closed || !controller) return;
-      if (document.visibilityState === "hidden") {
-        previousPointer = null;
-        controller.stop();
-      } else {
-        controller.start();
-      }
-    };
 
     const teardown = (): void => {
       closed = true;
@@ -101,7 +77,9 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       if (pointerListenerAttached) {
         pointerListenerAttached = false;
         try {
-          window.removeEventListener("pointermove", onPointerMove);
+          if (onPointerMove) {
+            window.removeEventListener("pointermove", onPointerMove);
+          }
         } catch {
           // Continue tearing down the remaining integration.
         }
@@ -109,7 +87,9 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
       if (visibilityListenerAttached) {
         visibilityListenerAttached = false;
         try {
-          document.removeEventListener("visibilitychange", onVisibilityChange);
+          if (onVisibilityChange) {
+            document.removeEventListener("visibilitychange", onVisibilityChange);
+          }
         } catch {
           // Continue tearing down the remaining integration.
         }
@@ -129,54 +109,118 @@ export function BackgroundCanvas({ theme }: BackgroundCanvasProps): JSX.Element 
     };
 
     const failIntegration = (): void => {
+      if (closed) return;
       setFailed(true);
       teardown();
     };
 
-    try {
-      controller = createBackgroundScene(canvas, {
-        onFailure: failIntegration,
-      });
-    } catch {
-      failIntegration();
-      return teardown;
-    }
+    const initialize = async (): Promise<void> => {
+      try {
+        const {
+          createBackgroundScene,
+          normalizePointer,
+          normalizePointerSpeed,
+        } = await import("../three/backgroundScene");
+        if (closed) return;
 
-    if (closed) {
-      teardown();
-      return teardown;
-    }
+        const reducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        controller = createBackgroundScene(canvas, {
+          onFailure: failIntegration,
+          ...(reducedMotion ? { staticQuality: "medium" as const } : {}),
+        });
 
-    controllerRef.current = controller;
-
-    try {
-      resizeObserver = new ResizeObserver(([entry]) => {
-        if (closed || !controller || !entry) return;
-        try {
-          controller.resize(
-            entry.contentRect.width,
-            entry.contentRect.height,
-            window.devicePixelRatio,
-          );
-        } catch {
-          failIntegration();
+        if (closed) {
+          teardown();
+          return;
         }
-      });
 
-      resizeObserver.observe(canvas);
-      window.addEventListener("pointermove", onPointerMove, { passive: true });
-      pointerListenerAttached = true;
-      document.addEventListener("visibilitychange", onVisibilityChange);
-      visibilityListenerAttached = true;
+        controllerRef.current = controller;
+        controller.setTheme(sceneThemes[themeRef.current]);
 
-      if (document.visibilityState !== "hidden") {
-        controller.start();
+        onPointerMove = (event: PointerEvent): void => {
+          if (closed) return;
+          if (event.pointerType === "touch") {
+            previousPointer = null;
+            return;
+          }
+          if (!controller) return;
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+          const pointer = normalizePointer(event.clientX, event.clientY, rect);
+          const speed = previousPointer
+            ? normalizePointerSpeed(
+                event.clientX - previousPointer.x,
+                event.clientY - previousPointer.y,
+                event.timeStamp - previousPointer.time,
+                rect,
+              )
+            : 0;
+          previousPointer = {
+            x: event.clientX,
+            y: event.clientY,
+            time: event.timeStamp,
+          };
+          controller.setPointer(pointer.x, pointer.y, speed);
+        };
+
+        onVisibilityChange = (): void => {
+          if (closed || !controller) return;
+          if (document.visibilityState === "hidden") {
+            previousPointer = null;
+            controller.stop();
+          } else {
+            controller.start();
+          }
+        };
+
+        resizeObserver = new ResizeObserver(([entry]) => {
+          if (closed || !controller || !entry) return;
+          try {
+            controller.resize(
+              entry.contentRect.width,
+              entry.contentRect.height,
+              window.devicePixelRatio,
+            );
+            if (reducedMotion) controller.renderStatic();
+          } catch {
+            failIntegration();
+          }
+        });
+
+        resizeObserver.observe(canvas);
+        if (reducedMotion) {
+          controller.renderStatic();
+          return;
+        }
+
+        window.addEventListener("pointermove", onPointerMove, { passive: true });
+        pointerListenerAttached = true;
+        document.addEventListener("visibilitychange", onVisibilityChange);
+        visibilityListenerAttached = true;
+
+        if (document.visibilityState !== "hidden") {
+          controller.start();
+        }
+      } catch {
+        if (!closed) {
+          setFailed(true);
+          teardown();
+        }
       }
-    } catch {
-      failIntegration();
-    }
+    };
 
-    return teardown;
+    let cancelInitialization: (() => void) | null = scheduleInitialization(() => {
+      cancelInitialization = null;
+      void initialize();
+    });
+
+    return () => {
+      cancelInitialization?.();
+      cancelInitialization = null;
+      teardown();
+    };
   }, []);
 
   useEffect(() => {

@@ -7,10 +7,36 @@ const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
 }));
 
-vi.mock("../three/backgroundScene", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("../three/backgroundScene")>()),
+vi.mock("../three/backgroundScene", () => ({
   createBackgroundScene: sceneMocks.createBackgroundScene,
+  normalizePointer: (clientX: number, clientY: number, rect: DOMRect) => ({
+    x: ((clientX - rect.left) / rect.width) * 2 - 1,
+    y: 1 - ((clientY - rect.top) / rect.height) * 2,
+  }),
+  normalizePointerSpeed: (
+    deltaX: number,
+    deltaY: number,
+    deltaMs: number,
+    rect: DOMRect,
+  ) => {
+    if (deltaMs <= 0 || rect.width <= 0 || rect.height <= 0) return 0;
+    const normalizedDistance = Math.hypot(deltaX / rect.width, deltaY / rect.height);
+    return Math.min(normalizedDistance / (deltaMs / 1_000), 1);
+  },
 }));
+
+let idleCallback: IdleRequestCallback;
+const cancelIdleCallback = vi.fn();
+
+async function flushBackgroundIdle(): Promise<void> {
+  await act(async () => {
+    idleCallback({
+      didTimeout: false,
+      timeRemaining: () => 20,
+    });
+    await Promise.resolve();
+  });
+}
 
 function createController(): BackgroundController {
   return {
@@ -49,6 +75,15 @@ describe("BackgroundCanvas", () => {
     sceneMocks.createBackgroundScene.mockReturnValue(controller);
     observe.mockReset();
     disconnect.mockReset();
+    cancelIdleCallback.mockReset();
+    vi.stubGlobal(
+      "requestIdleCallback",
+      vi.fn((callback: IdleRequestCallback) => {
+        idleCallback = callback;
+        return 41;
+      }),
+    );
+    vi.stubGlobal("cancelIdleCallback", cancelIdleCallback);
 
     class ResizeObserverStub implements ResizeObserver {
       constructor(callback: ResizeObserverCallback) {
@@ -77,12 +112,29 @@ describe("BackgroundCanvas", () => {
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
+    if (vi.isFakeTimers()) {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
     vi.unstubAllGlobals();
   });
 
-  it("creates an aria-hidden scene, observes its size, starts, and fully disposes", () => {
+  it("does not import or create the scene before idle", () => {
+    render(<BackgroundCanvas theme="dark" />);
+    expect(sceneMocks.createBackgroundScene).not.toHaveBeenCalled();
+  });
+
+  it("cancels scheduled initialization when unmounted", () => {
+    const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    unmount();
+    expect(cancelIdleCallback).toHaveBeenCalledWith(41);
+    expect(sceneMocks.createBackgroundScene).not.toHaveBeenCalled();
+  });
+
+  it("creates an aria-hidden scene, observes its size, starts, and fully disposes", async () => {
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas");
+    await flushBackgroundIdle();
 
     expect(canvas).toHaveAttribute("aria-hidden", "true");
     expect(sceneMocks.createBackgroundScene).toHaveBeenCalledWith(
@@ -98,32 +150,57 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("keeps animation and pointer interaction enabled when reduced motion is reported", () => {
-    vi.mocked(window.matchMedia).mockReturnValue({
-      matches: true,
-    } as MediaQueryList);
-
+  it("renders one static scene for reduced motion", async () => {
+    const addWindowListener = vi.spyOn(window, "addEventListener");
+    const addDocumentListener = vi.spyOn(document, "addEventListener");
+    vi.mocked(window.matchMedia).mockReturnValue({ matches: true } as MediaQueryList);
     render(<BackgroundCanvas theme="dark" />);
-    const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
-    vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 1_000,
-      height: 500,
-    } as DOMRect);
-    act(() => window.dispatchEvent(pointerMove(500, 250, 100)));
-
+    const canvas = screen.getByTestId("background-canvas");
+    await flushBackgroundIdle();
     expect(sceneMocks.createBackgroundScene).toHaveBeenCalledWith(
       canvas,
-      expect.not.objectContaining({ staticQuality: "medium" }),
+      expect.objectContaining({ staticQuality: "medium" }),
     );
-    expect(controller.start).toHaveBeenCalledOnce();
-    expect(controller.renderStatic).not.toHaveBeenCalled();
-    expect(controller.setPointer).toHaveBeenCalledWith(0, 0, 0);
+    expect(observe).toHaveBeenCalledWith(canvas);
+    expect(controller.renderStatic).toHaveBeenCalledOnce();
+    expect(controller.start).not.toHaveBeenCalled();
+    expect(addWindowListener).not.toHaveBeenCalledWith(
+      "pointermove",
+      expect.any(Function),
+      expect.anything(),
+    );
+    expect(addDocumentListener).not.toHaveBeenCalledWith(
+      "visibilitychange",
+      expect.any(Function),
+    );
   });
 
-  it("stops while hidden and restarts when visible", () => {
+  it("initializes after the 250 ms timeout fallback", async () => {
+    vi.unstubAllGlobals();
+    vi.useFakeTimers();
+    vi.stubGlobal("ResizeObserver", class ResizeObserverFallbackStub {
+      observe(): void {}
+      unobserve(): void {}
+      disconnect(): void {}
+    });
+    vi.stubGlobal("devicePixelRatio", 2);
+    vi.stubGlobal("WebGLRenderingContext", class WebGLRenderingContextFallbackStub {});
+    vi.stubGlobal("matchMedia", vi.fn().mockReturnValue({ matches: false }));
+
     render(<BackgroundCanvas theme="dark" />);
+    expect(sceneMocks.createBackgroundScene).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(250);
+      await vi.runAllTimersAsync();
+    });
+    expect(sceneMocks.createBackgroundScene).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it("stops while hidden and restarts when visible", async () => {
+    render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
     act(() => document.dispatchEvent(new Event("visibilitychange")));
@@ -134,9 +211,10 @@ describe("BackgroundCanvas", () => {
     expect(controller.start).toHaveBeenCalledTimes(2);
   });
 
-  it("resizes from its observer without changing CSS dimensions", () => {
+  it("resizes from its observer without changing CSS dimensions", async () => {
     render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    await flushBackgroundIdle();
 
     act(() => {
       resizeCallback(
@@ -150,10 +228,11 @@ describe("BackgroundCanvas", () => {
     expect(canvas.style.height).toBe("");
   });
 
-  it("passes normalized pointer position and capped speed", () => {
+  it("passes normalized pointer position and capped speed", async () => {
     const addEventListener = vi.spyOn(window, "addEventListener");
     render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    await flushBackgroundIdle();
     vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -176,9 +255,10 @@ describe("BackgroundCanvas", () => {
     expect(speed).toBeLessThanOrEqual(1);
   });
 
-  it("forgets pointer velocity while the document is hidden", () => {
+  it("forgets pointer velocity while the document is hidden", async () => {
     render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    await flushBackgroundIdle();
     vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -201,9 +281,10 @@ describe("BackgroundCanvas", () => {
     expect(pointerCalls.at(-1)?.[1]).toBeCloseTo(0.6);
   });
 
-  it("keeps touch scrolling autonomous and resets the next mouse velocity sample", () => {
+  it("keeps touch scrolling autonomous and resets the next mouse velocity sample", async () => {
     render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    await flushBackgroundIdle();
     vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -222,8 +303,9 @@ describe("BackgroundCanvas", () => {
     ]);
   });
 
-  it("maps dark and white themes to the constellation palette", () => {
+  it("maps dark and white themes to the constellation palette", async () => {
     const { rerender } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
     expect(controller.setTheme).toHaveBeenLastCalledWith({
       background: "#222222",
       blendMode: "additive",
@@ -254,18 +336,19 @@ describe("BackgroundCanvas", () => {
     expect(canvas).toHaveStyle({ "--canvas-opacity": "0.38" });
   });
 
-  it("hides the decorative canvas when WebGL creation fails", () => {
+  it("hides the decorative canvas when WebGL creation fails", async () => {
     sceneMocks.createBackgroundScene.mockImplementationOnce(() => {
       throw new Error("WebGL unavailable");
     });
 
     render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     expect(screen.getByTestId("background-canvas")).not.toBeVisible();
     expect(observe).not.toHaveBeenCalled();
   });
 
-  it("falls back and disposes once when ResizeObserver construction fails", () => {
+  it("falls back and disposes once when ResizeObserver construction fails", async () => {
     vi.stubGlobal(
       "ResizeObserver",
       class ResizeObserverConstructionFailure {
@@ -276,6 +359,7 @@ describe("BackgroundCanvas", () => {
     );
 
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     expect(screen.getByTestId("background-canvas")).not.toBeVisible();
     expect(controller.start).not.toHaveBeenCalled();
@@ -285,12 +369,13 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("falls back and disposes once when observing the canvas fails", () => {
+  it("falls back and disposes once when observing the canvas fails", async () => {
     observe.mockImplementationOnce(() => {
       throw new Error("observe failed");
     });
 
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     expect(screen.getByTestId("background-canvas")).not.toBeVisible();
     expect(disconnect).toHaveBeenCalledOnce();
@@ -302,13 +387,14 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("contains resize failures and tears down the running integration once", () => {
+  it("contains resize failures and tears down the running integration once", async () => {
     const removeWindowListener = vi.spyOn(window, "removeEventListener");
     const removeDocumentListener = vi.spyOn(document, "removeEventListener");
     vi.mocked(controller.resize).mockImplementationOnce(() => {
       throw new Error("resize failed");
     });
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     expect(() => {
       act(() => {
@@ -333,11 +419,12 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("tears down every scene integration after an asynchronous failure", () => {
+  it("tears down every scene integration after an asynchronous failure", async () => {
     const removeWindowListener = vi.spyOn(window, "removeEventListener");
     const removeDocumentListener = vi.spyOn(document, "removeEventListener");
     const { rerender, unmount } = render(<BackgroundCanvas theme="dark" />);
     const canvas = screen.getByTestId("background-canvas") as HTMLCanvasElement;
+    await flushBackgroundIdle();
     vi.spyOn(canvas, "getBoundingClientRect").mockReturnValue({
       left: 0,
       top: 0,
@@ -390,13 +477,14 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("disposes a scene that reports failure during initialization", () => {
+  it("disposes a scene that reports failure during initialization", async () => {
     sceneMocks.createBackgroundScene.mockImplementationOnce((_canvas, options) => {
       options.onFailure(new Error("initialization failed"));
       return controller;
     });
 
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     expect(screen.getByTestId("background-canvas")).not.toBeVisible();
     expect(observe).not.toHaveBeenCalled();
@@ -416,10 +504,11 @@ describe("BackgroundCanvas", () => {
     expect(screen.getByTestId("background-canvas")).not.toBeVisible();
   });
 
-  it("removes pointer and visibility listeners during cleanup", () => {
+  it("removes pointer and visibility listeners during cleanup", async () => {
     const removeWindowListener = vi.spyOn(window, "removeEventListener");
     const removeDocumentListener = vi.spyOn(document, "removeEventListener");
     const { unmount } = render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
 
     unmount();
 
