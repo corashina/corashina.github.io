@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "media:optimize": "node scripts/optimize-portfolio-media.mjs",
-    "build": "npm run typecheck && vite build && node scripts/create-spa-fallback.mjs",
+    "performance:check": "node scripts/check-performance-budgets.mjs",
+    "build": "npm run typecheck && vite build && node scripts/create-spa-fallback.mjs && npm run performance:check",
     "verify": "npm run test && npm run build"
   },
   "dependencies": {
