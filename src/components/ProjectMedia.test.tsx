@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProjectMedia as ProjectMediaData } from "../data/projects";
 import styles from "../styles/work.module.scss";
@@ -73,6 +74,7 @@ describe("ProjectMedia", () => {
     const video = screen.getByLabelText("Demo interface") as HTMLVideoElement;
     const poster = screen.getByRole("img", { name: "Demo interface" });
     expect(video).not.toHaveAttribute("src");
+    expect(video).toHaveAttribute("preload", "none");
     expect(poster).toHaveAttribute("src", "/portfolio/demo.webp");
     expect(poster).toHaveAttribute("loading", "lazy");
     expect(poster).toHaveAttribute("decoding", "async");
@@ -88,6 +90,7 @@ describe("ProjectMedia", () => {
     });
 
     expect(video).toHaveAttribute("src", "/portfolio/demo.mp4");
+    expect(video).toHaveAttribute("preload", "metadata");
     expect(observer.disconnect).toHaveBeenCalledOnce();
     expect(poster).not.toHaveClass(styles.mediaPosterHidden);
 
@@ -122,6 +125,39 @@ describe("ProjectMedia", () => {
     );
   });
 
+  it("plays a named standalone eager video surface on keyboard focus, then resets on blur", async () => {
+    const user = userEvent.setup();
+    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
+    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+    render(
+      <>
+        <ProjectMedia interactive loadingMode="eager" media={videoMedia} />
+        <button type="button">Next</button>
+      </>,
+    );
+
+    const video = screen.getByLabelText("Demo interface") as HTMLVideoElement;
+    const surface = video.parentElement!;
+    Object.defineProperty(video, "currentTime", {
+      configurable: true,
+      value: 12,
+      writable: true,
+    });
+
+    expect(surface).toHaveAccessibleName("Demo interface video preview");
+    expect(surface).toHaveAttribute("tabindex", "0");
+
+    await user.tab();
+    expect(surface).toHaveFocus();
+    expect(play).toHaveBeenCalledOnce();
+
+    video.currentTime = 8;
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Next" })).toHaveFocus();
+    expect(pause).toHaveBeenCalledOnce();
+    expect(video).toHaveProperty("currentTime", 0);
+  });
+
   it("reveals eager video that is already ready when effects run", async () => {
     vi.spyOn(HTMLMediaElement.prototype, "readyState", "get").mockReturnValue(
       HTMLMediaElement.HAVE_CURRENT_DATA,
@@ -150,6 +186,7 @@ describe("ProjectMedia", () => {
     const detailVideo = screen.getByLabelText("Demo interface");
     expect(detailVideo).toHaveAttribute("src", "/portfolio/demo.mp4");
     expect(detailVideo).toHaveAttribute("controls");
+    expect(detailVideo.parentElement).not.toHaveAttribute("tabindex");
     fireEvent.mouseEnter(detailVideo.parentElement!);
     expect(play).not.toHaveBeenCalled();
   });

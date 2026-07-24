@@ -132,6 +132,10 @@ function ProjectMediaInstance({
 
   const showVideo = videoLoaded && !videoFailed;
   const showFallback = posterFailed && !showVideo;
+  const standaloneInteraction = interactive
+    && loadingMode === "eager"
+    && !reducedMotion
+    && !videoFailed;
   const handleVideoError = () => {
     playRequestedRef.current = false;
     cleanupInteractionsRef.current?.();
@@ -141,8 +145,10 @@ function ProjectMediaInstance({
 
   return (
     <span
+      aria-label={standaloneInteraction ? `${media.alt} video preview` : undefined}
       className={`${styles.media} ${showFallback ? styles.mediaFallback : ""}`}
       ref={containerRef}
+      tabIndex={standaloneInteraction ? 0 : undefined}
     >
       {!posterFailed && (
         <img
@@ -170,7 +176,7 @@ function ProjectMediaInstance({
           if (!videoFailed) setVideoLoaded(true);
         }}
         playsInline
-        preload="metadata"
+        preload={active ? "metadata" : "none"}
         ref={videoRef}
         src={active ? media.src : undefined}
       />

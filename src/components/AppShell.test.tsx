@@ -14,8 +14,14 @@ const sceneMocks = vi.hoisted(() => ({
 }));
 
 const waitForPageHeading = async (name: string) => {
-  await act(async () => {});
-  expect(screen.getByRole("heading", { name })).toBeInTheDocument();
+  let heading = screen.queryByRole("heading", { name });
+  for (let attempt = 0; !heading && attempt < 10; attempt += 1) {
+    await act(async () => {
+      await Promise.resolve();
+    });
+    heading = screen.queryByRole("heading", { name });
+  }
+  expect(heading).toBeInTheDocument();
 };
 
 vi.mock("../three/backgroundScene", () => ({

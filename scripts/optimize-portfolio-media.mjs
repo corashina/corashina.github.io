@@ -60,6 +60,9 @@ const temporaryPath = (path) => {
 const backupPath = (path) =>
   join(dirname(path), `.${basename(path)}.${randomUUID()}.backup`);
 
+const optimizerTemporaryVideoPattern =
+  /^\..+\.[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}\.tmp\.mp4$/i;
+
 const exists = async (path) => {
   try {
     await stat(path);
@@ -118,7 +121,9 @@ export async function optimizePortfolioMedia(options = {}) {
   const videos = entries
     .filter(
       (entry) =>
-        entry.isFile() && extname(entry.name).toLowerCase() === ".mp4",
+        entry.isFile()
+        && extname(entry.name).toLowerCase() === ".mp4"
+        && !optimizerTemporaryVideoPattern.test(entry.name),
     )
     .map((entry) => entry.name)
     .sort();

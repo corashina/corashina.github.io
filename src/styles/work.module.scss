@@ -80,6 +80,11 @@
   visibility: hidden;
 }
 
+.media:focus-visible {
+  outline: 2px solid $color-3;
+  outline-offset: 3px;
+}
+
 .card:hover .media img,
 .card:hover .media video,
 .card:focus-visible .media img,
@@ -88,7 +93,9 @@
 }
 
 .detail .media:hover img,
-.detail .media:hover video {
+.detail .media:hover video,
+.detail .media:focus-visible img,
+.detail .media:focus-visible video {
   filter: grayscale(0);
 }
 

@@ -94,6 +94,30 @@ it("writes temporary outputs before replacing the video and creating its poster"
   expect(await readFile(posterPath, "utf8")).toBe("generated 2");
 });
 
+it("ignores stale hidden optimizer video outputs during discovery", async () => {
+  const directory = await portfolioDirectory();
+  const videoPath = join(directory, "demo.mp4");
+  const staleTemporaryPath = join(
+    directory,
+    ".demo.01234567-89ab-4cde-8f01-23456789abcd.tmp.mp4",
+  );
+  const inputs: string[] = [];
+  await writeFile(videoPath, "original video");
+  await writeFile(staleTemporaryPath, "stale temporary video");
+
+  const result = await optimizePortfolioMedia({
+    directory,
+    run: async (_executable, arguments_) => {
+      inputs.push(arguments_[arguments_.indexOf("-i") + 1]);
+      await writeFile(arguments_.at(-1)!, "generated output");
+    },
+  });
+
+  expect(inputs).toEqual([videoPath, videoPath]);
+  expect(result.videos).toBe(1);
+  expect(await readFile(staleTemporaryPath, "utf8")).toBe("stale temporary video");
+});
+
 it("leaves the original video unchanged when the runner fails", async () => {
   const directory = await portfolioDirectory();
   const videoPath = join(directory, "demo.mp4");

@@ -167,13 +167,16 @@ describe("original style contracts", () => {
     );
     const detailReveal = findBlock(
       work,
-      ".detail .media:hover img,\n.detail .media:hover video",
+      ".detail .media:hover img,\n.detail .media:hover video,\n.detail .media:focus-visible img,\n.detail .media:focus-visible video",
     );
+    const detailFocus = findBlock(work, ".media:focus-visible");
 
     expect(media).toMatch(/filter: grayscale\(1\);/);
     expect(media).toMatch(/transition: filter 400ms ease-in-out;/);
     expect(cardReveal).toMatch(/filter: grayscale\(0\);/);
     expect(detailReveal).toMatch(/filter: grayscale\(0\);/);
+    expect(detailFocus).toMatch(/outline: 2px solid \$color-3;/);
+    expect(detailFocus).toMatch(/outline-offset: 3px;/);
   });
 
   it("centers the contact profile flair without positional offsets", async () => {
