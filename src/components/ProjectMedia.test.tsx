@@ -173,25 +173,26 @@ describe("ProjectMedia", () => {
     expect(poster).toHaveClass(styles.mediaPosterHidden);
   });
 
-  it("keeps reduced-motion cards poster-only and gives eager details controls", () => {
+  it("keeps videos interactive when the system requests reduced motion", async () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     const { unmount } = renderInteractive("viewport");
 
-    const viewportVideo = screen.getByLabelText("Demo interface");
+    const viewportVideo = screen.getByLabelText("Demo interface") as HTMLVideoElement;
     fireEvent.mouseEnter(viewportVideo.closest("a")!);
-    fireEvent.focus(viewportVideo.closest("a")!);
-    expect(viewportVideo).not.toHaveAttribute("src");
-    expect(play).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(viewportVideo).toHaveAttribute("src", "/portfolio/demo.mp4");
+      expect(play).toHaveBeenCalled();
+    });
 
     unmount();
     render(<ProjectMedia interactive loadingMode="eager" media={videoMedia} />);
     const detailVideo = screen.getByLabelText("Demo interface");
     expect(detailVideo).toHaveAttribute("src", "/portfolio/demo.mp4");
-    expect(detailVideo).toHaveAttribute("controls");
-    expect(detailVideo.parentElement).not.toHaveAttribute("tabindex");
+    expect(detailVideo).not.toHaveAttribute("controls");
+    expect(detailVideo.parentElement).toHaveAttribute("tabindex", "0");
     fireEvent.mouseEnter(detailVideo.parentElement!);
-    expect(play).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledTimes(2);
   });
 
   it("renders the media alt fallback when a poster fails before video is usable", () => {

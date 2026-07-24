@@ -150,7 +150,7 @@ describe("BackgroundCanvas", () => {
     expect(controller.dispose).toHaveBeenCalledOnce();
   });
 
-  it("renders one static scene for reduced motion", async () => {
+  it("animates even when the system requests reduced motion", async () => {
     const addWindowListener = vi.spyOn(window, "addEventListener");
     const addDocumentListener = vi.spyOn(document, "addEventListener");
     vi.mocked(window.matchMedia).mockReturnValue({ matches: true } as MediaQueryList);
@@ -159,17 +159,17 @@ describe("BackgroundCanvas", () => {
     await flushBackgroundIdle();
     expect(sceneMocks.createBackgroundScene).toHaveBeenCalledWith(
       canvas,
-      expect.objectContaining({ staticQuality: "medium" }),
+      expect.not.objectContaining({ staticQuality: expect.anything() }),
     );
     expect(observe).toHaveBeenCalledWith(canvas);
-    expect(controller.renderStatic).toHaveBeenCalledOnce();
-    expect(controller.start).not.toHaveBeenCalled();
-    expect(addWindowListener).not.toHaveBeenCalledWith(
+    expect(controller.renderStatic).not.toHaveBeenCalled();
+    expect(controller.start).toHaveBeenCalledOnce();
+    expect(addWindowListener).toHaveBeenCalledWith(
       "pointermove",
       expect.any(Function),
-      expect.anything(),
+      { passive: true },
     );
-    expect(addDocumentListener).not.toHaveBeenCalledWith(
+    expect(addDocumentListener).toHaveBeenCalledWith(
       "visibilitychange",
       expect.any(Function),
     );

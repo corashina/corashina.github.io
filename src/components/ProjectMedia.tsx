@@ -26,14 +26,10 @@ function ProjectMediaInstance({
   const [posterFailed, setPosterFailed] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const reducedMotion = typeof window !== "undefined"
-    && typeof window.matchMedia === "function"
-    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const { active, activate } = useDeferredMedia({
     containerRef,
     enabled: media.kind === "video" && !videoFailed,
     eager: media.kind === "video" && loadingMode === "eager",
-    reducedMotion,
   });
 
   useEffect(() => {
@@ -56,7 +52,6 @@ function ProjectMediaInstance({
     if (
       media.kind !== "video"
       || !interactive
-      || reducedMotion
       || videoFailed
       || !container
       || !video
@@ -100,13 +95,13 @@ function ProjectMediaInstance({
     cleanupInteractionsRef.current = cleanupInteractions;
 
     return cleanupInteractions;
-  }, [activate, active, interactive, media.kind, reducedMotion, videoFailed]);
+  }, [activate, active, interactive, media.kind, videoFailed]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!active || !playRequestedRef.current || !video || videoFailed || reducedMotion) return;
+    if (!active || !playRequestedRef.current || !video || videoFailed) return;
     video.play()?.catch(() => {});
-  }, [active, reducedMotion, videoFailed]);
+  }, [active, videoFailed]);
 
   if (media.kind === "image") {
     if (imageFailed) {
@@ -134,7 +129,6 @@ function ProjectMediaInstance({
   const showFallback = posterFailed && !showVideo;
   const standaloneInteraction = interactive
     && loadingMode === "eager"
-    && !reducedMotion
     && !videoFailed;
   const handleVideoError = () => {
     playRequestedRef.current = false;
@@ -169,7 +163,6 @@ function ProjectMediaInstance({
         className={`${styles.mediaVideo} ${
           showVideo ? styles.mediaVideoLoaded : ""
         }`}
-        controls={reducedMotion && loadingMode === "eager"}
         loop
         muted
         onError={handleVideoError}

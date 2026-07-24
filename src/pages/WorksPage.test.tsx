@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorksPage } from "./WorksPage";
@@ -89,7 +89,7 @@ describe("WorksPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("keeps card videos poster-only for reduced motion", async () => {
+  it("keeps card videos interactive when reduced motion is requested", async () => {
     setReducedMotion(true);
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     renderPage();
@@ -97,9 +97,10 @@ describe("WorksPage", () => {
     const card = screen.getByRole("link", { name: "Endless-City" });
     const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
     fireEvent.mouseEnter(card);
-    fireEvent.focus(card);
-    expect(video).not.toHaveAttribute("src");
-    expect(play).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(video).toHaveAttribute("src", "/portfolio/endless-city.mp4");
+      expect(play).toHaveBeenCalled();
+    });
   });
 
   it("restores the poster and removes video interactions after video failure", () => {

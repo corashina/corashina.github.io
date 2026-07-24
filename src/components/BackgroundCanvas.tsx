@@ -126,12 +126,8 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
         } = await import("../three/backgroundScene");
         if (closed) return;
 
-        const reducedMotion = window.matchMedia(
-          "(prefers-reduced-motion: reduce)",
-        ).matches;
         controller = createBackgroundScene(canvas, {
           onFailure: failIntegration,
-          ...(reducedMotion ? { staticQuality: "medium" as const } : {}),
         });
 
         if (closed) {
@@ -186,18 +182,12 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
               entry.contentRect.height,
               window.devicePixelRatio,
             );
-            if (reducedMotion) controller.renderStatic();
           } catch {
             failIntegration();
           }
         });
 
         resizeObserver.observe(canvas);
-        if (reducedMotion) {
-          controller.renderStatic();
-          return;
-        }
-
         window.addEventListener("pointermove", onPointerMove, { passive: true });
         pointerListenerAttached = true;
         document.addEventListener("visibilitychange", onVisibilityChange);

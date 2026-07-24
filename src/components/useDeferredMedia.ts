@@ -6,9 +6,8 @@ export function useDeferredMedia(options: {
   containerRef: RefObject<HTMLElement | null>;
   enabled: boolean;
   eager: boolean;
-  reducedMotion: boolean;
 }): { active: boolean; activate(): void } {
-  const { containerRef, enabled, eager, reducedMotion } = options;
+  const { containerRef, enabled, eager } = options;
   const [active, setActive] = useState(eager);
   const activate = useCallback(() => {
     setActive(true);
@@ -19,7 +18,6 @@ export function useDeferredMedia(options: {
     if (
       !enabled
       || active
-      || reducedMotion
       || !container
       || typeof IntersectionObserver === "undefined"
     ) {
@@ -40,7 +38,7 @@ export function useDeferredMedia(options: {
 
     observer.observe(container);
     return disconnect;
-  }, [activate, active, containerRef, enabled, reducedMotion]);
+  }, [activate, active, containerRef, enabled]);
 
   return { active, activate };
 }

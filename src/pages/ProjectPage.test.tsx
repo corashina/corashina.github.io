@@ -82,7 +82,7 @@ describe("ProjectPage", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("loads detail video with controls without autoplay for reduced motion", async () => {
+  it("keeps detail video interactive when reduced motion is requested", async () => {
     vi.stubGlobal(
       "matchMedia",
       vi.fn().mockReturnValue({ matches: true }),
@@ -92,11 +92,11 @@ describe("ProjectPage", () => {
 
     const video = screen.getByLabelText("Infinite procedural WebGL city scene");
     expect(video).toHaveAttribute("src", "/portfolio/endless-city.mp4");
-    expect(video).toHaveAttribute("controls");
+    expect(video).not.toHaveAttribute("controls");
     fireEvent.mouseEnter(video.parentElement!);
     await Promise.resolve();
 
-    expect(play).not.toHaveBeenCalled();
+    expect(play).toHaveBeenCalledOnce();
   });
 
   it("renders the not-found page for an unknown project slug", () => {
