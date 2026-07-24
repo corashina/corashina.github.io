@@ -9,7 +9,11 @@ type ProjectMediaProps = {
   loadingMode: MediaLoadingMode;
 };
 
-export function ProjectMedia({
+export function ProjectMedia(props: ProjectMediaProps): JSX.Element {
+  return <ProjectMediaInstance key={props.media.src} {...props} />;
+}
+
+function ProjectMediaInstance({
   media,
   interactive,
   loadingMode,

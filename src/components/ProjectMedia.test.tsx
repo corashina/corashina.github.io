@@ -11,6 +11,13 @@ const videoMedia = {
   alt: "Demo interface",
 } satisfies ProjectMediaData;
 
+const secondVideoMedia = {
+  kind: "video",
+  src: "/portfolio/second.mp4",
+  posterSrc: "/portfolio/second.webp",
+  alt: "Second interface",
+} satisfies ProjectMediaData;
+
 const imageMedia = {
   kind: "image",
   src: "/portfolio/demo.png",
@@ -206,6 +213,46 @@ describe("ProjectMedia", () => {
 
     await waitFor(() => expect(video).toHaveAttribute("src", "/portfolio/demo.mp4"));
     await waitFor(() => expect(play).toHaveBeenCalledOnce());
+  });
+
+  it("does not leak activation, loaded, or failure state between media records", () => {
+    const { rerender } = render(
+      <ProjectMedia interactive loadingMode="viewport" media={videoMedia} />,
+    );
+    const firstVideo = screen.getByLabelText("Demo interface");
+    const firstPoster = screen.getByRole("img", { name: "Demo interface" });
+
+    act(() => {
+      observerCallback(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        observer,
+      );
+    });
+    fireEvent.loadedData(firstVideo);
+    expect(firstPoster).toHaveClass(styles.mediaPosterHidden);
+    fireEvent.error(firstPoster);
+    fireEvent.error(firstVideo);
+    expect(screen.getByText("Demo interface")).toBeInTheDocument();
+
+    rerender(
+      <ProjectMedia interactive loadingMode="viewport" media={secondVideoMedia} />,
+    );
+
+    const secondVideo = screen.getByLabelText("Second interface");
+    const secondPoster = screen.getByRole("img", { name: "Second interface" });
+    expect(secondVideo).not.toHaveAttribute("src");
+    expect(secondPoster).not.toHaveClass(styles.mediaPosterHidden);
+    expect(screen.queryByText("Second interface")).not.toBeInTheDocument();
+
+    act(() => {
+      observerCallback(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        observer,
+      );
+    });
+    expect(secondVideo).toHaveAttribute("src", "/portfolio/second.mp4");
+    fireEvent.loadedData(secondVideo);
+    expect(secondPoster).toHaveClass(styles.mediaPosterHidden);
   });
 
   it("uses loading mode for image media and falls back to its alt text", () => {
