@@ -25,7 +25,7 @@ describe("ProjectPage", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: "WebGL-Minecraft" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 4, name: "April 2018" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 4, name: "2018" })).toBeInTheDocument();
     expect(screen.getByText("Primitive minecraft clone made with three.js")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "javascript",

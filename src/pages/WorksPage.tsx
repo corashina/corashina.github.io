@@ -3,10 +3,20 @@ import { ProjectCard } from "../components/ProjectCard";
 import { projects } from "../data/projects";
 import styles from "../styles/work.module.scss";
 
+const experimentEndOrder: Readonly<Record<string, number>> = {
+  civio: 1,
+  "particle-simulation": 2,
+};
+
 export function WorksPage(): JSX.Element {
   const commercialProjects = projects.filter((project) => project.category === "commercial");
   const freelanceProjects = projects.filter((project) => project.category === "freelance");
-  const experiments = projects.filter((project) => project.category === "experiments");
+  const experiments = projects
+    .filter((project) => project.category === "experiments")
+    .sort(
+      (first, second) =>
+        (experimentEndOrder[first.slug] ?? 0) - (experimentEndOrder[second.slug] ?? 0),
+    );
 
   return (
     <section className={styles.workPage}>
