@@ -9,6 +9,7 @@ export default defineConfig({
     manifest: true,
   },
   test: {
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.{ts,tsx}"],
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     css: true

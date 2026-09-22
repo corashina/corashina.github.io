@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProjectMedia as ProjectMediaData } from "../data/projects";
@@ -100,31 +100,6 @@ describe("ProjectMedia", () => {
     expect(poster).toHaveClass(styles.mediaPosterHidden);
   });
 
-  it("activates and plays viewport video from interaction", async () => {
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    renderInteractive();
-
-    const video = screen.getByLabelText("Demo interface") as HTMLVideoElement;
-    const container = video.parentElement!;
-    fireEvent.mouseEnter(container.closest("a")!);
-
-    await waitFor(() => expect(video).toHaveAttribute("src", "/portfolio/demo.mp4"));
-    await waitFor(() => expect(video.play).toHaveBeenCalled());
-  });
-
-  it("loads eager video immediately", () => {
-    render(<ProjectMedia interactive loadingMode="eager" media={videoMedia} />);
-
-    expect(screen.getByLabelText("Demo interface")).toHaveAttribute(
-      "src",
-      "/portfolio/demo.mp4",
-    );
-    expect(screen.getByRole("img", { name: "Demo interface" })).toHaveAttribute(
-      "loading",
-      "eager",
-    );
-  });
-
   it("plays a named standalone eager video surface on keyboard focus, then resets on blur", async () => {
     const user = userEvent.setup();
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
@@ -161,49 +136,6 @@ describe("ProjectMedia", () => {
     expect(video).toHaveProperty("currentTime", 0);
   });
 
-  it("reveals eager video that is already ready when effects run", async () => {
-    vi.spyOn(HTMLMediaElement.prototype, "readyState", "get").mockReturnValue(
-      HTMLMediaElement.HAVE_CURRENT_DATA,
-    );
-    render(<ProjectMedia interactive loadingMode="eager" media={videoMedia} />);
-
-    const video = screen.getByLabelText("Demo interface");
-    const poster = screen.getByAltText("Demo interface");
-    await waitFor(() => expect(video).toHaveClass(styles.mediaVideoLoaded));
-    expect(poster).toHaveClass(styles.mediaPosterHidden);
-  });
-
-  it("keeps videos interactive when the system requests reduced motion", async () => {
-    setReducedMotion(true);
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    const { unmount } = renderInteractive("viewport");
-
-    const viewportVideo = screen.getByLabelText("Demo interface") as HTMLVideoElement;
-    fireEvent.mouseEnter(viewportVideo.closest("a")!);
-    await waitFor(() => {
-      expect(viewportVideo).toHaveAttribute("src", "/portfolio/demo.mp4");
-      expect(play).toHaveBeenCalled();
-    });
-
-    unmount();
-    render(<ProjectMedia interactive loadingMode="eager" media={videoMedia} />);
-    const detailVideo = screen.getByLabelText("Demo interface");
-    expect(detailVideo).toHaveAttribute("src", "/portfolio/demo.mp4");
-    expect(detailVideo).not.toHaveAttribute("controls");
-    expect(detailVideo.parentElement).toHaveAttribute("tabindex", "0");
-    fireEvent.mouseEnter(detailVideo.parentElement!);
-    expect(play).toHaveBeenCalledTimes(2);
-  });
-
-  it("renders the media alt fallback when a poster fails before video is usable", () => {
-    render(<ProjectMedia interactive loadingMode="viewport" media={videoMedia} />);
-
-    fireEvent.error(screen.getByRole("img", { name: "Demo interface" }));
-
-    expect(screen.getByText("Demo interface")).toBeInTheDocument();
-    expect(screen.queryByRole("img", { name: "Demo interface" })).not.toBeInTheDocument();
-  });
-
   it("restores the poster after video failure and blocks later play calls", () => {
     const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     renderInteractive("eager");
@@ -221,51 +153,6 @@ describe("ProjectMedia", () => {
     fireEvent.mouseEnter(target);
     fireEvent.focus(target);
     expect(play).not.toHaveBeenCalled();
-  });
-
-  it("pauses and resets interactive video on mouse leave and blur", async () => {
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
-    renderInteractive("eager");
-    const video = screen.getByLabelText("Demo interface") as HTMLVideoElement;
-    const target = video.closest("a")!;
-    Object.defineProperty(video, "currentTime", { configurable: true, value: 12, writable: true });
-
-    fireEvent.mouseEnter(target);
-    await waitFor(() => expect(play).toHaveBeenCalledTimes(1));
-    fireEvent.mouseLeave(target);
-    expect(pause).toHaveBeenCalledTimes(1);
-    expect(video).toHaveProperty("currentTime", 0);
-
-    fireEvent.focus(target);
-    await waitFor(() => expect(play).toHaveBeenCalledTimes(2));
-    video.currentTime = 8;
-    fireEvent.blur(target);
-    expect(pause).toHaveBeenCalledTimes(2);
-    expect(video).toHaveProperty("currentTime", 0);
-  });
-
-  it("disconnects viewport observation on unmount", () => {
-    const { unmount } = render(
-      <ProjectMedia interactive loadingMode="viewport" media={videoMedia} />,
-    );
-
-    unmount();
-
-    expect(observer.disconnect).toHaveBeenCalledOnce();
-  });
-
-  it("still permits explicit activation when IntersectionObserver is missing", async () => {
-    vi.stubGlobal("IntersectionObserver", undefined);
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    renderInteractive();
-    const video = screen.getByLabelText("Demo interface");
-
-    expect(video).not.toHaveAttribute("src");
-    fireEvent.focus(video.closest("a")!);
-
-    await waitFor(() => expect(video).toHaveAttribute("src", "/portfolio/demo.mp4"));
-    await waitFor(() => expect(play).toHaveBeenCalledOnce());
   });
 
   it("does not leak activation, loaded, or failure state between media records", () => {

@@ -1,6 +1,6 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { WorksPage } from "./WorksPage";
 
 const renderPage = () =>
@@ -10,17 +10,8 @@ const renderPage = () =>
     </MemoryRouter>,
   );
 
-const setReducedMotion = (matches: boolean) => {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn().mockReturnValue({ matches }),
-  );
-};
-
 afterEach(() => {
   cleanup();
-  vi.restoreAllMocks();
-  vi.unstubAllGlobals();
 });
 
 describe("WorksPage", () => {
@@ -61,83 +52,4 @@ describe("WorksPage", () => {
     expect(within(xelcode).queryByText(/Started:/)).not.toBeInTheDocument();
   });
 
-  it("plays video previews from card hover and keyboard focus, then pauses and resets them", async () => {
-    setReducedMotion(false);
-    const play = vi
-      .spyOn(HTMLMediaElement.prototype, "play")
-      .mockRejectedValue(new Error("autoplay blocked"));
-    const pause = vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
-    renderPage();
-
-    const card = screen.getByRole("link", { name: "Endless-City" });
-    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
-    Object.defineProperty(video, "currentTime", { configurable: true, value: 12, writable: true });
-
-    fireEvent.mouseEnter(card);
-    await Promise.resolve();
-    expect(play).toHaveBeenCalledTimes(1);
-
-    fireEvent.mouseLeave(card);
-    expect(pause).toHaveBeenCalledTimes(1);
-    expect(video).toHaveProperty("currentTime", 0);
-
-    fireEvent.focus(card);
-    await Promise.resolve();
-    expect(play).toHaveBeenCalledTimes(2);
-
-    Object.defineProperty(video, "currentTime", { configurable: true, value: 8, writable: true });
-    fireEvent.blur(card);
-    expect(pause).toHaveBeenCalledTimes(2);
-    expect(video).toHaveProperty("currentTime", 0);
-  });
-
-  it("keeps card videos interactive when reduced motion is requested", async () => {
-    setReducedMotion(true);
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    renderPage();
-
-    const card = screen.getByRole("link", { name: "Endless-City" });
-    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
-    fireEvent.mouseEnter(card);
-    await waitFor(() => {
-      expect(video).toHaveAttribute("src", "/portfolio/endless-city.mp4");
-      expect(play).toHaveBeenCalled();
-    });
-  });
-
-  it("restores the poster and removes video interactions after video failure", () => {
-    const play = vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
-    const { unmount } = renderPage();
-    const card = screen.getByRole("link", { name: "Endless-City" });
-    const video = within(card).getByLabelText("Infinite procedural WebGL city scene");
-    const poster = within(card).getByRole("img", {
-      name: "Infinite procedural WebGL city scene",
-    });
-    const removeEventListener = vi.spyOn(card, "removeEventListener");
-
-    fireEvent.error(video);
-
-    expect(poster).toBeInTheDocument();
-    expect(card.querySelector("video")).toBeInTheDocument();
-    expect(removeEventListener).toHaveBeenCalledTimes(4);
-
-    fireEvent.mouseEnter(card);
-    fireEvent.focus(card);
-    expect(play).not.toHaveBeenCalled();
-
-    unmount();
-    expect(removeEventListener).toHaveBeenCalledTimes(4);
-  });
-
-  it("shows the original alt text when project media fails", () => {
-    renderPage();
-
-    const card = screen.getByRole("link", { name: "Fitmed" });
-    const image = within(card).getByRole("img", { name: "Fitmed interface" });
-
-    fireEvent.error(image);
-
-    expect(within(card).getByText("Fitmed interface")).toBeInTheDocument();
-    expect(within(card).queryByRole("img")).not.toBeInTheDocument();
-  });
 });

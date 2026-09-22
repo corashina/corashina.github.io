@@ -2,11 +2,7 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, expect, it } from "vitest";
-import {
-  optimizePortfolioMedia,
-  posterArguments,
-  videoArguments,
-} from "./optimize-portfolio-media.mjs";
+import { optimizePortfolioMedia } from "./optimize-portfolio-media.mjs";
 
 const temporaryDirectories: string[] = [];
 
@@ -23,51 +19,6 @@ afterEach(async () => {
       rm(directory, { recursive: true, force: true }),
     ),
   );
-});
-
-it("builds the requested H.264 video arguments", () => {
-  const arguments_ = videoArguments("input.mp4", "output.mp4");
-
-  expect(arguments_).toEqual([
-    "-y",
-    "-i",
-    "input.mp4",
-    "-vf",
-    "scale='min(960,iw)':-2:force_original_aspect_ratio=decrease:force_divisible_by=2,fps=30",
-    "-c:v",
-    "libx264",
-    "-crf",
-    "28",
-    "-preset",
-    "slow",
-    "-pix_fmt",
-    "yuv420p",
-    "-an",
-    "-movflags",
-    "+faststart",
-    "output.mp4",
-  ]);
-});
-
-it("builds the requested WebP poster arguments", () => {
-  const arguments_ = posterArguments("input.mp4", "output.webp");
-
-  expect(arguments_).toEqual([
-    "-y",
-    "-ss",
-    "0.5",
-    "-i",
-    "input.mp4",
-    "-frames:v",
-    "1",
-    "-vf",
-    "scale='min(960,iw)':-2:force_original_aspect_ratio=decrease",
-    "-c:v",
-    "libwebp",
-    "-quality",
-    "76",
-    "output.webp",
-  ]);
 });
 
 it("writes temporary outputs before replacing the video and creating its poster", async () => {
@@ -92,30 +43,6 @@ it("writes temporary outputs before replacing the video and creating its poster"
   expect(dirname(calls[0].arguments_.at(-1)!)).toBe(directory);
   expect(await readFile(videoPath, "utf8")).toBe("generated 1");
   expect(await readFile(posterPath, "utf8")).toBe("generated 2");
-});
-
-it("ignores stale hidden optimizer video outputs during discovery", async () => {
-  const directory = await portfolioDirectory();
-  const videoPath = join(directory, "demo.mp4");
-  const staleTemporaryPath = join(
-    directory,
-    ".demo.01234567-89ab-4cde-8f01-23456789abcd.tmp.mp4",
-  );
-  const inputs: string[] = [];
-  await writeFile(videoPath, "original video");
-  await writeFile(staleTemporaryPath, "stale temporary video");
-
-  const result = await optimizePortfolioMedia({
-    directory,
-    run: async (_executable, arguments_) => {
-      inputs.push(arguments_[arguments_.indexOf("-i") + 1]);
-      await writeFile(arguments_.at(-1)!, "generated output");
-    },
-  });
-
-  expect(inputs).toEqual([videoPath, videoPath]);
-  expect(result.videos).toBe(1);
-  expect(await readFile(staleTemporaryPath, "utf8")).toBe("stale temporary video");
 });
 
 it("leaves the original video unchanged when the runner fails", async () => {

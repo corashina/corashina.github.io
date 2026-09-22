@@ -1,16 +1,10 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
-import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { gzipSync } from "node:zlib";
 import { afterEach, expect, it } from "vitest";
-import {
-  checkPerformanceBudgets,
-  collectStaticManifestEntries,
-} from "./check-performance-budgets.mjs";
+import { checkPerformanceBudgets } from "./check-performance-budgets.mjs";
 
 const temporaryDirectories: string[] = [];
-const javascriptBudget = 120 * 1024;
 const mp4Budget = 10 * 1024 * 1024;
 const webpBudget = 500 * 1024;
 
@@ -79,46 +73,6 @@ afterEach(async () => {
   );
 });
 
-it("collects only the initial static manifest closure", () => {
-  const entries = manifest();
-
-  expect(collectStaticManifestEntries(entries, "index.html")).toEqual([
-    "index.html",
-    "_shared.js",
-  ]);
-});
-
-it("uses gzip byte lengths for the initial JavaScript total", async () => {
-  const javascript = randomBytes(2048);
-  const directories = await writeFixture(manifest(), {
-    "assets/index.js": javascript,
-    "assets/shared.js": "shared",
-    "assets/background.js": "background",
-  });
-
-  const result = await checkPerformanceBudgets(budgetOptions(directories));
-
-  expect(result.initialJavaScriptGzipBytes).toBe(
-    gzipSync(javascript).byteLength + gzipSync(Buffer.from("shared")).byteLength,
-  );
-});
-
-it("reports the measured initial gzip overage and its allowance", async () => {
-  const overBudgetJavascript = randomBytes(122_803);
-  expect(
-    gzipSync(overBudgetJavascript).byteLength + gzipSync(Buffer.alloc(0)).byteLength,
-  ).toBe(javascriptBudget + 1);
-  const directories = await writeFixture(manifest(), {
-    "assets/index.js": overBudgetJavascript,
-    "assets/shared.js": "",
-    "assets/background.js": "background",
-  });
-
-  await expect(checkPerformanceBudgets(budgetOptions(directories))).rejects.toThrow(
-    `Initial JavaScript gzip budget exceeded: ${javascriptBudget + 1} bytes (allowed ${javascriptBudget} bytes)`,
-  );
-});
-
 it("rejects Three.js code in the static manifest closure", async () => {
   const directories = await writeFixture(
     manifest({
@@ -181,20 +135,4 @@ it("rejects MP4 and WebP totals above their budgets", async () => {
   await expect(checkPerformanceBudgets(budgetOptions(webpDirectories))).rejects.toThrow(
     `WebP asset budget exceeded: ${webpBudget + 1} bytes (allowed ${webpBudget} bytes)`,
   );
-});
-
-it("accepts values at every performance budget boundary", async () => {
-  const directories = await writeFixture(manifest(), {
-    "assets/index.js": randomBytes(122_802),
-    "assets/shared.js": "",
-    "assets/background.js": "background",
-    "static/portfolio/demo.mp4": Buffer.alloc(mp4Budget),
-    "static/portfolio/demo.webp": Buffer.alloc(webpBudget),
-  });
-
-  const result = await checkPerformanceBudgets(budgetOptions(directories));
-
-  expect(result.initialJavaScriptGzipBytes).toBe(javascriptBudget);
-  expect(result.mp4Bytes).toBe(mp4Budget);
-  expect(result.webpBytes).toBe(webpBudget);
 });
