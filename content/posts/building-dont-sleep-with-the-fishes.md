@@ -1,7 +1,7 @@
 ---
 title: "Building a browser survival game at sea"
 description: "The engineering behind a Three.js survival game: moving-ship physics, shared ocean waves, deterministic rules, and scene preparation."
-date: "2026-06-22"
+date: "2026-05-05"
 tags: [Game development, TypeScript, Three.js]
 draft: false
 ---

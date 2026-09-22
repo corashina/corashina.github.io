@@ -1,7 +1,7 @@
 ---
 title: "Building a private Telegram assistant with a fictional daily life"
 description: "Building a private Telegram assistant for shared plans, reminders, and a fictional daily life—while keeping real records and generated stories separate."
-date: "2026-07-22"
+date: "2026-06-21"
 tags: [AI, Telegram, Automation]
 draft: false
 ---
