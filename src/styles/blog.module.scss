@@ -1,0 +1,56 @@
+@use "themes" as *;
+
+.blog, .articlePage { min-width: 0; color: $color-1; }
+.posts { list-style: none; margin: 0; padding: 0; }
+.post { padding: 2.25rem 0; }
+.post + .post { border-top: 1px solid $color-25; }
+.post h2 { color: $color-1; font-size: clamp(1.55rem, 4vw, 2rem); line-height: 1.3; margin: 0.85rem 0 1rem; max-width: 40rem; }
+.post p { text-align: left; max-width: 42rem; line-height: 1.8; font-size: 1.05rem; }
+.date { display: block; font-size: 0.85rem; letter-spacing: 0.035em; color: $color-1; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0; padding: 0; list-style: none; }
+.tags li { border: 1px solid $color-25; border-radius: 3px; padding: 0.25rem 0.55rem; font-size: 0.75rem; line-height: 1.5; }
+.readLink { display: inline-block; margin-top: 0.65rem; border-bottom: 1px solid $color-25; padding-bottom: 0.25rem; }
+.readLink span { color: inherit; }
+.backLink { display: inline-block; margin-bottom: 2rem; }
+.backLink span { color: inherit; }
+.articleHeader { padding-bottom: 2rem; border-bottom: 1px solid $color-25; }
+.articleHeader h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.15; letter-spacing: -0.035em; margin: 1rem 0 1.5rem !important; max-width: 48rem; }
+.description { font-size: 1.15rem; line-height: 1.75; text-align: left; max-width: 43rem; }
+.contents { margin: 2rem 0 3rem; padding: 1.5rem; border: 1px solid $color-25; }
+.contents h2 { color: $color-1; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1rem; }
+.contents ol { padding-left: 1.25rem; margin: 0; columns: 2; column-gap: 2.5rem; }
+.contents li { break-inside: avoid; line-height: 1.65; padding-left: 0.15rem; margin-bottom: 0.65rem; }
+.contents a:hover { text-decoration: underline; }
+.article { min-width: 0; max-width: 74ch; margin: 0 auto; font-size: 1.0625rem; line-height: 1.8; overflow-wrap: break-word; }
+.article p { text-align: left; margin: 1.1rem 0; }
+.article h2 { color: $color-1; font-size: clamp(1.5rem, 3vw, 1.9rem); line-height: 1.35; margin: 3.5rem 0 1.25rem; }
+.article h3 { color: $color-1; font-size: 1.25rem; line-height: 1.4; margin: 2.5rem 0 1rem; }
+.article h4, .article h5, .article h6 { color: $color-1; margin-top: 2rem; }
+.article a { text-decoration: underline; text-underline-offset: 0.2em; }
+.article ul, .article ol { padding-left: 1.6rem; }
+.article li { margin: 0.5rem 0; }
+.article blockquote { color: $color-1; border-left: 3px solid $color-accent-text; margin: 1.75rem 0; padding: 0.1rem 1.25rem; }
+.article code { font: 0.85em/1.7 Consolas, "Liberation Mono", monospace; overflow-wrap: anywhere; }
+.article p code, .article li code { background: color-mix(in srgb, $color-1 8%, transparent); padding: 0.1rem 0.25rem; border-radius: 2px; }
+.article pre { max-width: 100%; max-height: 32rem; overflow: auto; background: color-mix(in srgb, $color-bg 94%, $color-1); border: 1px solid $color-25; padding: 1.15rem; tab-size: 2; }
+.article pre code { font-size: 0.8rem; overflow-wrap: normal; }
+.article pre, .article code, .article pre * { transition: none; }
+.article table { display: block; overflow-x: auto; max-width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+.article th, .article td { text-align: left; padding: 0.8rem; border-bottom: 1px solid $color-25; vertical-align: top; min-width: 8rem; }
+.article th { color: $color-1; font-weight: 600; }
+.article details { border: 1px solid $color-25; margin: 1rem 0 2.5rem; padding: 0.9rem 1.1rem; }
+.article summary { cursor: pointer; overflow-wrap: anywhere; font-size: 0.9rem; }
+.article summary:focus-visible { outline: 2px solid $color-accent-text; outline-offset: 5px; }
+.article details pre { margin-bottom: 0; }
+.article img { max-width: 100%; height: auto; }
+.article :global([id]) { scroll-margin-top: 1.5rem; }
+.bottomLink { display: inline-block; margin-top: 3rem; border-bottom: 1px solid $color-25; }
+.error { padding: 1rem 0; }
+.error button { background: $color-bg; color: $color-1; border: 1px solid $color-1; padding: 0.6rem 1rem; cursor: pointer; }
+@media (max-width: 600px) {
+  .contents { padding: 1.15rem; }
+  .contents ol { columns: 1; }
+  .article { font-size: 1rem; }
+  .articleHeader h1 { overflow-wrap: anywhere; }
+  .article pre { padding: 0.75rem; }
+}

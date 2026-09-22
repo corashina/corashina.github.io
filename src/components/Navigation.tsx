@@ -1,6 +1,6 @@
 import { useState, type JSX } from "react";
 import { GoRows as GoThreeBars, GoX } from "react-icons/go";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import type { Theme } from "../theme/theme";
 import styles from "../styles/layout.module.scss";
 import { ThemeControl } from "./ThemeControl";
@@ -13,10 +13,12 @@ type NavigationProps = {
 const links = [
   { label: "Home", to: "/", end: true },
   { label: "Work", to: "/works", end: true },
+  { label: "Blog", to: "/blog", end: false },
   { label: "Contact", to: "/contact", end: true },
 ] as const;
 
 export function Navigation({ theme, onToggleTheme }: NavigationProps): JSX.Element {
+  const location = useLocation();
   const [expanded, setExpanded] = useState(false);
   const menuLabel = expanded ? "Close navigation menu" : "Open navigation menu";
 
@@ -45,7 +47,7 @@ export function Navigation({ theme, onToggleTheme }: NavigationProps): JSX.Eleme
                 end={end}
                 onClick={(event) => {
                   setExpanded(false);
-                  if (event.currentTarget.getAttribute("aria-current") === "page") {
+                  if ((location.pathname.replace(/\/$/, "") || "/") === to) {
                     event.preventDefault();
                   }
                 }}

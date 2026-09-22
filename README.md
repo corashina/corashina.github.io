@@ -8,7 +8,7 @@ Live site: [corashina.github.io](https://corashina.github.io/)
 
 ## Highlights
 
-- Responsive React portfolio with Home, Work, project-detail, and Contact routes.
+- Responsive React portfolio with Home, Work, Blog, article, project-detail, and Contact routes.
 - Commercial, freelance, and experimental projects with image and video media.
 - Interactive Three.js particle background with theme and motion preferences.
 - Downloadable one-page CV in PDF and editable DOCX formats.
@@ -54,6 +54,15 @@ npm run test
 npm run typecheck
 npm run build
 ```
+
+## Blog publishing
+
+Write each post as one Markdown file in `content/posts/`, with metadata at the top.
+Posts are discovered automatically. The first article includes the complete MIBSI
+source appendix inside its Markdown file.
+
+See [the publishing guide](docs/blog-publishing.md) and
+[the article template](docs/blog-post-template.md) for future posts.
 
 ## Content and assets
 

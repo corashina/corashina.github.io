@@ -14,6 +14,8 @@ const ProjectPage = lazy(() =>
 const ContactPage = lazy(() =>
   import("../pages/ContactPage").then(({ ContactPage }) => ({ default: ContactPage })),
 );
+const BlogPage = lazy(() => import("../pages/BlogPage").then(({ BlogPage }) => ({ default: BlogPage })));
+const BlogPostPage = lazy(() => import("../pages/BlogPostPage").then(({ BlogPostPage }) => ({ default: BlogPostPage })));
 const NotFoundPage = lazy(() =>
   import("../pages/NotFoundPage").then(({ NotFoundPage }) => ({ default: NotFoundPage })),
 );
@@ -31,6 +33,8 @@ export function App(): JSX.Element {
         <Route index element={withRouteFallback(<HomePage />)} />
         <Route path="works" element={withRouteFallback(<WorksPage />)} />
         <Route path="works/:slug" element={withRouteFallback(<ProjectPage />)} />
+        <Route path="blog" element={withRouteFallback(<BlogPage />)} />
+        <Route path="blog/:slug" element={withRouteFallback(<BlogPostPage />)} />
         <Route path="contact" element={withRouteFallback(<ContactPage />)} />
         <Route path="*" element={withRouteFallback(<NotFoundPage />)} />
       </Route>

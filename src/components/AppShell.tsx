@@ -117,8 +117,10 @@ export function AppShell(): JSX.Element {
   const location = useLocation();
   const navigationType = useNavigationType();
   const outlet = useOutlet();
-  const nodeRef = useMemo(() => createRef<HTMLElement>(), [location.key]);
+  const routeKey = location.pathname.startsWith("/blog") ? location.pathname + location.search : location.key;
+  const nodeRef = useMemo(() => createRef<HTMLElement>(), [routeKey]);
   const transitionHistoryRef = useRef<TransitionHistory | null>(null);
+  const previousPath = useRef(location.pathname);
   const [theme, setTheme] = useState<Theme>("dark");
   const [initialRouteReady, setInitialRouteReady] = useState(false);
   const markInitialRouteReady = useCallback(() => {
@@ -133,10 +135,23 @@ export function AppShell(): JSX.Element {
   }
 
   useEffect(() => {
+    const from = previousPath.current;
+    previousPath.current = location.pathname;
+    const isBlog = (path: string) => /^\/blog(?:\/|$)/.test(path);
+    if (from !== location.pathname && navigationType !== "POP" && !location.hash &&
+        (isBlog(from) || isBlog(location.pathname))) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [location.pathname, location.hash, navigationType]);
+
+  useEffect(() => {
     applyTheme(theme, document.body);
   }, [theme]);
 
   useEffect(() => {
+    if (/^\/blog(?:\/[^/]+)?\/?$/.test(location.pathname)) return;
+    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (description) description.content = "Tomasz Zielinski, full-stack software engineer.";
     const path = location.pathname.split("/").filter((segment) => segment !== "").pop() ?? "Home";
     document.title = path.charAt(0).toUpperCase() + path.slice(1);
   }, [location.pathname]);
@@ -197,7 +212,7 @@ export function AppShell(): JSX.Element {
             <CSSTransition
               appear
               classNames={transitionClasses}
-              key={location.key}
+              key={routeKey}
               nodeRef={nodeRef}
               onEnter={showRoute}
               onExit={hideRoute}
