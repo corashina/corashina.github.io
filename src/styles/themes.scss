@@ -11,17 +11,17 @@ $color-muted-text: var(--color-2);
 $color-accent-text: var(--color-3);
 
 body.white {
-  --color-bg: #fff;
-  --color-1: #000;
-  --color-2: #aaa;
-  --color-25: #ccc;
-  --color-3: #880000;
+  --color-bg: #f5f7fc;
+  --color-1: #142039;
+  --color-2: #53627c;
+  --color-25: #d6deeb;
+  --color-3: #285fc7;
 }
 
 body.dark {
-  --color-bg: #222;
-  --color-1: #ccc;
-  --color-2: #666;
-  --color-25: #444;
-  --color-3: #f44263;
+  --color-bg: #050810;
+  --color-1: #edf3ff;
+  --color-2: #a1b0c8;
+  --color-25: #243047;
+  --color-3: #8bdfff;
 }

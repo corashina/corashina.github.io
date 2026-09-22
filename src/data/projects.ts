@@ -32,8 +32,8 @@ const projectData = [
   ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/holiday.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "pdf", "xml"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
-  ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
+  ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {

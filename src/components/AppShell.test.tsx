@@ -157,7 +157,7 @@ describe("AppShell", () => {
     expect(document.body.style.colorScheme).toBe("light");
     const controller = sceneMocks.createBackgroundScene.mock.results[0]?.value;
     expect(controller.setTheme).toHaveBeenLastCalledWith(
-      expect.objectContaining({ background: "#ffffff" }),
+      expect.objectContaining({ background: "#f5f7fc" }),
     );
     expect(localStorage.getItem("portfolio-theme")).not.toBe("white");
     expect(themeButton).toHaveAccessibleName("Switch to dark theme");

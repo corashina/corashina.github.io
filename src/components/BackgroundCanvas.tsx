@@ -5,24 +5,24 @@ import type { Theme } from "../theme/theme";
 
 const sceneThemes: Record<Theme, SceneTheme> = {
   dark: {
-    background: "#222222",
+    background: "#050810",
     blendMode: "additive",
-    particle: "#aeb4ba",
-    signal: "#f4f6f7",
-    connection: "#697078",
+    particle: "#729ece",
+    signal: "#bbdcff",
+    connection: "#405f8f",
   },
   white: {
-    background: "#ffffff",
+    background: "#f5f7fc",
     blendMode: "normal",
-    particle: "#7d848a",
-    signal: "#272b2e",
-    connection: "#a2a7ac",
+    particle: "#7893be",
+    signal: "#285fc7",
+    connection: "#a5bbd8",
   },
 };
 
 const canvasOpacities: Record<Theme, string> = {
-  dark: "0.58",
-  white: "0.38",
+  dark: "0.30",
+  white: "0.18",
 };
 
 type BackgroundCanvasProps = {
