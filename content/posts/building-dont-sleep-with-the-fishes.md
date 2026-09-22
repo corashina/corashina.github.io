@@ -1,12 +1,12 @@
 ---
-title: "Building Don't Sleep With the Fishes"
+title: "Building a browser survival game at sea"
 description: "The engineering behind a Three.js survival game: moving-ship physics, shared ocean waves, deterministic rules, and scene preparation."
 date: "2026-06-22"
 tags: [Game development, TypeScript, Three.js]
 draft: false
 ---
 
-I built Don't Sleep With the Fishes as a desktop-browser survival game. You have one minute to collect supplies from a sinking ship and reach its lifeboat. The supplies you save determine your options at sea: fish, repair the hull, spend equipment on an encounter, or wait through another night.
+I built a desktop-browser survival game about escaping a sinking ship and surviving at sea. You have one minute to collect supplies and reach the lifeboat. The supplies you save determine your options: fish, repair the hull, spend equipment on an encounter, or wait through another night.
 
 The game uses TypeScript, Three.js, and custom GLSL shaders. Rapier handles the movable obstacles aboard the ship. Vite builds the application for static hosting; the survival rules run in TypeScript without a WebGL renderer.
 
