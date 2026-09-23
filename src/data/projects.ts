@@ -34,6 +34,7 @@ const projectData = [
   ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
   ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
+  ["mibsi", "MIBSI", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi.webp", "https://github.com/corashina/mibsi-p5092"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {
@@ -52,6 +53,7 @@ const projectMediaAlt: Record<string, string> = {
   xelapps: "XELapps configuration interface",
   "cosmic-sugar": "Cosmic Sugar particle simulation",
   "dont-sleep-with-the-fishes": "Don't Sleep With The Fishes survival game",
+  mibsi: "Illustrative studio render of a smartphone and digital instrument cluster displaying navigation",
 };
 
 const projectStartDates: Record<string, { startedAt: string; startedLabel: string }> = {
@@ -70,6 +72,7 @@ const projectStartDates: Record<string, { startedAt: string; startedLabel: strin
   xelapps: { startedAt: "2026", startedLabel: "2026" },
   "cosmic-sugar": { startedAt: "2026", startedLabel: "2026" },
   "dont-sleep-with-the-fishes": { startedAt: "2026", startedLabel: "2026" },
+  mibsi: { startedAt: "2026", startedLabel: "2026" },
 };
 
 const projectCategories: Record<string, ProjectCategory> = {
@@ -81,6 +84,7 @@ const projectCategories: Record<string, ProjectCategory> = {
   xelcode: "commercial",
   kiteprint: "freelance",
   fitmed: "freelance",
+  mibsi: "freelance",
   "particle-simulation": "experiments",
   civio: "experiments",
   "flappy-pixie": "experiments",
