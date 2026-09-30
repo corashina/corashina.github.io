@@ -31,7 +31,7 @@ async function inputs(bundleDirectory) {
 }
 
 /** Convert this article's semantic HTML, not its page-specific styling. */
-export async function convertMibsiArticle(bundleDirectory) {
+export async function convertMibsiClusterBridgeArticle(bundleDirectory) {
   const { document, sources } = await inputs(bundleDirectory);
   const sourceIds = new Map(sources.map(source => [source.path, source.id]));
   const inline = node => {
@@ -111,12 +111,12 @@ export async function convertMibsiArticle(bundleDirectory) {
   const result = "---\ntitle: " + JSON.stringify(title) + "\ndescription: " + JSON.stringify(description) +
     '\ndate: "2026-09-22"\ntags: [Reverse engineering, QNX, Automotive]\ndraft: false\n---\n\n' +
     architecture + blocks(article) + "## Source appendix\n\n" + appendix;
-  compilePost("reverse-engineering-mibsi.md", result);
+  compilePost("reverse-engineering-mibsi-cluster-bridge.md", result);
   return result;
 }
 
 /** Verify copied text independently of the converter's fence writer. */
-export async function verifyMibsiSources(markdown, bundleDirectory) {
+export async function verifyMibsiClusterBridgeSources(markdown, bundleDirectory) {
   const { sources } = await inputs(bundleDirectory);
   const normalized = normalize(markdown);
   const marker = /<!-- source-file: (.+?); terminal-newline: (yes|no) -->\n\n(`{3,})[^\n]*\n/g;
@@ -138,9 +138,9 @@ export async function verifyMibsiSources(markdown, bundleDirectory) {
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [, , bundleDirectory, outputFile] = process.argv;
-  if (!bundleDirectory || !outputFile) throw new Error("Usage: import-mibsi-post <bundleDirectory> <outputFile>");
-  const markdown = await convertMibsiArticle(bundleDirectory);
-  const result = await verifyMibsiSources(markdown, bundleDirectory);
+  if (!bundleDirectory || !outputFile) throw new Error("Usage: import-mibsi-cluster-bridge-post <bundleDirectory> <outputFile>");
+  const markdown = await convertMibsiClusterBridgeArticle(bundleDirectory);
+  const result = await verifyMibsiClusterBridgeSources(markdown, bundleDirectory);
   await mkdir(dirname(outputFile), { recursive:true });
   await writeFile(outputFile, markdown);
   console.log("Verified and embedded " + result.count + " files (" + result.bytes + " source bytes) in " + outputFile);

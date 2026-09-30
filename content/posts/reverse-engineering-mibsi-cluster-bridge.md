@@ -1,5 +1,5 @@
 ---
-title: "Reverse engineering MIBSI: Inside the Virtual Cockpit integration"
+title: "Reverse engineering MIBSI Cluster Bridge: Inside the Virtual Cockpit integration"
 description: "Bringing phone navigation into Audi’s Virtual Cockpit: the native hooks, video pipeline, navigation bridge, and display coordination behind the integration."
 date: "2026-09-22"
 tags: [Reverse engineering, QNX, Automotive]
@@ -23,7 +23,7 @@ Android Auto / CarPlay — Firmware-specific native integration
 
 *Conceptual architecture. The map video and semantic turn guidance travel through different paths before meeting in the cluster.*
 
-MIBSI brings a phone-driven map and navigation guidance into Audi’s instrument cluster. It connects Android Auto and CarPlay to the car’s existing navigation and graphics services.
+MIBSI Cluster Bridge brings a phone-driven map and navigation guidance into Audi’s instrument cluster. It connects Android Auto and CarPlay to the car’s existing navigation and graphics services.
 
 The integration spans native ARM code, a legacy Java HMI, hardware video decoding, and a custom turn-card renderer. An SD-card installer deploys these components and keeps backups for recovery. The difficult work lies in synchronizing their state during display changes and phone disconnects.
 
@@ -47,7 +47,7 @@ The Android Auto library references service registration, protocol-message seria
 
 The CarPlay library references additional displays, an `altScreen`, view areas, screen-session setup and teardown, keyframe requests, and an instrument-cluster Maps URL. References to iAP2 messages and a route-guidance display component identify its navigation-data path.
 
-The map arrives as video. Maneuvers, distances, and road names arrive as structured navigation data. MIBSI processes these through separate paths so it can coordinate the phone’s map with the cluster’s guidance display.
+The map arrives as video. Maneuvers, distances, and road names arrive as structured navigation data. MIBSI Cluster Bridge processes these through separate paths so it can coordinate the phone’s map with the cluster’s guidance display.
 
 > **Native-code evidence** Recovered code, imported symbols, and embedded strings support this architecture. They leave details of the proprietary protocol exchanges unresolved.
 
@@ -91,7 +91,7 @@ Explanatory pseudocode. The actual policy also handles highway and special maneu
 
 ## Coordinate frame readiness with display ownership.
 
-Before showing a card, MIBSI needs a valid renderer frame, the correct cluster context, and matching layer geometry. It must suppress competing OEM guidance updates for the duration of the projected session.
+Before showing a card, MIBSI Cluster Bridge needs a valid renderer frame, the correct cluster context, and matching layer geometry. It must suppress competing OEM guidance updates for the duration of the projected session.
 
 `RendererServer` tracks connection readiness, frame readiness, and frame clearing. It exchanges fixed 48-byte packets over loopback, using separate reader and writer threads and a 32-entry write queue. Each connection increments a generation counter and clears queued work. The writer rejects packets from older connections.
 
@@ -113,7 +113,7 @@ The navigation proxy tracks renderer revisions and presentation tokens. On recon
 
 ## Restore OEM state after projection ends.
 
-A phone disconnect, renderer reconnection, switch to the OEM map, or context change can interrupt pending display work. MIBSI needs recovery paths for each transition.
+A phone disconnect, renderer reconnection, switch to the OEM map, or context change can interrupt pending display work. MIBSI Cluster Bridge needs recovery paths for each transition.
 
 The navigation proxy implements session-stop, startup-rollback, and fail-open paths. During teardown it clears published guidance, restores the remembered OEM route-guidance state, requests renderer clearing, hides the custom card, and releases the BAP gate. It requests an OEM state replay and retries if that fails.
 

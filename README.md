@@ -58,7 +58,7 @@ npm run build
 ## Blog publishing
 
 Write each post as one Markdown file in `content/posts/`, with metadata at the top.
-Posts are discovered automatically. The first article includes the complete MIBSI
+Posts are discovered automatically. The first article includes the complete MIBSI Cluster Bridge
 source appendix inside its Markdown file.
 
 See [the publishing guide](docs/blog-publishing.md) and

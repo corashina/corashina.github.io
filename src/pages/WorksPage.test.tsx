@@ -32,7 +32,7 @@ describe("WorksPage", () => {
       "/works/holiday",
       "/works/einvoicing",
       "/works/xelcode",
-      "/works/mibsi",
+      "/works/mibsi-cluster-bridge",
       "/works/fitmed",
       "/works/dont-sleep-with-the-fishes",
       "/works/cosmic-sugar",

@@ -87,12 +87,12 @@ happens during development/build; the browser downloads a post body only when op
 
 ## First post provenance
 
-`reverse-engineering-mibsi.md` contains the MIBSI narrative plus all 18 originally
+`reverse-engineering-mibsi-cluster-bridge.md` contains the MIBSI Cluster Bridge narrative plus all 18 originally
 linked source files, copied in full with LF-normalized newlines. No original
 source bundle is needed to build, read, or publish the site.
 
-`scripts/import-mibsi-post.mjs` is optional conversion/verification tooling for
+`scripts/import-mibsi-cluster-bridge-post.mjs` is optional conversion/verification tooling for
 that historical import. It is never run by the normal build or deployment:
-`node scripts/import-mibsi-post.mjs <original-bundle-directory> <output-file>`.
+`node scripts/import-mibsi-cluster-bridge-post.mjs <original-bundle-directory> <output-file>`.
 It verifies every embedded source against the original before writing. Running it
 again overwrites the selected output file, so preserve editorial changes first.
