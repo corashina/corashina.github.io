@@ -20,7 +20,7 @@ The schedule has four meal periods across seven days. The prototype represents t
 
 This maps directly onto a table in the interface. The client and administrator can address a cell by name, and the PDF generator can group those fields into seven-column rows. It avoids a transformation layer between the database shape and the initial screen layout.
 
-The cost appears when the structure changes. A fifth meal period or a different planning duration would require changes in several places. An array of days and meals would make that structure more flexible, but the archived version uses explicit fields. The [diet model](https://github.com/corashina/Fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/models/Diet.js) shows both the questionnaire and schedule in the same document.
+The cost appears when the structure changes. A fifth meal period or a different planning duration would require changes in several places. An array of days and meals would make that structure more flexible, but the archived version uses explicit fields. The [diet model](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/models/Diet.js) shows both the questionnaire and schedule in the same document.
 
 ## Following an edit through the application
 
@@ -37,7 +37,7 @@ Select recipe and meal slot
 
 Returning the document keeps the accepted server state visible to the client. The browser does not need to reproduce the database update rules to show the result. Removal follows a similar path using `$pull`.
 
-That approach is easy to trace in a small application. It can transfer more data than a narrow patch, and concurrent responses can arrive out of order. The prototype does not implement revision checking or conflict resolution. The [diet actions](https://github.com/corashina/Fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/actions/dietActions.js) and [API handlers](https://github.com/corashina/Fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/api/diets.js) provide the complete request path.
+That approach is easy to trace in a small application. It can transfer more data than a narrow patch, and concurrent responses can arrive out of order. The prototype does not implement revision checking or conflict resolution. The [diet actions](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/actions/dietActions.js) and [API handlers](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/api/diets.js) provide the complete request path.
 
 ## Distinguishing identity from permission
 
@@ -63,6 +63,6 @@ The client uses pdfMake to construct a document definition. It groups the 28 mea
 
 Generating a document definition gives the export its own layout while retaining the same underlying plan data. It also requires explicit decisions about table widths, text wrapping, and page boundaries. The implementation includes Polish text and bundled PDF fonts.
 
-The [export code](https://github.com/corashina/Fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/routes/client/Diet.js) contains a selection mistake worth separating from the intended flow: it uses the recipe array as the left side of `||`, so the filtered selection is bypassed when that array exists. As written, the export can include the entire loaded catalogue. Ingredient deduplication produces names, not aggregated purchase quantities.
+The [export code](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/routes/client/Diet.js) contains a selection mistake worth separating from the intended flow: it uses the recipe array as the left side of `||`, so the filtered selection is bypassed when that array exists. As written, the export can include the entire loaded catalogue. Ingredient deduplication produces names, not aggregated purchase quantities.
 
 The prototype connects intake, editing, persistence, and printable output through a visible workflow. Its strongest lesson is the reach of a data-model choice: a recipe name used as an identifier affects editing, navigation, historical plans, and the shopping list at once.

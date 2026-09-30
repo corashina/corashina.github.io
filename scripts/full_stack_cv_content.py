@@ -194,7 +194,7 @@ CV_DATA = CvData(
             "September 2018",
             "JavaScript, Three.js, WebGL, glTF",
             "Interactive infinite city scene with a custom glTF 2.0 loader.",
-            "https://github.com/corashina/Endless-City",
+            "https://github.com/corashina/endless-City",
         ),
         Project(
             "Flappy-Pixie",
@@ -202,7 +202,7 @@ CV_DATA = CvData(
             "JavaScript, Three.js, WebGL",
             "Flappy Bird-style game with a 3D parallax background, completed as a one-week "
             "interview challenge.",
-            "https://github.com/corashina/Flappy-Pixie",
+            "https://github.com/corashina/flappy-Pixie",
         ),
         Project(
             "Fitmed",
@@ -210,7 +210,7 @@ CV_DATA = CvData(
             "React, Redux, Node.js, Express, MongoDB",
             "Prototype platform for dietitians with API integration, authentication, and "
             "input validation.",
-            "https://github.com/corashina/Fitmed",
+            "https://github.com/corashina/fitmed",
         ),
     ),
     education=(

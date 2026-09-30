@@ -20,7 +20,7 @@ This keeps generation tied to movement instead of rebuilding the neighbourhood e
 
 The implementation retains loaded chunks. It does not unload distant geometry, and each block has its own mesh and geometry. Walking farther therefore increases memory use, draw work, and the number of objects available to raycasts. The fog limits visibility, but does not remove those objects from storage.
 
-The [main source file](https://github.com/corashina/WebGL-Minecraft/blob/05357d8a5f204e2a2747fc8e5b5d5b213ab44222/js/main.js) keeps generation, interaction, and movement together, making the prototype's data flow easy to follow.
+The [main source file](https://github.com/corashina/webGL-Minecraft/blob/05357d8a5f204e2a2747fc8e5b5d5b213ab44222/js/main.js) keeps generation, interaction, and movement together, making the prototype's data flow easy to follow.
 
 ## Sampling a height for each column
 

@@ -32,7 +32,7 @@ describe("ProjectPage", () => {
     ]);
     expect(screen.getByRole("link", { name: "github →" })).toHaveAttribute(
       "href",
-      "https://github.com/corashina/WebGL-Minecraft",
+      "https://github.com/corashina/webGL-Minecraft",
     );
   });
 

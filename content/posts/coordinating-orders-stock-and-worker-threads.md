@@ -29,7 +29,7 @@ Customer basket
 
 Using serialized objects reduces mapping code in a Java-only prototype. It also couples the protocol to the domain classes. A class change can affect network compatibility, and receiving an object is not enough to establish that its contents represent an authorized action.
 
-The snapshot has a further limit: the accept loop reassigns a shared receiver's socket rather than creating an independent receiver per connection. The README's multi-client description therefore exceeds what I would claim from the connection-handling code. The [communication helper](https://github.com/corashina/Sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Comms.java) and [server entry point](https://github.com/corashina/Sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/ServerApplication.java) show the intended request flow and that implementation constraint.
+The snapshot has a further limit: the accept loop reassigns a shared receiver's socket rather than creating an independent receiver per connection. The README's multi-client description therefore exceeds what I would claim from the connection-handling code. The [communication helper](https://github.com/corashina/sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Comms.java) and [server entry point](https://github.com/corashina/sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/ServerApplication.java) show the intended request flow and that implementation constraint.
 
 ## Giving workers visible progress
 
@@ -49,7 +49,7 @@ The hard part is the scope of the protected operation. Locking a dish does not p
 
 The archived staff loop also has a path that continues to another dish after acquiring a lock, without releasing it. Holding a lock through timed waits increases the cost of such a mistake. A `try/finally` release pattern would protect cleanup, while shorter reservation operations would reduce how much work needs to happen under the lock.
 
-The [staff](https://github.com/corashina/Sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Staff.java) and [drone](https://github.com/corashina/Sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Drone.java) implementations are useful examples of the difference between adding locks and defining a transaction. The latter requires naming the invariant, such as “stock cannot be reserved twice,” and keeping the whole check-and-update operation consistent with it.
+The [staff](https://github.com/corashina/sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Staff.java) and [drone](https://github.com/corashina/sushi-Go/blob/d72d7d84a3f585ef5fbaa9e02ebb805fec54afcb/common/Drone.java) implementations are useful examples of the difference between adding locks and defining a transaction. The latter requires naming the invariant, such as “stock cannot be reserved twice,” and keeping the whole check-and-update operation consistent with it.
 
 ## Stopping a worker during an operation
 

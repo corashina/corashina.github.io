@@ -20,7 +20,7 @@ Spawning writes into the next slot. After the cursor reaches the pool's capacity
 
 The fixed capacity makes memory use predictable. It also defines an overwrite policy: sufficiently high emission can replace a particle before its intended lifetime has ended. Pool size, emission rate, and lifetime are related parameters, even though this experiment keeps their configuration small.
 
-The [particle engine](https://github.com/corashina/Particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/ParticleEngine.ts) shows the allocation and wraparound logic.
+The [particle engine](https://github.com/corashina/particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/ParticleEngine.ts) shows the allocation and wraparound logic.
 
 ## Reconstructing position from age
 
@@ -41,7 +41,7 @@ The implementation adds a small interpolation-based drift and uses remaining lif
 
 This is a useful model for sparks, streaks, and other effects whose motion has a direct expression. Interactions that depend on accumulated state, such as collisions or changing neighbour forces, need another representation. Reconstructing a trajectory from birth data does not retain the results of an earlier collision.
 
-The [vertex shader](https://github.com/corashina/Particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/VertexShader.ts) contains the complete calculation, including its experimental velocity filters.
+The [vertex shader](https://github.com/corashina/particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/VertexShader.ts) contains the complete calculation, including its experimental velocity filters.
 
 ## Rendering a point as a sprite
 
@@ -51,7 +51,7 @@ That produces a luminous effect with little geometry. It also couples appearance
 
 The archived shader calculates a fade value from lifetime but does not use that value in the final colour. Its output alpha is fixed at one, while the texture alpha affects RGB. The vertex shader shrinks the point with remaining life, but does not provide a complete explicit rejection path for expired particles.
 
-Those details prevent a stronger claim about smooth lifetime fading. A revision should define how unborn, live, and expired particles contribute to the frame, then use that rule in both point size and fragment output. The [fragment shader](https://github.com/corashina/Particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/FragmentShader.ts) makes the unfinished path visible.
+Those details prevent a stronger claim about smooth lifetime fading. A revision should define how unborn, live, and expired particles contribute to the frame, then use that rule in both point size and fragment output. The [fragment shader](https://github.com/corashina/particle-Simulation/blob/bc3b562c5aabf5cfffbc4104dfbe2c30db9a8048/src/FragmentShader.ts) makes the unfinished path visible.
 
 ## Accounting for the work left on the CPU
 

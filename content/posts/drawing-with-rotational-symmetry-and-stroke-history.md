@@ -28,7 +28,7 @@ repeat until the full circle is covered
 
 Reflection negates the horizontal coordinate while retaining the vertical coordinate. This produces a mirror of the stroke before the next rotation.
 
-The representation stores one set of input points regardless of the number of repetitions. Drawing cost still grows with the number of sectors and points, but storage does not need a separate transformed copy for each sector. The [canvas](https://github.com/corashina/Digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Canvas.java) and [line renderer](https://github.com/corashina/Digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Line.java) contain the input and transform paths.
+The representation stores one set of input points regardless of the number of repetitions. Drawing cost still grows with the number of sectors and points, but storage does not need a separate transformed copy for each sector. The [canvas](https://github.com/corashina/digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Canvas.java) and [line renderer](https://github.com/corashina/digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Line.java) contain the input and transform paths.
 
 ## Deciding which settings belong to a stroke
 
@@ -64,6 +64,6 @@ The Save control paints the canvas into a `BufferedImage`, scales a preview, and
 
 These are in-memory raster snapshots. The code does not save an editable drawing document to disk. A durable document format would need the original points, per-stroke settings, and canvas symmetry settings, plus a versioned interpretation of that data.
 
-The [controls](https://github.com/corashina/Digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Buttons.java) show how the image capture differs from the stroke model. A preview preserves what the canvas looked like; the model preserves the information needed to change it.
+The [controls](https://github.com/corashina/digital-Doily/blob/37846d771f11856d456727201baf720265ad7574/Buttons.java) show how the image capture differs from the stroke model. A preview preserves what the canvas looked like; the model preserves the information needed to change it.
 
 The application gets much of its flexibility from that small model. One stroke can be repainted at different symmetry settings, removed as a unit, or combined with later strokes. The remaining design decisions concern how much of that editing history and structure should survive beyond the current session.

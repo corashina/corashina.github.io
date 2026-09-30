@@ -29,7 +29,7 @@ React request
     -> response used to update component state
 ```
 
-This structure allows ordinary Express middleware to sit inside a function entry point. It also introduces two places to inspect when an endpoint does not match a request: the trigger binding and the Express route. The [posts handler](https://github.com/corashina/Serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/Posts/index.js) shows that arrangement.
+This structure allows ordinary Express middleware to sit inside a function entry point. It also introduces two places to inspect when an endpoint does not match a request: the trigger binding and the Express route. The [posts handler](https://github.com/corashina/serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/Posts/index.js) shows that arrangement.
 
 ## Reusing the database connection
 
@@ -39,7 +39,7 @@ That cache belongs to the process executing the module. A new instance starts wi
 
 The implementation awaits the initial connection before assigning the cached value. Concurrent callers arriving during that wait can both observe an empty cache. A stronger initialization pattern would cache the pending promise, allowing them to await the same attempt and defining how a failed attempt can be retried.
 
-That improvement is distinct from the reuse already present in the [database module](https://github.com/corashina/Serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/utils/db.js). The source establishes connection reuse within a warm instance, not a measured reduction in latency.
+That improvement is distinct from the reuse already present in the [database module](https://github.com/corashina/serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/utils/db.js). The source establishes connection reuse within a warm instance, not a measured reduction in latency.
 
 ## Assembling a feed from relationships
 
@@ -49,7 +49,7 @@ This keeps the prototype's feed query compact. It also makes username consistenc
 
 The React home component receives the user and posts together. After a successful post creation, it appends the returned post to local state. After deletion, it filters out the returned identifier. The interface therefore relies on the mutation response to describe the accepted server result.
 
-The feed is an unpaginated query in this version. A larger dataset would need an ordering and pagination contract before the UI could treat it as a stable sequence. The [feed handler](https://github.com/corashina/Serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/AuthenticateUser/index.js) and [home component](https://github.com/corashina/Serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/client/src/routes/Home.js) expose both sides of that boundary.
+The feed is an unpaginated query in this version. A larger dataset would need an ordering and pagination contract before the UI could treat it as a stable sequence. The [feed handler](https://github.com/corashina/serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/AuthenticateUser/index.js) and [home component](https://github.com/corashina/serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/client/src/routes/Home.js) expose both sides of that boundary.
 
 ## Updating both sides of a follow
 
@@ -59,7 +59,7 @@ The failure case is a partial update. The first write can succeed while the seco
 
 A toggle also has ambiguous retry behaviour. Repeating a successful request can undo the relationship instead of confirming it. An explicit desired state, such as “follow this account,” would make retries easier to define. Atomic relationship updates or a single authoritative relationship record would address a different problem: preventing the two stored views from diverging.
 
-These are changes I would make to the [follow handler](https://github.com/corashina/Serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/Follow/index.js), rather than guarantees provided by the prototype.
+These are changes I would make to the [follow handler](https://github.com/corashina/serverless-Azure-App/blob/03af633fb79b14da95e29e843827ad109f524103/server/Follow/index.js), rather than guarantees provided by the prototype.
 
 ## Keeping failed requests from continuing
 
