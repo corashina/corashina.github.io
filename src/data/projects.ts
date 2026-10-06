@@ -33,7 +33,7 @@ const projectData = [
   ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
   ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
-  ["mibsi-cluster-bridge", "MIBSI Cluster Bridge", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi-cluster-bridge.webp", "https://github.com/corashina/mibsi-cluster-bridge"],
+  ["mibsi-cluster-bridge", "MIBSI Cluster Bridge", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi-cluster-bridge.mp4", "https://github.com/corashina/mibsi-cluster-bridge"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {
