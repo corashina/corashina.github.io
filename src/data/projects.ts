@@ -34,6 +34,7 @@ const projectData = [
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
   ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
   ["mibsi-cluster-bridge", "MIBSI Cluster Bridge", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi-cluster-bridge.mp4", "https://github.com/corashina/mibsi-cluster-bridge"],
+  ["the-long-slop", "The Long Slop", "Browser recreation of The Long Drive in Rust, Bevy and Rapier, compiled to WebAssembly.", ["rust", "bevy", "rapier", "webassembly"], "2026", "/portfolio/the-long-slop.mp4", "https://github.com/corashina/the-long-slop"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {
@@ -51,6 +52,7 @@ const projectMediaAlt: Record<string, string> = {
   xelapps: "XELapps configuration interface",
   "cosmic-sugar": "Cosmic Sugar particle simulation",
   "dont-sleep-with-the-fishes": "Don't Sleep With The Fishes survival game",
+  "the-long-slop": "Lada 2101 with its headlights on, parked on a desert road at night",
   "mibsi-cluster-bridge": "Illustrative studio render of a smartphone and digital instrument cluster displaying navigation",
 };
 
@@ -70,6 +72,7 @@ const projectStartDates: Record<string, { startedAt: string; startedLabel: strin
   "cosmic-sugar": { startedAt: "2026", startedLabel: "2026" },
   "dont-sleep-with-the-fishes": { startedAt: "2026", startedLabel: "2026" },
   "mibsi-cluster-bridge": { startedAt: "2026", startedLabel: "2026" },
+  "the-long-slop": { startedAt: "2026-10", startedLabel: "2026" },
 };
 
 const projectCategories: Record<string, ProjectCategory> = {
@@ -88,6 +91,7 @@ const projectCategories: Record<string, ProjectCategory> = {
   "webgl-minecraft": "experiments",
   "cosmic-sugar": "experiments",
   "dont-sleep-with-the-fishes": "experiments",
+  "the-long-slop": "experiments",
 };
 
 export const projects: readonly Project[] = projectData.map(

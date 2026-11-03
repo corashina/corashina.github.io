@@ -24,7 +24,7 @@ describe("WorksPage", () => {
     expect(screen.getByRole("heading", { level: 2, name: "experiments" })).toBeInTheDocument();
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(15);
+    expect(links).toHaveLength(16);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
       "/works/xelapps",
       "/works/icr",
@@ -34,6 +34,7 @@ describe("WorksPage", () => {
       "/works/xelcode",
       "/works/mibsi-cluster-bridge",
       "/works/fitmed",
+      "/works/the-long-slop",
       "/works/dont-sleep-with-the-fishes",
       "/works/cosmic-sugar",
       "/works/flappy-pixie",
