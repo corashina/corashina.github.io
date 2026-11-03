@@ -13,6 +13,13 @@ describe("project media", () => {
     }
   });
 
+  it("serves still project images as WebP", () => {
+    for (const { media } of projects) {
+      if (media.kind !== "image") continue;
+      expect(media.src).toMatch(/^\/portfolio\/.+\.webp$/);
+    }
+  });
+
   it("keeps every video poster beneath static/portfolio", () => {
     for (const { media } of projects) {
       if (media.kind !== "video") continue;
