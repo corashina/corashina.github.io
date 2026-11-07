@@ -26,11 +26,12 @@ SANS_FONT = "Calibri"
 INK = RGBColor(0x11, 0x11, 0x11)
 MUTED = RGBColor(0x88, 0x88, 0x88)
 SUBTLE = RGBColor(0x44, 0x44, 0x44)
-META = RGBColor(0x6E, 0x6E, 0x6E)
+META = RGBColor(0x78, 0x78, 0x78)
 # Heading levels darken with importance: section headings are black, entry
 # titles slightly lighter, job titles lighter again, technology lines lightest.
-ENTRY_TITLE_COLOR = RGBColor(0x2B, 0x2B, 0x2B)
-POSITION_COLOR = RGBColor(0x4A, 0x4A, 0x4A)
+ENTRY_TITLE_COLOR = RGBColor(0x1A, 0x1A, 0x1A)
+POSITION_COLOR = RGBColor(0x55, 0x55, 0x55)
+HEADING_LETTER_SPACING = 0.8
 PAGE_WIDTH = Mm(210)
 PAGE_HEIGHT = Mm(297)
 SIDE_MARGIN = Mm(12.7)
@@ -38,9 +39,9 @@ CONTENT_WIDTH = Emu(PAGE_WIDTH - 2 * SIDE_MARGIN)
 HEADER_COLUMNS = (Emu(CONTENT_WIDTH - Mm(72)), Mm(72))
 PDF_MUTED = Color(0.53, 0.53, 0.53)
 PDF_SUBTLE = Color(0.27, 0.27, 0.27)
-PDF_META = Color(0.43, 0.43, 0.43)
-PDF_ENTRY_TITLE_COLOR = Color(0.17, 0.17, 0.17)
-PDF_POSITION_COLOR = Color(0.29, 0.29, 0.29)
+PDF_META = Color(0.47, 0.47, 0.47)
+PDF_ENTRY_TITLE_COLOR = Color(0.1, 0.1, 0.1)
+PDF_POSITION_COLOR = Color(0.33, 0.33, 0.33)
 
 
 def _phone_url(phone: str) -> str:
@@ -152,7 +153,7 @@ def _add_meta(document: Document, text: str, url: str = "", url_text: str = ""):
     paragraph.add_run(text)
     if url and url_text:
         paragraph.add_run("  \N{MIDDLE DOT}  ")
-        add_hyperlink(paragraph, url_text, url, color="6E6E6E", size=9)
+        add_hyperlink(paragraph, url_text, url, color="787878", size=9)
     return paragraph
 
 
@@ -270,6 +271,24 @@ def _add_style(document: Document, name: str):
     return styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
 
 
+def _set_heading_rule(style) -> None:
+    """Letter-space the heading and draw a thin grey rule under it."""
+    run_properties = style.element.get_or_add_rPr()
+    spacing = OxmlElement("w:spacing")
+    spacing.set(qn("w:val"), str(round(HEADING_LETTER_SPACING * 20)))
+    run_properties.append(spacing)
+
+    paragraph_properties = style.element.get_or_add_pPr()
+    borders = OxmlElement("w:pBdr")
+    bottom = OxmlElement("w:bottom")
+    bottom.set(qn("w:val"), "single")
+    bottom.set(qn("w:sz"), "4")
+    bottom.set(qn("w:space"), "1")
+    bottom.set(qn("w:color"), "BFBFBF")
+    borders.append(bottom)
+    paragraph_properties.append(borders)
+
+
 def configure_document(document: Document) -> None:
     section = document.sections[0]
     section.page_width = PAGE_WIDTH
@@ -290,7 +309,9 @@ def configure_document(document: Document) -> None:
     # Section headings sit closer to the content they introduce than to the
     # section above them.
     heading = document.styles["Heading 1"]
-    _set_style_font(heading, SERIF_FONT, 13.5, INK)
+    _set_style_font(heading, SANS_FONT, 11, INK, bold=True)
+    heading.font.all_caps = True
+    _set_heading_rule(heading)
     heading.paragraph_format.space_before = Pt(11)
     heading.paragraph_format.space_after = Pt(3)
     heading.paragraph_format.keep_with_next = True
@@ -500,7 +521,7 @@ def build_cv(output_path: Path) -> Path:
             after=0.5,
         )
 
-    _add_section_heading(document, "Selected Projects")
+    _add_section_heading(document, "Projects")
     for project in CV_DATA.personal_projects:
         _add_project(document, project)
 
@@ -528,7 +549,8 @@ PDF_SANS = "CvCalibri"
 PDF_SANS_BOLD = "CvCalibriBold"
 PDF_BODY = 9
 PDF_LEADING = 11.2
-PDF_SECTION = 13.5
+PDF_SECTION = 11
+PDF_RULE = Color(0.75, 0.75, 0.75)
 PDF_ENTRY = 10.5
 PDF_POSITION = 9.5
 PDF_PAGE_WIDTH, PDF_PAGE_HEIGHT = A4
@@ -595,9 +617,17 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
 def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
     y -= PDF_SECTION_BEFORE
     pdf.setFillColor(black)
-    pdf.setFont(PDF_SERIF, PDF_SECTION)
-    pdf.drawString(PDF_LEFT, y, title)
-    return y - PDF_SECTION_AFTER
+    text = pdf.beginText(PDF_LEFT, y)
+    text.setFont(PDF_SANS_BOLD, PDF_SECTION)
+    text.setCharSpace(HEADING_LETTER_SPACING)
+    text.textOut(title.upper())
+    # Character spacing persists in the page's text state, so reset it.
+    text.setCharSpace(0)
+    pdf.drawText(text)
+    pdf.setStrokeColor(PDF_RULE)
+    pdf.setLineWidth(0.6)
+    pdf.line(PDF_LEFT, y - 4, PDF_RIGHT, y - 4)
+    return y - PDF_SECTION_AFTER - 2
 
 
 def _wrap_segments(segments: list[Segment], width: float) -> list[list[Segment]]:
@@ -771,7 +801,7 @@ def build_pdf(output_path: Path) -> Path:
     for label, technologies in CV_DATA.technology_groups:
         y = _pdf_labeled_line(pdf, f"{label}:", ", ".join(technologies), y)
 
-    y = _pdf_section(pdf, "Selected Projects", y)
+    y = _pdf_section(pdf, "Projects", y)
     for index, project in enumerate(CV_DATA.personal_projects):
         if index:
             y -= PDF_ENTRY_GAP

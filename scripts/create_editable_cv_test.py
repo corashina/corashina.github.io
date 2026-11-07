@@ -8,6 +8,7 @@ from xml.etree import ElementTree
 from zipfile import ZipFile
 
 from docx import Document
+from docx.oxml.ns import qn
 from docx.shared import Mm, Pt
 import pdfplumber
 from pypdf import PdfReader
@@ -22,7 +23,7 @@ EXPECTED_HEADINGS = [
     "Profile",
     "Professional Experience",
     "Technologies",
-    "Selected Projects",
+    "Projects",
     "Education",
     "Additional Information",
 ]
@@ -92,7 +93,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Xelcode",
             "Freelance Web Development",
             "Technologies",
-            "Selected Projects",
+            "Projects",
             *PROJECT_TITLES,
             "Education",
             "University of Southampton",
@@ -142,7 +143,7 @@ class EditableCvBuilderTest(unittest.TestCase):
     def test_uses_compact_one_page_font_roles(self) -> None:
         expected_styles = {
             "CV Title": ("Times New Roman", 26.0),
-            "Heading 1": ("Times New Roman", 13.5),
+            "Heading 1": ("Calibri", 11.0),
             "CV Contact": ("Calibri", 9.0),
             "CV Role": ("Calibri", 11.0),
             "CV Entry Title": ("Calibri", 10.5),
@@ -249,6 +250,13 @@ class EditableCvBuilderTest(unittest.TestCase):
             role_paragraph.style.font.size.pt,
         )
 
+    def test_section_headings_are_bold_caps_with_a_rule(self) -> None:
+        heading = self.document.styles["Heading 1"]
+        self.assertTrue(heading.font.bold)
+        self.assertTrue(heading.font.all_caps)
+        self.assertIsNotNone(heading.element.pPr.find(qn("w:pBdr")))
+        self.assertNotIn("Selected Projects", self.text)
+
     def test_heading_levels_get_lighter_as_they_get_smaller(self) -> None:
         def lightness(style_name: str) -> int:
             return sum(self.document.styles[style_name].font.color.rgb)
@@ -340,7 +348,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertAlmostEqual(float(page.mediabox.height), 841.89, delta=0.1)
             text = page.extract_text() or ""
             for heading in EXPECTED_HEADINGS:
-                self.assertIn(heading, text)
+                self.assertIn(heading.upper(), text)
+            self.assertNotIn("SELECTED PROJECTS", text)
             for removed in (
                 "Commercial Experience",
                 "Core Technologies",
@@ -382,7 +391,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             # Each section heading sits closer to its own content than to the
             # section above it.
             for heading in EXPECTED_HEADINGS[1:]:
-                index = line_texts.index(heading)
+                index = line_texts.index(heading.upper())
                 previous_bottom = max(word["bottom"] for word in ordered[index - 1][1])
                 heading_top = min(word["top"] for word in ordered[index][1])
                 heading_bottom = max(word["bottom"] for word in ordered[index][1])
