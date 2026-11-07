@@ -8,14 +8,25 @@ from xml.etree import ElementTree
 from zipfile import ZipFile
 
 from docx import Document
-from docx.shared import Inches, Pt
+from docx.shared import Mm, Pt
 import pdfplumber
 from pypdf import PdfReader
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from create_editable_cv import build_cv, build_pdf
+from create_editable_cv import build_cv, build_pdf, contact_rows
 from full_stack_cv_content import CV_DATA, FORBIDDEN_PUBLIC_TERMS
+
+
+EXPECTED_HEADINGS = [
+    "Profile",
+    "Professional Experience",
+    "Technologies",
+    "Selected Projects",
+    "Education",
+    "Additional Information",
+]
+PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Slop", "Don't Sleep With The Fishes"]
 
 
 class EditableCvBuilderTest(unittest.TestCase):
@@ -46,15 +57,15 @@ class EditableCvBuilderTest(unittest.TestCase):
             CV_DATA.profile,
         )
 
-    def test_builds_letter_document_with_compact_one_page_margins(self) -> None:
+    def test_builds_a4_document_with_compact_one_page_margins(self) -> None:
         section = self.document.sections[0]
 
-        self.assertEqual(section.page_width, Inches(8.5))
-        self.assertEqual(section.page_height, Inches(11))
-        self.assertAlmostEqual(section.top_margin, Inches(0.42), delta=Pt(0.1))
-        self.assertAlmostEqual(section.bottom_margin, Inches(0.4), delta=Pt(0.1))
-        self.assertAlmostEqual(section.left_margin, Inches(0.5), delta=Pt(0.1))
-        self.assertAlmostEqual(section.right_margin, Inches(0.5), delta=Pt(0.1))
+        self.assertAlmostEqual(section.page_width, Mm(210), delta=Pt(0.1))
+        self.assertAlmostEqual(section.page_height, Mm(297), delta=Pt(0.1))
+        self.assertAlmostEqual(section.top_margin, Mm(11), delta=Pt(0.1))
+        self.assertAlmostEqual(section.bottom_margin, Mm(10), delta=Pt(0.1))
+        self.assertAlmostEqual(section.left_margin, Mm(12.7), delta=Pt(0.1))
+        self.assertAlmostEqual(section.right_margin, Mm(12.7), delta=Pt(0.1))
 
     def test_preserves_section_order_and_visible_content(self) -> None:
         headings = [
@@ -65,37 +76,32 @@ class EditableCvBuilderTest(unittest.TestCase):
 
         self.assertEqual(
             headings,
-            [
-                "Profile",
-                "Education",
-                "Professional Experience",
-                "Commercial Experience",
-                "Technologies",
-                "Selected Projects",
-                "Additional Information",
-            ],
+            EXPECTED_HEADINGS,
         )
 
         expected_fragments = [
             "Tomasz Zielinski",
             "Full-Stack Developer",
-            "corashina.github.io",
+            "tomasz-zielinski.com",
             "corashina@gmail.com",
             "+48 791 748 226",
+            "github.com/corashina",
+            "linkedin.com/in/tomasz-zielinski-a97999161",
             "Profile",
+            "Professional Experience",
+            "Xelto",
+            "Workflow",
+            "Xelcode",
+            "Freelance Web Development",
+            "Technologies",
+            "Selected Projects",
+            *PROJECT_TITLES,
             "Education",
             "University of Southampton",
             "2017–2020",
-            "Xelto",
-            "Freelance Web Development",
-            "Commercial Experience",
-            "Technologies",
-            "Selected Projects",
-            "Endless City",
-            "Flappy-Pixie",
-            "Fitmed",
             "Additional Information",
-            "I hereby consent to the processing of personal data",
+            "Polish (native)",
+            "Regulation (EU) 2016/679",
         ]
 
         positions = [self.text.index(fragment) for fragment in expected_fragments]
@@ -112,8 +118,9 @@ class EditableCvBuilderTest(unittest.TestCase):
         required_styles = {
             "CV Title",
             "CV Role",
-            "CV Company",
-            "CV Entry",
+            "CV Entry Title",
+            "CV Position",
+            "CV Meta",
             "CV Description",
             "CV Bullet",
             "CV Footer",
@@ -138,14 +145,15 @@ class EditableCvBuilderTest(unittest.TestCase):
         expected_styles = {
             "CV Title": ("Times New Roman", 26.0),
             "Heading 1": ("Times New Roman", 13.5),
-            "CV Contact": ("Calibri", 8.5),
+            "CV Contact": ("Calibri", 9.0),
             "CV Role": ("Calibri", 11.0),
-            "CV Company": ("Times New Roman", 10.5),
-            "CV Entry": ("Calibri", 9.0),
-            "CV Description": ("Calibri", 8.5),
-            "CV Bullet": ("Calibri", 8.5),
-            "CV Skill": ("Calibri", 8.5),
-            "CV Footer": ("Calibri", 8.5),
+            "CV Entry Title": ("Calibri", 10.5),
+            "CV Position": ("Calibri", 9.5),
+            "CV Meta": ("Calibri", 9.0),
+            "CV Description": ("Calibri", 9.0),
+            "CV Bullet": ("Calibri", 9.0),
+            "CV Skill": ("Calibri", 9.0),
+            "CV Footer": ("Calibri", 9.0),
         }
 
         for style_name, (font_name, font_size) in expected_styles.items():
@@ -156,12 +164,13 @@ class EditableCvBuilderTest(unittest.TestCase):
     def test_uses_compact_body_fonts_and_keep_rules(self) -> None:
         for style_name in ("CV Description", "CV Bullet", "CV Skill", "CV Footer"):
             style = self.document.styles[style_name]
-            self.assertAlmostEqual(style.font.size.pt, 8.5, delta=0.01)
+            self.assertAlmostEqual(style.font.size.pt, 9, delta=0.01)
         heading_style = self.document.styles["Heading 1"]
-        self.assertAlmostEqual(
+        # Headings belong to the section below them, so they need more space
+        # above than below.
+        self.assertGreater(
             heading_style.paragraph_format.space_before.pt,
-            8.5,
-            delta=0.01,
+            2 * heading_style.paragraph_format.space_after.pt,
         )
         for paragraph in self.document.paragraphs:
             if paragraph.style.name == "Heading 1":
@@ -175,18 +184,28 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
-        self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
+        self.assertEqual(CV_DATA.identity.website_text, "tomasz-zielinski.com")
+        self.assertEqual(CV_DATA.identity.website_url, "https://www.tomasz-zielinski.com")
+        self.assertEqual(CV_DATA.employment.period, "2020–2026")
+        self.assertIn("six years", CV_DATA.profile)
         self.assertEqual(
             [(role.title, role.period) for role in CV_DATA.employment.roles],
             [
                 ("Full-Stack Developer", "2024–2026"),
-                ("Junior Frontend Developer", "2021–2024"),
+                ("Junior Frontend Developer", "2020–2024"),
             ],
         )
         self.assertEqual(
-            [project.title for project in CV_DATA.personal_projects],
-            ["Endless City", "Flappy-Pixie", "Fitmed"],
+            [project.title for project in CV_DATA.commercial_projects],
+            ["Workflow", "e-Invoicing / KSeF", "Document AI / ICR", "XELapps and mobile", "Xelcode"],
         )
+        self.assertEqual(
+            [project.title for project in CV_DATA.personal_projects],
+            PROJECT_TITLES,
+        )
+        for project in CV_DATA.personal_projects:
+            self.assertTrue(project.url.startswith("https://github.com/corashina/"))
+            self.assertIn(project.url_text, project.url)
         self.assertEqual(CV_DATA.education[0].period, "2017–2020")
 
     def test_public_content_excludes_private_metrics_and_client_names(self) -> None:
@@ -194,16 +213,12 @@ class EditableCvBuilderTest(unittest.TestCase):
         for forbidden in FORBIDDEN_PUBLIC_TERMS:
             self.assertNotIn(forbidden.casefold(), visible.casefold())
 
-    def test_docx_uses_one_page_structure_without_social_links(self) -> None:
+    def test_docx_links_contact_rows_and_projects(self) -> None:
         with ZipFile(self.output_path) as archive:
             document_xml = archive.read("word/document.xml")
             relationships_xml = archive.read("word/_rels/document.xml.rels")
 
         self.assertEqual(document_xml.count(b'w:type="page"'), 0)
-        self.assertNotIn(b"github.com/corashina", document_xml)
-        self.assertNotIn(b"linkedin.com/in/", document_xml)
-        self.assertNotIn(b"View project", document_xml)
-        self.assertNotIn(b"github.com/corashina", relationships_xml)
         relationships = ElementTree.fromstring(relationships_xml)
         external_targets = {
             relationship.attrib["Target"]
@@ -212,10 +227,8 @@ class EditableCvBuilderTest(unittest.TestCase):
         }
         self.assertEqual(
             external_targets,
-            {
-                CV_DATA.identity.website_url,
-                f"mailto:{CV_DATA.identity.email}",
-            },
+            {url for _, url in contact_rows(CV_DATA)}
+            | {project.url for project in CV_DATA.personal_projects},
         )
 
     def test_docx_distinguishes_company_from_role(self) -> None:
@@ -227,27 +240,44 @@ class EditableCvBuilderTest(unittest.TestCase):
             paragraph for paragraph in self.document.paragraphs
             if paragraph.text.startswith("Full-Stack Developer")
         )
-        self.assertEqual(company_paragraph.style.name, "CV Company")
-        self.assertEqual(role_paragraph.style.name, "CV Entry")
+        self.assertEqual(company_paragraph.style.name, "CV Entry Title")
+        self.assertEqual(role_paragraph.style.name, "CV Position")
         self.assertNotEqual(
-            company_paragraph.style.font.name,
-            role_paragraph.style.font.name,
+            company_paragraph.style.font.color.rgb,
+            role_paragraph.style.font.color.rgb,
         )
         self.assertGreater(
             company_paragraph.style.font.size.pt,
             role_paragraph.style.font.size.pt,
         )
 
+    def test_docx_separates_project_titles_from_technology_lines(self) -> None:
+        paragraphs = self.document.paragraphs
+        for title in PROJECT_TITLES:
+            index = next(
+                index for index, paragraph in enumerate(paragraphs)
+                if paragraph.text.startswith(title)
+            )
+            title_style = paragraphs[index].style
+            meta_style = paragraphs[index + 1].style
+            self.assertEqual(title_style.name, "CV Entry Title")
+            self.assertEqual(meta_style.name, "CV Meta")
+            self.assertTrue(title_style.font.bold)
+            self.assertFalse(meta_style.font.bold)
+            self.assertGreater(title_style.font.size.pt, meta_style.font.size.pt)
+            self.assertNotEqual(title_style.font.color.rgb, meta_style.font.color.rgb)
+
     def test_freelance_work_is_inside_professional_experience(self) -> None:
         texts = [paragraph.text for paragraph in self.document.paragraphs]
         professional = texts.index("Professional Experience")
-        commercial = texts.index("Commercial Experience")
+        technologies = texts.index("Technologies")
         freelance = next(
             index for index, text in enumerate(texts)
             if text.startswith("Freelance Web Development")
         )
         self.assertLess(professional, freelance)
-        self.assertLess(freelance, commercial)
+        self.assertLess(freelance, technologies)
+        self.assertNotIn("Commercial Experience", texts)
         self.assertNotIn("Earlier Experience", texts)
 
     def test_builds_one_page_full_stack_docx_structure(self) -> None:
@@ -258,15 +288,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         ]
         self.assertEqual(
             headings,
-            [
-                "Profile",
-                "Education",
-                "Professional Experience",
-                "Commercial Experience",
-                "Technologies",
-                "Selected Projects",
-                "Additional Information",
-            ],
+            EXPECTED_HEADINGS,
         )
         with ZipFile(self.output_path) as archive:
             document_xml = archive.read("word/document.xml")
@@ -276,95 +298,121 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertNotIn(b"expected in July 2020", document_xml)
 
     def test_docx_has_only_approved_contact_rows_and_projects(self) -> None:
-        contact_rows = tuple(
+        rows = tuple(
             self.document.tables[0].rows[0].cells[1].paragraphs[0].text.splitlines()
         )
         self.assertEqual(
-            contact_rows,
-            ("corashina.github.io", "corashina@gmail.com", "+48 791 748 226"),
+            rows,
+            (
+                "tomasz-zielinski.com",
+                "corashina@gmail.com",
+                "+48 791 748 226",
+                "github.com/corashina",
+                "linkedin.com/in/tomasz-zielinski-a97999161",
+            ),
         )
-        for value in (
+        for value in PROJECT_TITLES:
+            self.assertIn(value, self.text)
+        for obsolete in (
             "corashina.github.io",
-            "corashina@gmail.com",
-            "+48 791 748 226",
             "Endless City",
             "Flappy-Pixie",
             "Fitmed",
-        ):
-            self.assertIn(value, self.text)
-        for obsolete in (
-            "github.com/corashina",
-            "linkedin.com/in/tomasz-zielinski-a97999161",
             "Haskell Interpreter",
             "GPU Particles",
             "Sushi-Go",
         ):
             self.assertNotIn(obsolete, self.text)
 
-    def test_builds_one_page_pdf_with_approved_hierarchy_and_links(self) -> None:
+    def test_builds_one_page_a4_pdf_with_approved_hierarchy_and_links(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             output = Path(temporary_directory) / "cv.pdf"
             build_pdf(output)
             reader = PdfReader(output)
             self.assertEqual(len(reader.pages), 1)
             page = reader.pages[0]
-            self.assertEqual(float(page.mediabox.width), 612)
-            self.assertEqual(float(page.mediabox.height), 792)
+            self.assertAlmostEqual(float(page.mediabox.width), 595.28, delta=0.1)
+            self.assertAlmostEqual(float(page.mediabox.height), 841.89, delta=0.1)
             text = page.extract_text() or ""
-            for heading in (
-                "Profile",
-                "Education",
-                "Professional Experience",
-                "Commercial Experience",
-                "Technologies",
-                "Selected Projects",
-                "Additional Information",
-            ):
+            for heading in EXPECTED_HEADINGS:
                 self.assertIn(heading, text)
             for removed in (
+                "Commercial Experience",
                 "Core Technologies",
                 "Selected Product Work",
                 "Earlier Experience",
-                "github.com/corashina",
-                "linkedin.com/in/",
+                "corashina.github.io",
                 "View project",
             ):
                 self.assertNotIn(removed, text)
 
             annotations = page.get("/Annots", [])
-            uris = [
+            uris = {
                 annotation.get_object().get("/A", {}).get("/URI", "")
                 for annotation in annotations
-            ]
+            }
             self.assertEqual(
-                set(uris),
-                {
-                    CV_DATA.identity.website_url,
-                    f"mailto:{CV_DATA.identity.email}",
-                },
+                uris,
+                {url for _, url in contact_rows(CV_DATA)}
+                | {project.url for project in CV_DATA.personal_projects},
             )
-            for removed_uri in (
-                CV_DATA.identity.github_url,
-                CV_DATA.identity.linkedin_url,
-                *(project.url for project in CV_DATA.personal_projects),
-            ):
-                self.assertNotIn(removed_uri, uris)
             for forbidden in FORBIDDEN_PUBLIC_TERMS:
                 self.assertNotIn(forbidden.casefold(), text.casefold())
 
             with pdfplumber.open(output) as pdf:
                 rendered_page = pdf.pages[0]
-                words = rendered_page.extract_words()
+                words = rendered_page.extract_words(extra_attrs=["fontname", "size"])
             self.assertTrue(words)
-            self.assertLessEqual(
-                max(word["bottom"] for word in words),
-                rendered_page.height - 28.8,
-            )
-            self.assertGreaterEqual(
-                max(word["bottom"] for word in words),
-                rendered_page.height - 34,
-            )
+            bottom_gap = rendered_page.height - max(word["bottom"] for word in words)
+            self.assertGreaterEqual(bottom_gap, 36)
+            self.assertLessEqual(bottom_gap, 90)
 
+            lines: dict[float, list[dict]] = {}
+            for word in words:
+                lines.setdefault(round(word["top"], 1), []).append(word)
+            ordered = sorted(lines.items())
+            line_texts = [" ".join(word["text"] for word in line) for _, line in ordered]
+
+            # Each section heading sits closer to its own content than to the
+            # section above it.
+            for heading in EXPECTED_HEADINGS[1:]:
+                index = line_texts.index(heading)
+                previous_bottom = max(word["bottom"] for word in ordered[index - 1][1])
+                heading_top = min(word["top"] for word in ordered[index][1])
+                heading_bottom = max(word["bottom"] for word in ordered[index][1])
+                next_top = min(word["top"] for word in ordered[index + 1][1])
+                self.assertGreater(
+                    heading_top - previous_bottom,
+                    1.5 * (next_top - heading_bottom),
+                    heading,
+                )
+
+            # Project titles are larger and bolder than their technology lines.
+            for title in PROJECT_TITLES:
+                index = next(
+                    index for index, line in enumerate(line_texts) if line.startswith(title)
+                )
+                title_word = ordered[index][1][0]
+                meta_word = ordered[index + 1][1][0]
+                self.assertIn("Bold", title_word["fontname"])
+                self.assertNotIn("Bold", meta_word["fontname"])
+                self.assertGreater(title_word["size"], meta_word["size"])
+
+        fonts = set()
+        for resource in page["/Resources"]["/Font"].values():
+            font = resource.get_object()
+            descriptor = font.get("/FontDescriptor")
+            if descriptor is None:
+                descendants = font.get("/DescendantFonts")
+                descriptor = descendants[0].get_object()["/FontDescriptor"] if descendants else None
+            self.assertIsNotNone(descriptor, font.get("/BaseFont"))
+            descriptor = descriptor.get_object()
+            self.assertTrue(
+                any(key in descriptor for key in ("/FontFile", "/FontFile2", "/FontFile3")),
+                font.get("/BaseFont"),
+            )
+            fonts.add(str(font.get("/BaseFont")))
+        self.assertFalse(any("Helvetica" in name for name in fonts))
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
