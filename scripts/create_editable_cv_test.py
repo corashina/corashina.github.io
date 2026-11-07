@@ -82,11 +82,9 @@ class EditableCvBuilderTest(unittest.TestCase):
         expected_fragments = [
             "Tomasz Zielinski",
             "Full-Stack Developer",
-            "tomasz-zielinski.com",
+            "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
-            "github.com/corashina",
-            "linkedin.com/in/tomasz-zielinski-a97999161",
             "Profile",
             "Professional Experience",
             "Xelto",
@@ -184,8 +182,8 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
-        self.assertEqual(CV_DATA.identity.website_text, "tomasz-zielinski.com")
-        self.assertEqual(CV_DATA.identity.website_url, "https://www.tomasz-zielinski.com")
+        self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
+        self.assertEqual(CV_DATA.identity.website_url, "https://corashina.github.io")
         self.assertEqual(CV_DATA.employment.period, "2020–2026")
         self.assertIn("six years", CV_DATA.profile)
         self.assertEqual(
@@ -315,18 +313,13 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             rows,
-            (
-                "tomasz-zielinski.com",
-                "corashina@gmail.com",
-                "+48 791 748 226",
-                "github.com/corashina",
-                "linkedin.com/in/tomasz-zielinski-a97999161",
-            ),
+            ("corashina.github.io", "corashina@gmail.com", "+48 791 748 226"),
         )
         for value in PROJECT_TITLES:
             self.assertIn(value, self.text)
         for obsolete in (
-            "corashina.github.io",
+            "tomasz-zielinski.com",
+            "linkedin.com/in/",
             "Endless City",
             "Flappy-Pixie",
             "Fitmed",
@@ -353,7 +346,8 @@ class EditableCvBuilderTest(unittest.TestCase):
                 "Core Technologies",
                 "Selected Product Work",
                 "Earlier Experience",
-                "corashina.github.io",
+                "tomasz-zielinski.com",
+                "linkedin.com/in/",
                 "View project",
             ):
                 self.assertNotIn(removed, text)

@@ -53,8 +53,6 @@ def contact_rows(data: CvData) -> tuple[tuple[str, str], ...]:
         (identity.website_text, identity.website_url),
         (identity.email, f"mailto:{identity.email}"),
         (identity.phone, _phone_url(identity.phone)),
-        (identity.github_text, identity.github_url),
-        (identity.linkedin_text, identity.linkedin_url),
     )
 
 
