@@ -252,11 +252,18 @@ class EditableCvBuilderTest(unittest.TestCase):
             role_paragraph.style.font.size.pt,
         )
 
-    def test_section_headings_are_bold_caps_with_a_rule(self) -> None:
+    def test_section_headings_are_bold_caps_with_dividers_between_sections(self) -> None:
         heading = self.document.styles["Heading 1"]
         self.assertTrue(heading.font.bold)
         self.assertTrue(heading.font.all_caps)
-        self.assertIsNotNone(heading.element.pPr.find(qn("w:pBdr")))
+        borders = heading.element.pPr.find(qn("w:pBdr"))
+        self.assertIsNotNone(borders.find(qn("w:top")))
+        self.assertIsNone(borders.find(qn("w:bottom")))
+        headings = [p for p in self.document.paragraphs if p.style.name == "Heading 1"]
+        first_border = headings[0]._p.pPr.find(qn("w:pBdr")).find(qn("w:top"))
+        self.assertEqual(first_border.get(qn("w:val")), "nil")
+        for later in headings[1:]:
+            self.assertIsNone(later._p.pPr.find(qn("w:pBdr")))
         self.assertNotIn("Selected Projects", self.text)
         self.assertNotIn("processing of my personal data", self.text)
         self.assertNotIn("GDPR", self.text)

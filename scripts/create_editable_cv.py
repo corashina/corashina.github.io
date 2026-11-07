@@ -281,7 +281,7 @@ def _add_style(document: Document, name: str):
 
 
 def _set_heading_rule(style) -> None:
-    """Letter-space the heading and draw a thin grey rule under it."""
+    """Letter-space the heading and draw a thin grey divider above it."""
     run_properties = style.element.get_or_add_rPr()
     spacing = OxmlElement("w:spacing")
     spacing.set(qn("w:val"), str(round(HEADING_LETTER_SPACING * 20)))
@@ -289,13 +289,22 @@ def _set_heading_rule(style) -> None:
 
     paragraph_properties = style.element.get_or_add_pPr()
     borders = OxmlElement("w:pBdr")
-    bottom = OxmlElement("w:bottom")
-    bottom.set(qn("w:val"), "single")
-    bottom.set(qn("w:sz"), "4")
-    bottom.set(qn("w:space"), "1")
-    bottom.set(qn("w:color"), "BFBFBF")
-    borders.append(bottom)
+    top = OxmlElement("w:top")
+    top.set(qn("w:val"), "single")
+    top.set(qn("w:sz"), "4")
+    top.set(qn("w:space"), "7")
+    top.set(qn("w:color"), "BFBFBF")
+    borders.append(top)
     paragraph_properties.append(borders)
+
+
+def _remove_divider(paragraph) -> None:
+    """The first section follows the header directly, so it has no divider."""
+    borders = OxmlElement("w:pBdr")
+    top = OxmlElement("w:top")
+    top.set(qn("w:val"), "nil")
+    borders.append(top)
+    paragraph._p.get_or_add_pPr().append(borders)
 
 
 def configure_document(document: Document) -> None:
@@ -321,7 +330,7 @@ def configure_document(document: Document) -> None:
     _set_style_font(heading, SANS_FONT, 11, INK, bold=True)
     heading.font.all_caps = True
     _set_heading_rule(heading)
-    heading.paragraph_format.space_before = Pt(11)
+    heading.paragraph_format.space_before = Pt(8)
     heading.paragraph_format.space_after = Pt(3)
     heading.paragraph_format.keep_with_next = True
     heading.paragraph_format.keep_together = True
@@ -530,7 +539,7 @@ def build_cv(output_path: Path) -> Path:
     bullet_number_id = _create_bullet_numbering(document)
     _add_header(document, CV_DATA)
 
-    _add_section_heading(document, "Profile")
+    _remove_divider(_add_section_heading(document, "Profile"))
     _add_description(document, CV_DATA.profile)
 
     _add_section_heading(document, "Professional experience")
@@ -587,7 +596,8 @@ PDF_RIGHT = PDF_PAGE_WIDTH - 36
 PDF_WIDTH = PDF_RIGHT - PDF_LEFT
 # Space above a section heading is roughly twice the space below it, so each
 # heading reads as part of the section that follows.
-PDF_SECTION_BEFORE = 20
+PDF_SECTION_BEFORE = 24
+PDF_DIVIDER_DROP = 4
 PDF_SECTION_AFTER = 15
 PDF_ENTRY_GAP = 8
 PDF_FONT_CANDIDATES = {
@@ -642,7 +652,13 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
     return min(y, top - 20) - 6
 
 
-def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
+def _pdf_section(pdf: canvas.Canvas, title: str, y: float, *, divider: bool = True) -> float:
+    if divider:
+        # Sits in the middle of the gap between the previous section's last
+        # line and this heading.
+        pdf.setStrokeColor(PDF_RULE)
+        pdf.setLineWidth(0.6)
+        pdf.line(PDF_LEFT, y - PDF_DIVIDER_DROP, PDF_RIGHT, y - PDF_DIVIDER_DROP)
     y -= PDF_SECTION_BEFORE
     pdf.setFillColor(black)
     text = pdf.beginText(PDF_LEFT, y)
@@ -652,10 +668,7 @@ def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
     # Character spacing persists in the page's text state, so reset it.
     text.setCharSpace(0)
     pdf.drawText(text)
-    pdf.setStrokeColor(PDF_RULE)
-    pdf.setLineWidth(0.6)
-    pdf.line(PDF_LEFT, y - 4, PDF_RIGHT, y - 4)
-    return y - PDF_SECTION_AFTER - 2
+    return y - PDF_SECTION_AFTER
 
 
 def _wrap_segments(segments: list[Segment], width: float) -> list[list[Segment]]:
@@ -837,7 +850,7 @@ def build_pdf(output_path: Path) -> Path:
     )
 
     y = _pdf_header(pdf, CV_DATA)
-    y = _pdf_section(pdf, "Profile", y)
+    y = _pdf_section(pdf, "Profile", y, divider=False)
     y = _pdf_text(pdf, CV_DATA.profile, y)
 
     y = _pdf_section(pdf, "Professional experience", y)
