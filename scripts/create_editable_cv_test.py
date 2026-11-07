@@ -132,9 +132,10 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertIn(b'w:val="right"', document_xml)
         self.assertIn(b"<w:numPr>", document_xml)
         self.assertIn(b"<w:hyperlink", document_xml)
-        self.assertEqual(len(self.document.tables), 1)
-        self.assertEqual(len(self.document.tables[0].rows), 1)
-        self.assertEqual(len(self.document.tables[0].columns), 2)
+        self.assertEqual(len(self.document.tables), 2)
+        for table in self.document.tables:
+            self.assertEqual(len(table.rows), 1)
+            self.assertEqual(len(table.columns), 2)
         self.assertNotIn(b"<w:txbxContent", document_xml)
         self.assertIn(b"relationships/hyperlink", relationships_xml)
 
@@ -269,6 +270,18 @@ class EditableCvBuilderTest(unittest.TestCase):
             for product in role.products:
                 bullet = next(text for text in texts if text.startswith(f"{product.title}:"))
                 self.assertEqual(bullet, f"{product.title}: {product.description}")
+
+    def test_technologies_are_split_into_two_columns(self) -> None:
+        left, right = (
+            [paragraph.text for paragraph in cell.paragraphs]
+            for cell in self.document.tables[1].rows[0].cells
+        )
+        expected = [
+            f"{label}:\t{', '.join(technologies)}"
+            for label, technologies in CV_DATA.technology_groups
+        ]
+        self.assertEqual(left + right, expected)
+        self.assertEqual(len(left), 3)
 
     def test_heading_levels_get_lighter_as_they_get_smaller(self) -> None:
         def lightness(style_name: str) -> int:

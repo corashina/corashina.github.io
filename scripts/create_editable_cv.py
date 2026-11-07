@@ -37,6 +37,15 @@ PAGE_HEIGHT = Mm(297)
 SIDE_MARGIN = Mm(12.7)
 CONTENT_WIDTH = Emu(PAGE_WIDTH - 2 * SIDE_MARGIN)
 HEADER_COLUMNS = (Emu(CONTENT_WIDTH - Mm(72)), Mm(72))
+# Technologies are laid out in two columns: the first TECHNOLOGY_SPLIT groups
+# on the left, the rest on the right. The left column is wider because its
+# values are longer.
+TECHNOLOGY_SPLIT = 3
+TECHNOLOGY_LEFT_SHARE = 0.56
+TECHNOLOGY_COLUMNS = (
+    Emu(round(CONTENT_WIDTH * TECHNOLOGY_LEFT_SHARE)),
+    Emu(CONTENT_WIDTH - round(CONTENT_WIDTH * TECHNOLOGY_LEFT_SHARE)),
+)
 PDF_MUTED = Color(0.53, 0.53, 0.53)
 PDF_SUBTLE = Color(0.27, 0.27, 0.27)
 PDF_META = Color(0.47, 0.47, 0.47)
@@ -392,8 +401,8 @@ def _set_cell_margins(cell, value: int = 0) -> None:
         element.set(qn("w:type"), "dxa")
 
 
-def _set_header_table_geometry(table) -> None:
-    column_widths = tuple(int(width.twips) for width in HEADER_COLUMNS)
+def _set_table_geometry(table, widths) -> None:
+    column_widths = tuple(int(Emu(width).twips) for width in widths)
     table_properties = table._tbl.tblPr
 
     table_width = table_properties.first_child_found_in("w:tblW")
@@ -417,6 +426,30 @@ def _set_header_table_geometry(table) -> None:
 
 
 
+def technology_columns(data: CvData):
+    groups = data.technology_groups
+    return groups[:TECHNOLOGY_SPLIT], groups[TECHNOLOGY_SPLIT:]
+
+
+def _add_technology_grid(document: Document, data: CvData) -> None:
+    table = document.add_table(rows=1, cols=2)
+    table.autofit = False
+    _set_table_geometry(table, TECHNOLOGY_COLUMNS)
+    for cell, width, groups in zip(table.rows[0].cells, TECHNOLOGY_COLUMNS, technology_columns(data)):
+        cell.width = width
+        _set_cell_margins(cell)
+        label_width = Pt(48)
+        for index, (label, technologies) in enumerate(groups):
+            paragraph = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
+            paragraph.style = "CV Skill"
+            paragraph.paragraph_format.left_indent = label_width
+            paragraph.paragraph_format.first_line_indent = -label_width
+            paragraph.paragraph_format.tab_stops.add_tab_stop(label_width)
+            label_run = paragraph.add_run(f"{label}:")
+            _set_font(label_run, SANS_FONT, 9, INK, bold=True)
+            paragraph.add_run("\t" + ", ".join(technologies))
+
+
 def _add_header(document: Document, data: CvData) -> None:
     table = document.add_table(rows=1, cols=2)
     table.autofit = False
@@ -424,7 +457,7 @@ def _add_header(document: Document, data: CvData) -> None:
     left_width, right_width = HEADER_COLUMNS
     left.width = left_width
     right.width = right_width
-    _set_header_table_geometry(table)
+    _set_table_geometry(table, HEADER_COLUMNS)
     for cell in (left, right):
         _set_cell_margins(cell)
         cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.TOP
@@ -516,13 +549,7 @@ def build_cv(output_path: Path) -> Path:
     _add_description(document, CV_DATA.earlier_experience[1])
 
     _add_section_heading(document, "Technologies")
-    for label, technologies in CV_DATA.technology_groups:
-        _add_labeled_line(
-            document,
-            f"{label}:  ",
-            ", ".join(technologies),
-            after=0.5,
-        )
+    _add_technology_grid(document, CV_DATA)
 
     _add_section_heading(document, "Projects")
     for project in CV_DATA.personal_projects:
@@ -560,9 +587,9 @@ PDF_RIGHT = PDF_PAGE_WIDTH - 36
 PDF_WIDTH = PDF_RIGHT - PDF_LEFT
 # Space above a section heading is roughly twice the space below it, so each
 # heading reads as part of the section that follows.
-PDF_SECTION_BEFORE = 18
+PDF_SECTION_BEFORE = 20
 PDF_SECTION_AFTER = 15
-PDF_ENTRY_GAP = 7
+PDF_ENTRY_GAP = 8
 PDF_FONT_CANDIDATES = {
     PDF_SERIF: (
         Path(r"C:\Windows\Fonts\times.ttf"),
@@ -734,6 +761,30 @@ def _pdf_labeled_line(pdf: canvas.Canvas, label: str, value: str, y: float) -> f
     )
 
 
+def _pdf_technology_grid(pdf: canvas.Canvas, data: CvData, y: float) -> float:
+    left_width = PDF_WIDTH * TECHNOLOGY_LEFT_SHARE
+    widths = (left_width, PDF_WIDTH - left_width)
+    bottoms = []
+    for column, groups in enumerate(technology_columns(data)):
+        x = PDF_LEFT + (left_width if column else 0)
+        label_width = max(stringWidth(f"{label}:", PDF_SANS_BOLD, PDF_BODY) for label, _ in groups) + 6
+        gutter = 0 if column else 10
+        column_y = y
+        for label, technologies in groups:
+            pdf.setFillColor(black)
+            pdf.setFont(PDF_SANS_BOLD, PDF_BODY)
+            pdf.drawString(x, column_y, f"{label}:")
+            column_y = _pdf_rich_text(
+                pdf,
+                [(", ".join(technologies), PDF_SANS, black)],
+                x + label_width,
+                column_y,
+                widths[column] - label_width - gutter,
+            )
+        bottoms.append(column_y)
+    return min(bottoms)
+
+
 def _pdf_bullet(pdf: canvas.Canvas, segments: list[Segment], y: float) -> float:
     pdf.setFillColor(black)
     pdf.setFont(PDF_SANS, PDF_BODY)
@@ -806,8 +857,7 @@ def build_pdf(output_path: Path) -> Path:
     y = _pdf_text(pdf, CV_DATA.earlier_experience[1], y)
 
     y = _pdf_section(pdf, "Technologies", y)
-    for label, technologies in CV_DATA.technology_groups:
-        y = _pdf_labeled_line(pdf, f"{label}:", ", ".join(technologies), y)
+    y = _pdf_technology_grid(pdf, CV_DATA, y)
 
     y = _pdf_section(pdf, "Projects", y)
     for index, project in enumerate(CV_DATA.personal_projects):
