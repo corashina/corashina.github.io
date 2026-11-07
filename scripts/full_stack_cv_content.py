@@ -205,11 +205,11 @@ CV_DATA = CvData(
             "github.com/corashina/mibsi-cluster-bridge",
         ),
         Project(
-            "The Long Slop",
+            "The Long Drive",
             "2026",
             "Rust, Bevy, Rapier, WebAssembly",
-            "Browser recreation of The Long Drive built in Rust with Bevy and Rapier "
-            "physics, compiled to WebAssembly.",
+            "Browser recreation of the desktop driving-survival game, built in Rust "
+            "with Bevy and Rapier physics and compiled to WebAssembly.",
             "https://github.com/corashina/the-long-slop",
             "github.com/corashina/the-long-slop",
         ),

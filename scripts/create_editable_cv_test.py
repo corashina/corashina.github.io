@@ -26,7 +26,7 @@ EXPECTED_HEADINGS = [
     "Education",
     "Additional Information",
 ]
-PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Slop", "Don't Sleep With The Fishes"]
+PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Drive", "Don't Sleep With The Fishes"]
 
 
 class EditableCvBuilderTest(unittest.TestCase):
