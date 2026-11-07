@@ -6,7 +6,7 @@ tags: [Game development, Rust, WebAssembly]
 draft: false
 ---
 
-The Long Slop is a browser recreation of The Long Drive, a Unity survival driving game. You prepare a Lada 2101 in a garage, drive onto an endless desert road, and keep the car and yourself alive. The goal is behavior parity with one specific build: Steam build 11140890, made with Unity 2021.3.18f1.
+This project recreates The Long Drive, a Unity survival driving game, in the browser. You prepare a Lada 2101 in a garage, drive onto an endless desert road, and keep the car and yourself alive. The goal is behavior parity with one specific build: Steam build 11140890, made with Unity 2021.3.18f1.
 
 The port uses Rust, Bevy 0.19, and Rapier 0.36. The browser runs it as WebAssembly with a WebGPU renderer. A Python exporter reads the game from a local Steam install, and the repository ships no game assets. In the first 26 days the project grew to about 2,000 commits, 187,000 lines of Rust, and 21,000 lines of Python.
 
