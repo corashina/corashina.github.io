@@ -455,15 +455,23 @@ def _add_section_heading(document: Document, text: str):
 
 def _add_product_bullet(document: Document, product: Project, number_id: int) -> None:
     paragraph = _add_bullet(document, "", number_id)
-    name = paragraph.add_run(product.title)
+    name = paragraph.add_run(f"{product.title}:")
     name.font.bold = True
-    tools = paragraph.add_run(f" ({product.tools})")
-    tools.font.color.rgb = META
-    paragraph.add_run(f": {product.description}")
+    paragraph.add_run(f" {product.description}")
+
+
+def _add_stack_line(document: Document, role: Role) -> None:
+    paragraph = document.add_paragraph(style="CV Meta")
+    paragraph.paragraph_format.keep_with_next = True
+    label = paragraph.add_run("Stack:")
+    label.font.bold = True
+    paragraph.add_run(" " + ", ".join(role.stack))
 
 
 def _add_role(document: Document, role: Role, bullet_number_id: int) -> None:
     add_title_date(document, role.title, role.period, style="CV Position")
+    if role.stack:
+        _add_stack_line(document, role)
     for product in role.products:
         _add_product_bullet(document, product, bullet_number_id)
     for bullet in role.bullets:
@@ -541,7 +549,7 @@ PDF_SERIF = "CvTimes"
 PDF_SANS = "CvCalibri"
 PDF_SANS_BOLD = "CvCalibriBold"
 PDF_BODY = 9
-PDF_LEADING = 11.2
+PDF_LEADING = 11.6
 PDF_SECTION = 11
 PDF_RULE = Color(0.75, 0.75, 0.75)
 PDF_ENTRY = 10.5
@@ -552,9 +560,9 @@ PDF_RIGHT = PDF_PAGE_WIDTH - 36
 PDF_WIDTH = PDF_RIGHT - PDF_LEFT
 # Space above a section heading is roughly twice the space below it, so each
 # heading reads as part of the section that follows.
-PDF_SECTION_BEFORE = 15
+PDF_SECTION_BEFORE = 18
 PDF_SECTION_AFTER = 15
-PDF_ENTRY_GAP = 6
+PDF_ENTRY_GAP = 7
 PDF_FONT_CANDIDATES = {
     PDF_SERIF: (
         Path(r"C:\Windows\Fonts\times.ttf"),
@@ -735,12 +743,19 @@ def _pdf_bullet(pdf: canvas.Canvas, segments: list[Segment], y: float) -> float:
 
 def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
     y = _pdf_position(pdf, role.title, role.period, y)
+    if role.stack:
+        y = _pdf_rich_text(
+            pdf,
+            [("Stack:", PDF_SANS_BOLD, PDF_META), (" " + ", ".join(role.stack), PDF_SANS, PDF_META)],
+            PDF_LEFT,
+            y,
+            PDF_WIDTH,
+        ) - 1
     for product in role.products:
         y = _pdf_bullet(
             pdf,
             [
-                (product.title, PDF_SANS_BOLD, black),
-                (f" ({product.tools}):", PDF_SANS, PDF_META),
+                (f"{product.title}:", PDF_SANS_BOLD, black),
                 (" " + product.description, PDF_SANS, black),
             ],
             y,

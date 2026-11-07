@@ -34,6 +34,16 @@ class Role:
     bullets: tuple[str, ...]
     products: tuple[Project, ...] = ()
 
+    @property
+    def stack(self) -> tuple[str, ...]:
+        """Every technology used across this role's products, once, in order."""
+        seen: list[str] = []
+        for product in self.products:
+            for technology in product.tools.split(", "):
+                if technology not in seen:
+                    seen.append(technology)
+        return tuple(seen)
+
 
 @dataclass(frozen=True)
 class Employment:

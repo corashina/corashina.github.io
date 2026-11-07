@@ -256,6 +256,20 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertNotIn("processing of my personal data", self.text)
         self.assertNotIn("GDPR", self.text)
 
+    def test_each_role_lists_its_stack_once_above_short_product_bullets(self) -> None:
+        texts = [paragraph.text for paragraph in self.document.paragraphs]
+        for role in CV_DATA.employment.roles:
+            index = next(
+                index for index, text in enumerate(texts) if text.startswith(role.title)
+            )
+            stack_line = self.document.paragraphs[index + 1]
+            self.assertEqual(stack_line.style.name, "CV Meta")
+            self.assertEqual(stack_line.text, "Stack: " + ", ".join(role.stack))
+            self.assertEqual(len(role.stack), len(set(role.stack)))
+            for product in role.products:
+                bullet = next(text for text in texts if text.startswith(f"{product.title}:"))
+                self.assertEqual(bullet, f"{product.title}: {product.description}")
+
     def test_heading_levels_get_lighter_as_they_get_smaller(self) -> None:
         def lightness(style_name: str) -> int:
             return sum(self.document.styles[style_name].font.color.rgb)
