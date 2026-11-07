@@ -100,7 +100,6 @@ class EditableCvBuilderTest(unittest.TestCase):
             "2017–2020",
             "Additional Information",
             "Polish (native)",
-            "Regulation (EU) 2016/679",
         ]
 
         positions = [self.text.index(fragment) for fragment in expected_fragments]
@@ -122,7 +121,6 @@ class EditableCvBuilderTest(unittest.TestCase):
             "CV Meta",
             "CV Description",
             "CV Bullet",
-            "CV Footer",
         }
         style_names = {style.name for style in self.document.styles}
         self.assertTrue(required_styles.issubset(style_names))
@@ -152,7 +150,6 @@ class EditableCvBuilderTest(unittest.TestCase):
             "CV Description": ("Calibri", 9.0),
             "CV Bullet": ("Calibri", 9.0),
             "CV Skill": ("Calibri", 9.0),
-            "CV Footer": ("Calibri", 9.0),
         }
 
         for style_name, (font_name, font_size) in expected_styles.items():
@@ -161,7 +158,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertAlmostEqual(style.font.size.pt, font_size, delta=0.01)
 
     def test_uses_compact_body_fonts_and_keep_rules(self) -> None:
-        for style_name in ("CV Description", "CV Bullet", "CV Skill", "CV Footer"):
+        for style_name in ("CV Description", "CV Bullet", "CV Skill"):
             style = self.document.styles[style_name]
             self.assertAlmostEqual(style.font.size.pt, 9, delta=0.01)
         heading_style = self.document.styles["Heading 1"]
@@ -256,6 +253,8 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertTrue(heading.font.all_caps)
         self.assertIsNotNone(heading.element.pPr.find(qn("w:pBdr")))
         self.assertNotIn("Selected Projects", self.text)
+        self.assertNotIn("processing of my personal data", self.text)
+        self.assertNotIn("GDPR", self.text)
 
     def test_heading_levels_get_lighter_as_they_get_smaller(self) -> None:
         def lightness(style_name: str) -> int:

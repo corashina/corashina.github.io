@@ -59,7 +59,6 @@ class CvData:
     personal_projects: tuple[Project, ...]
     education: tuple[Education, ...]
     languages: tuple[str, ...]
-    consent: str
 
     @property
     def commercial_projects(self) -> tuple[Project, ...]:
@@ -79,7 +78,6 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
-            self.consent,
         ]
         for label, technologies in self.technology_groups:
             values.extend((label, *technologies))
@@ -232,11 +230,6 @@ CV_DATA = CvData(
         ),
     ),
     languages=("Polish (native)", "English (fluent)"),
-    consent=(
-        "I agree to the processing of my personal data included in this document for the "
-        "purposes of the recruitment process, in accordance with Regulation (EU) 2016/679 "
-        "of the European Parliament and of the Council of 27 April 2016 (GDPR)."
-    ),
 )
 
 FORBIDDEN_PUBLIC_TERMS = (

@@ -375,11 +375,6 @@ def configure_document(document: Document) -> None:
     bullet.paragraph_format.space_after = Pt(0.6)
     bullet.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
-    footer = _add_style(document, "CV Footer")
-    _set_style_font(footer, SANS_FONT, 9, MUTED)
-    footer.paragraph_format.space_before = Pt(4)
-    footer.paragraph_format.space_after = Pt(0)
-    footer.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
 
 def _set_cell_margins(cell, value: int = 0) -> None:
@@ -537,8 +532,6 @@ def build_cv(output_path: Path) -> Path:
         ", ".join(CV_DATA.languages),
         after=0.5,
     )
-    consent = document.add_paragraph(style="CV Footer")
-    consent.add_run(CV_DATA.consent)
 
     document.save(output_path)
     return output_path
@@ -817,8 +810,7 @@ def build_pdf(output_path: Path) -> Path:
         y = _pdf_text(pdf, education.qualification, y)
 
     y = _pdf_section(pdf, "Additional Information", y)
-    y = _pdf_labeled_line(pdf, "Languages:", ", ".join(CV_DATA.languages), y) - 4
-    _pdf_rich_text(pdf, [(CV_DATA.consent, PDF_SANS, PDF_MUTED)], PDF_LEFT, y, PDF_WIDTH)
+    _pdf_labeled_line(pdf, "Languages:", ", ".join(CV_DATA.languages), y)
 
     pdf.showPage()
     pdf.save()
