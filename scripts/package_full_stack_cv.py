@@ -38,7 +38,7 @@ def build_public_evidence(data: CvData = CV_DATA) -> str:
         "",
         f"- Employer: {data.employment.company}",
         f"- Employment period: {data.employment.period}",
-        "- Commercial experience: five years",
+        "- Commercial experience: six years",
         "",
         "## Role progression",
         "",

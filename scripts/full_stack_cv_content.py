@@ -18,10 +18,21 @@ class Identity:
 
 
 @dataclass(frozen=True)
+class Project:
+    title: str
+    period: str
+    tools: str
+    description: str
+    url: str = ""
+    url_text: str = ""
+
+
+@dataclass(frozen=True)
 class Role:
     title: str
     period: str
     bullets: tuple[str, ...]
+    products: tuple[Project, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -29,15 +40,6 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
-
-
-@dataclass(frozen=True)
-class Project:
-    title: str
-    period: str
-    tools: str
-    description: str
-    url: str = ""
 
 
 @dataclass(frozen=True)
@@ -53,12 +55,16 @@ class CvData:
     profile: str
     technology_groups: tuple[tuple[str, tuple[str, ...]], ...]
     employment: Employment
-    commercial_projects: tuple[Project, ...]
     earlier_experience: tuple[str, ...]
     personal_projects: tuple[Project, ...]
     education: tuple[Education, ...]
     languages: tuple[str, ...]
-    consent: str
+
+    @property
+    def commercial_projects(self) -> tuple[Project, ...]:
+        return tuple(
+            product for role in self.employment.roles for product in role.products
+        )
 
     def visible_text(self) -> str:
         values = [
@@ -72,14 +78,17 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
-            self.consent,
         ]
         for label, technologies in self.technology_groups:
             values.extend((label, *technologies))
         for role in self.employment.roles:
             values.extend((role.title, role.period, *role.bullets))
-        for project in (*self.commercial_projects, *self.personal_projects):
-            values.extend((project.title, project.period, project.tools, project.description))
+            for product in role.products:
+                values.extend((product.title, product.tools, product.description))
+        for project in self.personal_projects:
+            values.extend(
+                (project.title, project.period, project.tools, project.description, project.url_text)
+            )
         values.extend(self.earlier_experience)
         for education in self.education:
             values.extend((education.institution, education.qualification, education.period))
@@ -101,7 +110,7 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with five years of commercial software delivery across "
+        "Full-stack developer with six years of commercial software delivery across "
         "business platforms, integrations, mobile applications, logistics, manufacturing, "
         "workflow automation, e-invoicing, and document AI. I work from user-facing "
         "applications and APIs through integration, delivery, and release. I translate "
@@ -109,78 +118,73 @@ CV_DATA = CvData(
         "delivery lifecycle."
     ),
     technology_groups=(
-        ("Languages", ("TypeScript", "JavaScript", "C#", "Dart", "XSLT/XML")),
+        ("Languages", ("TypeScript", "JavaScript", "C#", "Dart", "Rust", "Python", "XSLT/XML")),
         ("Platforms", ("React", "Node.js", ".NET", "React Native/Expo", "Flutter")),
+        ("Graphics", ("Three.js", "WebGL", "GLSL", "Bevy", "WebAssembly")),
         ("Systems", ("REST APIs", "JWT", "n8n", "Oracle JD Edwards")),
         ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
     ),
     employment=Employment(
         company="Xelto",
-        period="2021–2026",
+        period="2020–2026",
         roles=(
             Role(
                 title="Full-Stack Developer",
                 period="2024–2026",
+                products=(
+                    Project(
+                        "Workflow",
+                        "2024–2026",
+                        "React, TypeScript, REST APIs",
+                        "Approval and business-process modules with configurable data, "
+                        "document handling, and operational actions.",
+                    ),
+                    Project(
+                        "e-Invoicing / KSeF",
+                        "2024–2026",
+                        "React, TypeScript, .NET, XSLT/XML",
+                        "Integration-rule, log, and PDF/XML document workflows for Polish "
+                        "e-invoicing.",
+                    ),
+                    Project(
+                        "Document AI / ICR",
+                        "2025–2026",
+                        "React, TypeScript, PDF, JSON",
+                        "Interfaces for PDF handling, prompt configuration, document "
+                        "analysis, and structured results.",
+                    ),
+                    Project(
+                        "XELapps and mobile",
+                        "2024–2026",
+                        "React Native/Expo, Flutter, JWT",
+                        "Platform setup and mobile workflows for users, applications, "
+                        "authentication, and business-process access.",
+                    ),
+                ),
                 bullets=(
-                    "Delivered platform applications, integrations, reusable components, "
-                    "mobile experiences, and operational tooling.",
-                    "Built administration, system setup, workflow approval, e-invoicing, "
-                    "document-processing, and document-AI interfaces.",
-                    "Worked across React/TypeScript, REST/JWT, React Native/Expo, Flutter, "
-                    ".NET/C#, XSLT/XML, and integration tooling.",
                     "Maintained delivery pipelines, configuration, versioning, CI/CD "
                     "workflows, and shared-package publishing.",
                 ),
             ),
             Role(
                 title="Junior Frontend Developer",
-                period="2021–2024",
+                period="2020–2024",
+                products=(
+                    Project(
+                        "Xelcode",
+                        "2020–2026",
+                        "React, JavaScript, Oracle JD Edwards",
+                        "Scanner-driven warehouse and manufacturing applications with "
+                        "operational state, validation, printing, and ERP integration.",
+                    ),
+                ),
                 bullets=(
-                    "Built React/JavaScript applications for warehouse and manufacturing "
-                    "workflows on scanners and mobile devices.",
                     "Implemented process state, validation, barcode interaction, label "
                     "printing, localisation, and API-connected operational screens.",
                     "Maintained shared UI and API foundations used across commercial "
                     "applications.",
                 ),
             ),
-        ),
-    ),
-    commercial_projects=(
-        Project(
-            "Xelcode",
-            "2021–2026",
-            "React, JavaScript, Oracle JD Edwards",
-            "Scanner-driven warehouse and manufacturing workflows with operational state, "
-            "validation, printing, and ERP integration.",
-        ),
-        Project(
-            "Workflow",
-            "2024–2026",
-            "React, TypeScript, REST APIs",
-            "Approval and business-process modules with configurable data, document "
-            "handling, and operational actions.",
-        ),
-        Project(
-            "Document AI / ICR",
-            "2025–2026",
-            "React, TypeScript, PDF, JSON",
-            "Interfaces for PDF handling, prompt configuration, document analysis, and "
-            "structured results.",
-        ),
-        Project(
-            "e-Invoicing / KSeF",
-            "2024–2026",
-            "React, TypeScript, .NET, XSLT/XML",
-            "Document and integration-rule workflows covering PDF/XML views, logs, and "
-            "Polish e-invoicing processes.",
-        ),
-        Project(
-            "XELapps and mobile",
-            "2024–2026",
-            "React Native/Expo, Flutter, JWT",
-            "Platform setup and mobile workflows for users, applications, authentication, "
-            "and business-process access.",
         ),
     ),
     earlier_experience=(
@@ -190,27 +194,31 @@ CV_DATA = CvData(
     ),
     personal_projects=(
         Project(
-            "Endless City",
-            "September 2018",
-            "JavaScript, Three.js, WebGL, glTF",
-            "Interactive infinite city scene with a custom glTF 2.0 loader.",
-            "https://github.com/corashina/endless-City",
+            "MIBSI Cluster Bridge",
+            "2026",
+            "Java, Python, QNX, Android Auto, CarPlay",
+            "Reverse-engineered tooling that bridges Android Auto and CarPlay navigation "
+            "into Audi's Virtual Cockpit, with installation packaging and verification.",
+            "https://github.com/corashina/mibsi-cluster-bridge",
+            "github.com/corashina/mibsi-cluster-bridge",
         ),
         Project(
-            "Flappy-Pixie",
-            "October 2018",
-            "JavaScript, Three.js, WebGL",
-            "Flappy Bird-style game with a 3D parallax background, completed as a one-week "
-            "interview challenge.",
-            "https://github.com/corashina/flappy-Pixie",
+            "The Long Drive",
+            "2026",
+            "Rust, Bevy, Rapier, WebAssembly",
+            "Browser recreation of the desktop driving-survival game, built in Rust "
+            "with Bevy and Rapier physics and compiled to WebAssembly.",
+            "https://github.com/corashina/the-long-slop",
+            "github.com/corashina/the-long-slop",
         ),
         Project(
-            "Fitmed",
-            "July 2018",
-            "React, Redux, Node.js, Express, MongoDB",
-            "Prototype platform for dietitians with API integration, authentication, and "
-            "input validation.",
-            "https://github.com/corashina/fitmed",
+            "Don't Sleep With The Fishes",
+            "2026",
+            "TypeScript, Three.js, WebGL, GLSL",
+            "Browser survival game about scavenging a sinking ship and managing a lifeboat "
+            "while waiting for rescue.",
+            "https://github.com/corashina/dont-sleep-with-the-fishes",
+            "github.com/corashina/dont-sleep-with-the-fishes",
         ),
     ),
     education=(
@@ -221,12 +229,7 @@ CV_DATA = CvData(
             "2016–2017",
         ),
     ),
-    languages=("English", "Polish"),
-    consent=(
-        "I hereby consent to the processing of personal data in this document by anyone "
-        "who receives it for the sole purpose of considering my skills and experience for "
-        "professional opportunities."
-    ),
+    languages=("Polish (native)", "English (fluent)"),
 )
 
 FORBIDDEN_PUBLIC_TERMS = (
