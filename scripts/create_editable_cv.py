@@ -488,7 +488,7 @@ def _add_section_heading(document: Document, text: str):
 
 def _add_product_bullet(document: Document, product: Project, number_id: int) -> None:
     paragraph = _add_bullet(document, "", number_id)
-    name = paragraph.add_run(f"{product.title}:")
+    name = paragraph.add_run(f"{product.title}.")
     name.font.bold = True
     paragraph.add_run(f" {product.description}")
 
@@ -533,7 +533,7 @@ def build_cv(output_path: Path) -> Path:
     _add_section_heading(document, "Profile")
     _add_description(document, CV_DATA.profile)
 
-    _add_section_heading(document, "Professional Experience")
+    _add_section_heading(document, "Professional experience")
     add_title_date(document, CV_DATA.employment.company, CV_DATA.employment.period)
     for role in CV_DATA.employment.roles:
         _add_role(document, role, bullet_number_id)
@@ -560,7 +560,7 @@ def build_cv(output_path: Path) -> Path:
         add_title_date(document, education.institution, education.period)
         _add_description(document, education.qualification)
 
-    _add_section_heading(document, "Additional Information")
+    _add_section_heading(document, "Additional information")
     _add_labeled_line(
         document,
         "Languages:  ",
@@ -806,7 +806,7 @@ def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
         y = _pdf_bullet(
             pdf,
             [
-                (f"{product.title}:", PDF_SANS_BOLD, black),
+                (f"{product.title}.", PDF_SANS_BOLD, black),
                 (" " + product.description, PDF_SANS, black),
             ],
             y,
@@ -840,7 +840,7 @@ def build_pdf(output_path: Path) -> Path:
     y = _pdf_section(pdf, "Profile", y)
     y = _pdf_text(pdf, CV_DATA.profile, y)
 
-    y = _pdf_section(pdf, "Professional Experience", y)
+    y = _pdf_section(pdf, "Professional experience", y)
     y = _pdf_entry_title(pdf, CV_DATA.employment.company, CV_DATA.employment.period, y)
     for role in CV_DATA.employment.roles:
         y = _pdf_role(pdf, role, y)
@@ -874,7 +874,7 @@ def build_pdf(output_path: Path) -> Path:
         y = _pdf_entry_title(pdf, education.institution, education.period, y)
         y = _pdf_text(pdf, education.qualification, y)
 
-    y = _pdf_section(pdf, "Additional Information", y)
+    y = _pdf_section(pdf, "Additional information", y)
     _pdf_labeled_line(pdf, "Languages:", ", ".join(CV_DATA.languages), y)
 
     pdf.showPage()

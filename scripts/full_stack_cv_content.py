@@ -120,12 +120,12 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years of commercial software delivery across "
-        "business platforms, integrations, mobile applications, logistics, manufacturing, "
-        "workflow automation, e-invoicing, and document AI. I work from user-facing "
-        "applications and APIs through integration, delivery, and release. I translate "
-        "operational requirements into maintainable systems and take ownership across the "
-        "delivery lifecycle."
+        "Full-stack developer with six years at Xelto, building React and TypeScript "
+        "applications, .NET integrations, and React Native and Flutter mobile apps. My "
+        "work covers warehouse and manufacturing scanning, approval workflows, Polish "
+        "e-invoicing (KSeF), and document AI. I build both the interface and the API "
+        "behind it, and I maintain the CI/CD pipelines and shared npm packages that ship "
+        "them."
     ),
     technology_groups=(
         ("Languages", ("TypeScript", "JavaScript", "C#", "Dart", "Rust", "Python", "XSLT/XML")),
@@ -146,34 +146,34 @@ CV_DATA = CvData(
                         "Workflow",
                         "2024–2026",
                         "React, TypeScript, REST APIs",
-                        "Approval and business-process modules with configurable data, "
-                        "document handling, and operational actions.",
+                        "Built configurable approval and business-process modules that "
+                        "handle documents.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "React, TypeScript, .NET, XSLT/XML",
-                        "Integration-rule, log, and PDF/XML document workflows for Polish "
-                        "e-invoicing.",
+                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
+                        "views, with XSLT rendering of invoice XML.",
                     ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
                         "React, TypeScript, PDF, JSON",
-                        "Interfaces for PDF handling, prompt configuration, document "
-                        "analysis, and structured results.",
+                        "Built the interface where users upload PDFs, configure extraction "
+                        "prompts, and review the structured JSON results.",
                     ),
                     Project(
                         "XELapps and mobile",
                         "2024–2026",
                         "React Native/Expo, Flutter, JWT",
-                        "Platform setup and mobile workflows for users, applications, "
-                        "authentication, and business-process access.",
+                        "Built the platform's user and application setup and JWT sign-in, "
+                        "plus React Native/Expo and Flutter apps for business-process access.",
                     ),
                 ),
                 bullets=(
-                    "Maintained delivery pipelines, configuration, versioning, CI/CD "
-                    "workflows, and shared-package publishing.",
+                    "Maintained the GitHub Actions CI/CD pipelines, release versioning, and "
+                    "npm publishing for shared packages.",
                 ),
             ),
             Role(
@@ -184,31 +184,31 @@ CV_DATA = CvData(
                         "Xelcode",
                         "2020–2026",
                         "React, JavaScript, Oracle JD Edwards",
-                        "Scanner-driven warehouse and manufacturing applications with "
-                        "operational state, validation, printing, and ERP integration.",
+                        "Built React apps for warehouse and manufacturing scanners that read "
+                        "barcodes, validate each step, print labels, and integrate with Oracle "
+                        "JD Edwards.",
                     ),
                 ),
                 bullets=(
-                    "Implemented process state, validation, barcode interaction, label "
-                    "printing, localisation, and API-connected operational screens.",
-                    "Maintained shared UI and API foundations used across commercial "
-                    "applications.",
+                    "Added localisation and multi-step process state to the scanner screens.",
+                    "Maintained the shared UI components and API code used across Xelto's "
+                    "products.",
                 ),
             ),
         ),
     ),
     earlier_experience=(
         "Freelance Web Development | Poznan, Poland | May–August 2018",
-        "Built responsive single-page application components and improved scalability, "
-        "performance, and search visibility.",
+        "Built responsive single-page application components and improved page speed "
+        "and SEO.",
     ),
     personal_projects=(
         Project(
             "MIBSI Cluster Bridge",
             "2026",
             "Java, Python, QNX, Android Auto, CarPlay",
-            "Reverse-engineered tooling that bridges Android Auto and CarPlay navigation "
-            "into Audi's Virtual Cockpit, with installation packaging and verification.",
+            "Reverse-engineered Audi's head unit to show Android Auto and CarPlay navigation "
+            "in the Virtual Cockpit, and packaged an installer with verification checks.",
             "https://github.com/corashina/mibsi-cluster-bridge",
             "github.com/corashina/mibsi-cluster-bridge",
         ),
@@ -216,8 +216,8 @@ CV_DATA = CvData(
             "The Long Drive",
             "2026",
             "Rust, Bevy, Rapier, WebAssembly",
-            "Browser recreation of the desktop driving-survival game, built in Rust "
-            "with Bevy and Rapier physics and compiled to WebAssembly.",
+            "Recreated the desktop driving-survival game for the browser in Rust, using "
+            "Bevy and Rapier physics, compiled to WebAssembly.",
             "https://github.com/corashina/the-long-slop",
             "github.com/corashina/the-long-slop",
         ),
@@ -225,8 +225,8 @@ CV_DATA = CvData(
             "Don't Sleep With The Fishes",
             "2026",
             "TypeScript, Three.js, WebGL, GLSL",
-            "Browser survival game about scavenging a sinking ship and managing a lifeboat "
-            "while waiting for rescue.",
+            "Wrote a browser survival game where the player scavenges a sinking ship and "
+            "keeps a lifeboat going until rescue.",
             "https://github.com/corashina/dont-sleep-with-the-fishes",
             "github.com/corashina/dont-sleep-with-the-fishes",
         ),

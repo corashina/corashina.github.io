@@ -21,11 +21,11 @@ from full_stack_cv_content import CV_DATA, FORBIDDEN_PUBLIC_TERMS
 
 EXPECTED_HEADINGS = [
     "Profile",
-    "Professional Experience",
+    "Professional experience",
     "Technologies",
     "Projects",
     "Education",
-    "Additional Information",
+    "Additional information",
 ]
 PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Drive", "Don't Sleep With The Fishes"]
 
@@ -51,12 +51,16 @@ class EditableCvBuilderTest(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls._temp_dir.cleanup()
 
-    def test_profile_contains_the_approved_ownership_sentence(self) -> None:
-        self.assertIn(
-            "I translate operational requirements into maintainable systems and "
-            "take ownership across the delivery lifecycle.",
-            CV_DATA.profile,
-        )
+    def test_profile_names_employer_stack_and_domains(self) -> None:
+        for fragment in ("six years at Xelto", "React and TypeScript", "KSeF", "document AI"):
+            self.assertIn(fragment, CV_DATA.profile)
+        self.assertNotIn("take ownership across the delivery lifecycle", CV_DATA.profile)
+
+    def test_text_follows_unslop_punctuation_rules(self) -> None:
+        visible = CV_DATA.visible_text()
+        self.assertNotIn("\u2014", visible)  # no em dashes
+        for curly in ("\u2018", "\u201c", "\u201d"):
+            self.assertNotIn(curly, visible)
 
     def test_builds_a4_document_with_compact_one_page_margins(self) -> None:
         section = self.document.sections[0]
@@ -87,8 +91,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             "corashina@gmail.com",
             "+48 791 748 226",
             "Profile",
-            "Professional Experience",
-            "Xelto",
+            "Professional experience",
+            "Xelto\t2020–2026",
             "Workflow",
             "Xelcode",
             "Freelance Web Development",
@@ -98,7 +102,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Education",
             "University of Southampton",
             "2017–2020",
-            "Additional Information",
+            "Additional information",
             "Polish (native)",
         ]
 
@@ -268,8 +272,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertEqual(stack_line.text, "Stack: " + ", ".join(role.stack))
             self.assertEqual(len(role.stack), len(set(role.stack)))
             for product in role.products:
-                bullet = next(text for text in texts if text.startswith(f"{product.title}:"))
-                self.assertEqual(bullet, f"{product.title}: {product.description}")
+                bullet = next(text for text in texts if text.startswith(f"{product.title}."))
+                self.assertEqual(bullet, f"{product.title}. {product.description}")
 
     def test_technologies_are_split_into_two_columns(self) -> None:
         left, right = (
@@ -313,7 +317,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 
     def test_freelance_work_is_inside_professional_experience(self) -> None:
         texts = [paragraph.text for paragraph in self.document.paragraphs]
-        professional = texts.index("Professional Experience")
+        professional = texts.index("Professional experience")
         technologies = texts.index("Technologies")
         freelance = next(
             index for index, text in enumerate(texts)
