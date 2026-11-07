@@ -27,6 +27,10 @@ INK = RGBColor(0x11, 0x11, 0x11)
 MUTED = RGBColor(0x88, 0x88, 0x88)
 SUBTLE = RGBColor(0x44, 0x44, 0x44)
 META = RGBColor(0x6E, 0x6E, 0x6E)
+# Heading levels darken with importance: section headings are black, entry
+# titles slightly lighter, job titles lighter again, technology lines lightest.
+ENTRY_TITLE_COLOR = RGBColor(0x2B, 0x2B, 0x2B)
+POSITION_COLOR = RGBColor(0x4A, 0x4A, 0x4A)
 PAGE_WIDTH = Mm(210)
 PAGE_HEIGHT = Mm(297)
 SIDE_MARGIN = Mm(12.7)
@@ -35,6 +39,8 @@ HEADER_COLUMNS = (Emu(CONTENT_WIDTH - Mm(72)), Mm(72))
 PDF_MUTED = Color(0.53, 0.53, 0.53)
 PDF_SUBTLE = Color(0.27, 0.27, 0.27)
 PDF_META = Color(0.43, 0.43, 0.43)
+PDF_ENTRY_TITLE_COLOR = Color(0.17, 0.17, 0.17)
+PDF_POSITION_COLOR = Color(0.29, 0.29, 0.29)
 
 
 def _phone_url(phone: str) -> str:
@@ -286,7 +292,7 @@ def configure_document(document: Document) -> None:
     # Section headings sit closer to the content they introduce than to the
     # section above them.
     heading = document.styles["Heading 1"]
-    _set_style_font(heading, SERIF_FONT, 13.5, MUTED)
+    _set_style_font(heading, SERIF_FONT, 13.5, INK)
     heading.paragraph_format.space_before = Pt(11)
     heading.paragraph_format.space_after = Pt(3)
     heading.paragraph_format.keep_with_next = True
@@ -312,14 +318,14 @@ def configure_document(document: Document) -> None:
 
     # Company, project, and institution names.
     entry_title = _add_style(document, "CV Entry Title")
-    _set_style_font(entry_title, SANS_FONT, 10.5, INK, bold=True)
+    _set_style_font(entry_title, SANS_FONT, 10.5, ENTRY_TITLE_COLOR, bold=True)
     entry_title.paragraph_format.space_before = Pt(5)
     entry_title.paragraph_format.space_after = Pt(0.5)
     entry_title.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
     # Job titles nested under a company.
     position = _add_style(document, "CV Position")
-    _set_style_font(position, SANS_FONT, 9.5, SUBTLE, bold=True)
+    _set_style_font(position, SANS_FONT, 9.5, POSITION_COLOR, bold=True)
     position.paragraph_format.space_before = Pt(3)
     position.paragraph_format.space_after = Pt(0.5)
     position.paragraph_format.line_spacing_rule = WD_LINE_SPACING.SINGLE
@@ -590,7 +596,7 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
 
 def _pdf_section(pdf: canvas.Canvas, title: str, y: float) -> float:
     y -= PDF_SECTION_BEFORE
-    pdf.setFillColor(PDF_MUTED)
+    pdf.setFillColor(black)
     pdf.setFont(PDF_SERIF, PDF_SECTION)
     pdf.drawString(PDF_LEFT, y, title)
     return y - PDF_SECTION_AFTER
@@ -651,7 +657,7 @@ def _pdf_entry_title(
     *,
     suffix: str = "",
 ) -> float:
-    pdf.setFillColor(black)
+    pdf.setFillColor(PDF_ENTRY_TITLE_COLOR)
     pdf.setFont(PDF_SANS_BOLD, PDF_ENTRY)
     pdf.drawString(PDF_LEFT, y, title)
     if suffix:
@@ -665,7 +671,7 @@ def _pdf_entry_title(
 
 
 def _pdf_position(pdf: canvas.Canvas, title: str, date: str, y: float) -> float:
-    pdf.setFillColor(PDF_SUBTLE)
+    pdf.setFillColor(PDF_POSITION_COLOR)
     pdf.setFont(PDF_SANS_BOLD, PDF_POSITION)
     pdf.drawString(PDF_LEFT, y, title)
     pdf.setFillColor(PDF_MUTED)

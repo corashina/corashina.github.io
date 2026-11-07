@@ -251,6 +251,18 @@ class EditableCvBuilderTest(unittest.TestCase):
             role_paragraph.style.font.size.pt,
         )
 
+    def test_heading_levels_get_lighter_as_they_get_smaller(self) -> None:
+        def lightness(style_name: str) -> int:
+            return sum(self.document.styles[style_name].font.color.rgb)
+
+        levels = ["Heading 1", "CV Entry Title", "CV Position", "CV Meta"]
+        self.assertEqual(
+            [lightness(name) for name in levels],
+            sorted(lightness(name) for name in levels),
+        )
+        self.assertEqual(len({lightness(name) for name in levels}), len(levels))
+        self.assertLessEqual(lightness("Heading 1"), 3 * 0x11)
+
     def test_docx_separates_project_titles_from_technology_lines(self) -> None:
         paragraphs = self.document.paragraphs
         for title in PROJECT_TITLES:
