@@ -120,7 +120,6 @@ CV_DATA = CvData(
         github_url="https://github.com/corashina",
         linkedin_text="linkedin.com/in/tomasz-zielinski-a97999161",
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
-        location="Poznań, Poland",
     ),
     profile=(
         "Full-stack developer with six years at Xelto, building React and TypeScript "
