@@ -485,8 +485,11 @@ def _add_header(document: Document, data: CvData) -> None:
     contact = right.paragraphs[0]
     contact.style = "CV Contact"
     contact.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    if data.identity.location:
+        location = contact.add_run(data.identity.location)
+        _set_font(location, SANS_FONT, 9, MUTED)
     for index, (text, url) in enumerate(contact_rows(data)):
-        if index:
+        if index or data.identity.location:
             line_break = contact.add_run()
             line_break.add_break(WD_BREAK.LINE)
         add_hyperlink(contact, text, url, size=9)
@@ -673,6 +676,9 @@ def _pdf_header(pdf: canvas.Canvas, data: CvData) -> float:
     pdf.setFont(PDF_SANS, PDF_BODY)
     pdf.setFillColor(PDF_MUTED)
     y = top + 8
+    if data.identity.location:
+        pdf.drawRightString(PDF_RIGHT, y, data.identity.location)
+        y -= 11
     for text, url in contact_rows(data):
         pdf.drawRightString(PDF_RIGHT, y, text)
         width = stringWidth(text, PDF_SANS, PDF_BODY)

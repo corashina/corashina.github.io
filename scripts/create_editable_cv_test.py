@@ -27,7 +27,7 @@ EXPECTED_HEADINGS = [
     "Education",
     "Additional information",
 ]
-PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Drive", "Don't Sleep With The Fishes"]
+PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Drive"]
 
 
 class EditableCvBuilderTest(unittest.TestCase):
@@ -194,7 +194,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             [(role.title, role.period) for role in CV_DATA.employment.roles],
             [
                 ("Full-Stack Developer", "2024–2026"),
-                ("Junior Frontend Developer", "2020–2024"),
+                ("Frontend Developer", "2020–2024"),
             ],
         )
         self.assertEqual(
@@ -362,7 +362,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             rows,
-            ("corashina.github.io", "corashina@gmail.com", "+48 791 748 226"),
+            ("Poznań, Poland", "corashina.github.io", "corashina@gmail.com", "+48 791 748 226"),
         )
         for value in PROJECT_TITLES:
             self.assertIn(value, self.text)
@@ -375,6 +375,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Haskell Interpreter",
             "GPU Particles",
             "Sushi-Go",
+            "Don't Sleep With The Fishes",
+            "Junior Frontend Developer",
         ):
             self.assertNotIn(obsolete, self.text)
 
