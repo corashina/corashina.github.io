@@ -104,6 +104,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "2017–2020",
             "Additional information",
             "Polish (native)",
+            "Spanish (basic)",
         ]
 
         positions = [self.text.index(fragment) for fragment in expected_fragments]

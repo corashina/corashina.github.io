@@ -239,7 +239,7 @@ CV_DATA = CvData(
             "2016–2017",
         ),
     ),
-    languages=("Polish (native)", "English (fluent)"),
+    languages=("Polish (native)", "English (fluent)", "Spanish (basic)"),
 )
 
 FORBIDDEN_PUBLIC_TERMS = (
