@@ -32,6 +32,9 @@ META = RGBColor(0x78, 0x78, 0x78)
 ENTRY_TITLE_COLOR = RGBColor(0x1A, 0x1A, 0x1A)
 POSITION_COLOR = RGBColor(0x55, 0x55, 0x55)
 HEADING_LETTER_SPACING = 0.8
+# Section heading marker: a small black block left of the heading text.
+HEADING_MARKER_SIZE = 8
+HEADING_MARKER_RAISE = 1  # half-points
 PAGE_WIDTH = Mm(210)
 PAGE_HEIGHT = Mm(297)
 SIDE_MARGIN = Mm(12.7)
@@ -489,8 +492,31 @@ def _add_header(document: Document, data: CvData) -> None:
         add_hyperlink(contact, text, url, size=9)
 
 
+def _add_heading_marker(paragraph) -> None:
+    """Put a small black block before the heading text.
+
+    The marker is a shaded space in a smaller font, raised so it lines up with
+    the capitals. A left paragraph border would join the divider above it.
+    """
+    marker = paragraph.add_run(" ")
+    marker.font.size = Pt(HEADING_MARKER_SIZE)
+    run_properties = marker._r.get_or_add_rPr()
+    position = OxmlElement("w:position")
+    position.set(qn("w:val"), str(HEADING_MARKER_RAISE))
+    run_properties.append(position)
+    shading = OxmlElement("w:shd")
+    shading.set(qn("w:val"), "clear")
+    shading.set(qn("w:color"), "auto")
+    shading.set(qn("w:fill"), "000000")
+    run_properties.append(shading)
+    gap = paragraph.add_run("\u00a0 ")
+    gap.font.size = Pt(HEADING_MARKER_SIZE)
+
+
 def _add_section_heading(document: Document, text: str):
-    paragraph = document.add_heading(text, level=1)
+    paragraph = document.add_paragraph(style="Heading 1")
+    _add_heading_marker(paragraph)
+    paragraph.add_run(text)
     paragraph.paragraph_format.keep_with_next = True
     return paragraph
 
@@ -598,7 +624,10 @@ PDF_WIDTH = PDF_RIGHT - PDF_LEFT
 # heading reads as part of the section that follows.
 PDF_SECTION_BEFORE = 24
 PDF_DIVIDER_DROP = 4
-PDF_SECTION_AFTER = 15
+PDF_SECTION_AFTER = 16
+PDF_MARKER_WIDTH = 3.2
+PDF_MARKER_HEIGHT = 11
+PDF_MARKER_INDENT = 9
 PDF_ENTRY_GAP = 8
 PDF_FONT_CANDIDATES = {
     PDF_SERIF: (
@@ -661,7 +690,8 @@ def _pdf_section(pdf: canvas.Canvas, title: str, y: float, *, divider: bool = Tr
         pdf.line(PDF_LEFT, y - PDF_DIVIDER_DROP, PDF_RIGHT, y - PDF_DIVIDER_DROP)
     y -= PDF_SECTION_BEFORE
     pdf.setFillColor(black)
-    text = pdf.beginText(PDF_LEFT, y)
+    pdf.rect(PDF_LEFT, y - 1.5, PDF_MARKER_WIDTH, PDF_MARKER_HEIGHT, stroke=0, fill=1)
+    text = pdf.beginText(PDF_LEFT + PDF_MARKER_INDENT, y)
     text.setFont(PDF_SANS_BOLD, PDF_SECTION)
     text.setCharSpace(HEADING_LETTER_SPACING)
     text.textOut(title.upper())
