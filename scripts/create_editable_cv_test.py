@@ -37,7 +37,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         cls.output_path = Path(cls._temp_dir.name) / "cv.docx"
         build_cv(cls.output_path)
         cls.document = Document(cls.output_path)
-        body_text = [paragraph.text for paragraph in cls.document.paragraphs]
+        body_text = [paragraph.text.strip() for paragraph in cls.document.paragraphs]
         table_text = [
             paragraph.text
             for table in cls.document.tables
@@ -74,7 +74,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 
     def test_preserves_section_order_and_visible_content(self) -> None:
         headings = [
-            paragraph.text
+            paragraph.text.strip()
             for paragraph in self.document.paragraphs
             if paragraph.style.name == "Heading 1"
         ]
@@ -104,6 +104,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "2017–2020",
             "Additional information",
             "Polish (native)",
+            "Spanish (basic)",
         ]
 
         positions = [self.text.index(fragment) for fragment in expected_fragments]
@@ -264,6 +265,9 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(first_border.get(qn("w:val")), "nil")
         for later in headings[1:]:
             self.assertIsNone(later._p.pPr.find(qn("w:pBdr")))
+        for heading_paragraph in headings:
+            marker = heading_paragraph.runs[0]._r.rPr.find(qn("w:shd"))
+            self.assertEqual(marker.get(qn("w:fill")), "000000")
         self.assertNotIn("Selected Projects", self.text)
         self.assertNotIn("processing of my personal data", self.text)
         self.assertNotIn("GDPR", self.text)
@@ -323,7 +327,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertNotEqual(title_style.font.color.rgb, meta_style.font.color.rgb)
 
     def test_freelance_work_is_inside_professional_experience(self) -> None:
-        texts = [paragraph.text for paragraph in self.document.paragraphs]
+        texts = [paragraph.text.strip() for paragraph in self.document.paragraphs]
         professional = texts.index("Professional experience")
         technologies = texts.index("Technologies")
         freelance = next(
@@ -337,7 +341,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 
     def test_builds_one_page_full_stack_docx_structure(self) -> None:
         headings = [
-            paragraph.text
+            paragraph.text.strip()
             for paragraph in self.document.paragraphs
             if paragraph.style.name == "Heading 1"
         ]
