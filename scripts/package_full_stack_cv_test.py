@@ -96,7 +96,7 @@ class FullStackCvPackagerTest(unittest.TestCase):
                 output_directory / "sources" / "xelto-public-evidence.md"
             ).read_text(encoding="utf-8")
             self.assertIn("Full-Stack Developer", public_evidence)
-            self.assertIn("Junior Frontend Developer", public_evidence)
+            self.assertIn("Frontend Developer", public_evidence)
             self.assertIn("2020–2026", public_evidence)
             for forbidden_term in FORBIDDEN_PUBLIC_TERMS:
                 self.assertNotIn(forbidden_term.casefold(), public_evidence.casefold())

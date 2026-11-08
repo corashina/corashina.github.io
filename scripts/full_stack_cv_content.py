@@ -15,6 +15,7 @@ class Identity:
     github_url: str
     linkedin_text: str
     linkedin_url: str
+    location: str = ""
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,7 @@ class CvData:
         values = [
             self.identity.name,
             self.identity.role,
+            self.identity.location,
             self.identity.phone,
             self.identity.email,
             self.identity.website_text,
@@ -118,6 +120,7 @@ CV_DATA = CvData(
         github_url="https://github.com/corashina",
         linkedin_text="linkedin.com/in/tomasz-zielinski-a97999161",
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+        location="Poznań, Poland",
     ),
     profile=(
         "Full-stack developer with six years at Xelto, building React and TypeScript "
@@ -128,11 +131,11 @@ CV_DATA = CvData(
         "them."
     ),
     technology_groups=(
-        ("Languages", ("TypeScript", "JavaScript", "C#", "Dart", "Rust", "Python", "XSLT/XML")),
-        ("Platforms", ("React", "Node.js", ".NET", "React Native/Expo", "Flutter")),
-        ("Graphics", ("Three.js", "WebGL", "GLSL", "Bevy", "WebAssembly")),
-        ("Systems", ("REST APIs", "JWT", "n8n", "Oracle JD Edwards")),
+        ("Frontend", ("React", "TypeScript", "JavaScript", "React Native/Expo", "Flutter")),
+        ("Backend", ("C#", ".NET", "Node.js", "REST APIs", "JWT")),
+        ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
         ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
+        ("Other", ("Python", "Rust")),
     ),
     employment=Employment(
         company="Xelto",
@@ -177,7 +180,7 @@ CV_DATA = CvData(
                 ),
             ),
             Role(
-                title="Junior Frontend Developer",
+                title="Frontend Developer",
                 period="2020–2024",
                 products=(
                     Project(
@@ -220,15 +223,6 @@ CV_DATA = CvData(
             "Bevy and Rapier physics, compiled to WebAssembly.",
             "https://github.com/corashina/the-long-slop",
             "github.com/corashina/the-long-slop",
-        ),
-        Project(
-            "Don't Sleep With The Fishes",
-            "2026",
-            "TypeScript, Three.js, WebGL, GLSL",
-            "Wrote a browser survival game where the player scavenges a sinking ship and "
-            "keeps a lifeboat going until rescue.",
-            "https://github.com/corashina/dont-sleep-with-the-fishes",
-            "github.com/corashina/dont-sleep-with-the-fishes",
         ),
     ),
     education=(
