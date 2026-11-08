@@ -120,7 +120,6 @@ CV_DATA = CvData(
         github_url="https://github.com/corashina",
         linkedin_text="linkedin.com/in/tomasz-zielinski-a97999161",
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
-        location="Poznań, Poland",
     ),
     profile=(
         "Full-stack developer with six years at Xelto, building React and TypeScript "
@@ -131,9 +130,22 @@ CV_DATA = CvData(
         "them."
     ),
     technology_groups=(
-        ("Frontend", ("React", "TypeScript", "JavaScript", "React Native/Expo", "Flutter")),
+        (
+            "Frontend",
+            (
+                "React",
+                "TypeScript",
+                "JavaScript",
+                "Redux Toolkit",
+                "TanStack Query",
+                "Tailwind CSS",
+                "React Native/Expo",
+                "Flutter",
+            ),
+        ),
         ("Backend", ("C#", ".NET", "Node.js", "REST APIs", "JWT")),
         ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
+        ("Testing", ("Playwright", "Vitest", "React Testing Library")),
         ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
         ("Other", ("Python", "Rust")),
     ),
@@ -187,9 +199,9 @@ CV_DATA = CvData(
                         "Xelcode",
                         "2020–2026",
                         "React, JavaScript, Oracle JD Edwards",
-                        "Built React apps for warehouse and manufacturing scanners that read "
-                        "barcodes, validate each step, print labels, and integrate with Oracle "
-                        "JD Edwards.",
+                        "Built React scanner apps for warehouses and production lines, "
+                        "deployed at 12 client companies: barcode reading, per-step validation, "
+                        "label printing, and Oracle JD Edwards integration.",
                     ),
                 ),
                 bullets=(
