@@ -48,7 +48,7 @@ export function BlogPostPage(): JSX.Element {
 
   if (!post) return <NotFoundPage />;
   return <section className={styles.articlePage} onClick={followFragment} aria-labelledby="article-title">
-    <Link to="/blog" className={styles.backLink}><span aria-hidden="true">←</span> Back to blog</Link>
+    <Link to="/blog" className={styles.backLink}><span aria-hidden="true">←</span> Back to articles</Link>
     <header className={styles.articleHeader}>
       <time dateTime={post.date} className={styles.date}>{formatPostDate(post.date)}</time>
       <h1 id="article-title">{post.title}</h1>

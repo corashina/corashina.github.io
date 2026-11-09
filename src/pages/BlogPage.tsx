@@ -5,7 +5,7 @@ import { formatPostDate, useBlogMetadata } from "../blog/useBlogMetadata";
 import styles from "../styles/blog.module.scss";
 
 export function BlogPage(): JSX.Element {
-  useBlogMetadata("/blog", "Blog | Tomasz Zielinski", "Articles and engineering notes by Tomasz Zielinski.");
+  useBlogMetadata("/blog", "Articles | Tomasz Zielinski", "Articles and engineering notes by Tomasz Zielinski.");
   const orderedPosts = [...posts];
   const particlesIndex = orderedPosts.findIndex(post => post.slug === "sculpting-particles-with-persistent-forces");
   const assistantIndex = orderedPosts.findIndex(post => post.slug === "building-a-private-telegram-assistant");
@@ -13,7 +13,7 @@ export function BlogPage(): JSX.Element {
     [orderedPosts[particlesIndex], orderedPosts[assistantIndex]] =
       [orderedPosts[assistantIndex], orderedPosts[particlesIndex]];
   }
-  return <section className={styles.blog} aria-label="Blog posts">
+  return <section className={styles.blog} aria-label="Articles">
     {posts.length === 0 ? <p>No articles published yet.</p> :
       <ol className={styles.posts}>{orderedPosts.map(post => <li key={post.slug} className={styles.post}>
         <time dateTime={post.date} className={styles.date}>{formatPostDate(post.date)}</time>

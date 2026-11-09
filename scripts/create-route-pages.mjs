@@ -41,7 +41,7 @@ export async function createRoutePages({ distDirectory, postsDirectory, projects
     { path: "contact", ...meta("/contact") },
     {
       path: "blog",
-      title: `Blog | ${pageMeta.siteName}`,
+      title: `Articles | ${pageMeta.siteName}`,
       description: "Articles and engineering notes by Tomasz Zielinski.",
       lastModified: newestPost,
     },
