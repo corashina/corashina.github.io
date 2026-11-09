@@ -61,8 +61,8 @@ it("returns from the active Blog menu to the index and restores non-blog metadat
   expect(screen.getAllByRole("main")).toHaveLength(1);
   await userEvent.click(within(nav).getByRole("link",{name:"Contact"}));
   await screen.findByRole("heading",{name:"Contact",level:1});
-  await waitFor(()=>expect(document.title).toBe("Contact"));
-  expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe("Tomasz Zielinski, full-stack software engineer.");
+  await waitFor(()=>expect(document.title).toBe("Contact | Tomasz Zielinski"));
+  expect(document.querySelector('meta[name="description"]')?.getAttribute("content")).toBe("Contact Tomasz Zielinski, full-stack developer: email, CV, LinkedIn and GitHub.");
 });
 it("ignores an obsolete request when navigating between articles",async()=>{
   mocks.posts.push({...mocks.posts[0],slug:"second",title:"Second"});

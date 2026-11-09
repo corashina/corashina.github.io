@@ -20,6 +20,8 @@ import {
 } from "react-router-dom";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import type { CSSTransitionClassNames } from "react-transition-group/CSSTransition";
+import { getPageMeta } from "../data/pageMeta";
+import { projects } from "../data/projects";
 import styles from "../styles/layout.module.scss";
 import { applyTheme, type Theme } from "../theme/theme";
 import { BackgroundCanvas } from "./BackgroundCanvas";
@@ -150,10 +152,10 @@ export function AppShell(): JSX.Element {
 
   useEffect(() => {
     if (/^\/blog(?:\/[^/]+)?\/?$/.test(location.pathname)) return;
+    const meta = getPageMeta(location.pathname, projects);
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (description) description.content = "Tomasz Zielinski, full-stack software engineer.";
-    const path = location.pathname.split("/").filter((segment) => segment !== "").pop() ?? "Home";
-    document.title = path.charAt(0).toUpperCase() + path.slice(1);
+    if (description) description.content = meta.description;
+    document.title = meta.title;
   }, [location.pathname]);
 
   const direction = resolveTransitionDirection(

@@ -88,3 +88,21 @@ export const featuredProjects: readonly FeaturedProject[] = [
       "Screens for Polish e-invoicing (KSeF) integration rules, logs and PDF/XML invoice views, with XSLT rendering of invoice XML.",
   },
 ];
+
+// schema.org Person for the home page (written into dist/index.html at build time).
+export const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Tomasz Zielinski",
+  jobTitle: "Full-stack developer",
+  url: "https://www.tomasz-zielinski.com/",
+  email: `mailto:${email}`,
+  sameAs: [
+    gitHubLink.href,
+    linkedInLink.href,
+    "https://stackoverflow.com/users/7306664/corashina",
+    "https://x.com/corashina",
+  ],
+  alumniOf: { "@type": "CollegeOrUniversity", name: "University of Southampton" },
+  knowsAbout: ["React", "TypeScript", ".NET", "C#", "Node.js", "React Native", "Oracle JD Edwards", "KSeF"],
+};
