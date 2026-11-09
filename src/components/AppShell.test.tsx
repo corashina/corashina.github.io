@@ -260,7 +260,7 @@ describe("AppShell", () => {
     expect(restoredHome).not.toHaveAttribute("inert");
   });
 
-  it("renders the current contact address, flair, and footer", async () => {
+  it("renders the contact links with the CV right after email, and the footer links", async () => {
     render(
       <MemoryRouter initialEntries={["/contact"]}>
         <App />
@@ -269,38 +269,28 @@ describe("AppShell", () => {
     await screen.findByRole("heading", { name: "Contact" });
 
     const links = screen.getByRole("list", { name: "Contact links" });
-    expect(within(links).getByRole("link", { name: /corashina@gmail\.com/i })).toHaveAttribute(
-      "href",
+    const hrefs = within(links).getAllByRole("link").map((link) => link.getAttribute("href"));
+    expect(hrefs).toEqual([
       "mailto:corashina@gmail.com",
-    );
-    expect(within(links).getByRole("link", { name: /resume/i })).toHaveAttribute(
+      "/tomasz_zielinski.pdf",
+      "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+      "https://github.com/corashina",
+      "https://stackoverflow.com/users/7306664/corashina?tab=profile",
+      "https://x.com/corashina",
+    ]);
+    expect(within(links).getByRole("link", { name: /CV/ })).toHaveAttribute(
       "href",
       "/tomasz_zielinski.pdf",
     );
-    expect(within(links).getByRole("link", { name: /github/i })).toHaveAttribute(
-      "href",
-      "https://github.com/corashina",
-    );
-    expect(within(links).getByRole("link", { name: /stack overflow/i })).toHaveAttribute(
-      "href",
-      "https://stackoverflow.com/users/7306664/corashina?tab=profile",
-    );
-    expect(within(links).getByRole("link", { name: /linkedin/i })).toHaveAttribute(
-      "href",
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+
+    const footerLinks = screen.getByRole("list", { name: "Footer contact links" });
+    expect(within(footerLinks).getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual([
+      "mailto:corashina@gmail.com",
+      "/tomasz_zielinski.pdf",
       "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
-    );
-    expect(within(links).getByRole("link", { name: /x\.com\/corashina/i })).toHaveAttribute(
-      "href",
-      "https://x.com/corashina",
-    );
-    const flair = screen.getByRole("link", { name: "Profile for corashina on Stack Exchange" });
-    expect(flair).toHaveAttribute("href", "https://stackexchange.com/users/9864859");
-    expect(within(flair).getByRole("img")).toHaveAttribute(
-      "src",
-      "https://stackexchange.com/users/flair/9864859.png?theme=default",
-    );
-    expect(within(flair).getByRole("img")).toHaveAttribute("width", "208");
-    expect(within(flair).getByRole("img")).toHaveAttribute("height", "58");
+      "https://github.com/corashina",
+    ]);
     expect(
       screen.getByText(`Copyright © ${new Date().getFullYear()} Tomasz Zielinski`),
     ).toBeInTheDocument();
