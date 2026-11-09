@@ -273,7 +273,7 @@ describe("AppShell", () => {
       "href",
       "mailto:corashina@gmail.com",
     );
-    expect(within(links).getByRole("link", { name: /resume/i })).toHaveAttribute(
+    expect(within(links).getByRole("link", { name: /^cv$/i })).toHaveAttribute(
       "href",
       "/tomasz_zielinski.pdf",
     );

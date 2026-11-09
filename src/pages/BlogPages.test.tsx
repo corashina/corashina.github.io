@@ -51,13 +51,13 @@ it("shows unknown or draft slugs as not found without a fetch",async()=>{
   expect(screen.getByRole("heading",{name:"404"})).toBeInTheDocument();
   expect(mocks.load).not.toHaveBeenCalled();
 });
-it("returns from the active Blog menu to the index and restores non-blog metadata",async()=>{
+it("returns from the active Articles menu to the index and restores non-blog metadata",async()=>{
   render(<MemoryRouter initialEntries={["/blog/example"]}><App/></MemoryRouter>);
   expect(await screen.findByText("Article body")).toBeInTheDocument();
   const nav=screen.getByRole("navigation",{name:"Primary navigation"});
-  expect(within(nav).getByRole("link",{name:"Blog"})).toHaveAttribute("aria-current","page");
-  await userEvent.click(within(nav).getByRole("link",{name:"Blog"}));
-  expect(await screen.findByRole("region",{name:"Blog posts"})).toBeInTheDocument();
+  expect(within(nav).getByRole("link",{name:"Articles"})).toHaveAttribute("aria-current","page");
+  await userEvent.click(within(nav).getByRole("link",{name:"Articles"}));
+  expect(await screen.findByRole("region",{name:"Articles"})).toBeInTheDocument();
   expect(screen.getAllByRole("main")).toHaveLength(1);
   await userEvent.click(within(nav).getByRole("link",{name:"Contact"}));
   await screen.findByRole("heading",{name:"Contact",level:1});
@@ -91,6 +91,6 @@ it("resets scroll when leaving a blog page, but not for a source fragment",async
  await userEvent.click(screen.getByRole("link",{name:"Source link"}));
  expect(scroll).not.toHaveBeenCalled();
  await userEvent.click(screen.getByRole("link",{name:"← All articles"}));
- await screen.findByRole("region",{name:"Blog posts"});
+ await screen.findByRole("region",{name:"Articles"});
  expect(scroll).toHaveBeenCalledWith({top:0,left:0,behavior:"instant"});
 });

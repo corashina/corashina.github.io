@@ -13,7 +13,7 @@ type NavigationProps = {
 const links = [
   { label: "Home", to: "/", end: true },
   { label: "Work", to: "/works", end: true },
-  { label: "Blog", to: "/blog", end: false },
+  { label: "Articles", to: "/blog", end: false },
   { label: "Contact", to: "/contact", end: true },
 ] as const;
 
