@@ -129,29 +129,6 @@
   text-align: center;
 }
 
-.footerLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.25rem;
-  justify-content: center;
-  list-style: none;
-  margin: 0 0 0.5rem;
-  padding: 0;
-}
-
-.footerLinks li {
-  margin: 0;
-}
-
-.footerLinks a,
-.footerLinks a:visited {
-  color: $color-muted-text;
-}
-
-.footerLinks a:hover {
-  color: $color-accent-text;
-}
-
 @media (max-width: ($media-sm - 1px)) {
   .navigation {
     display: grid;

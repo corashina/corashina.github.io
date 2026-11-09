@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { JSDOM } from "jsdom";
 import { expect, it } from "vitest";
 import * as pageMeta from "../src/data/pageMeta";
-import { person } from "../src/data/profile";
+import { person } from "../src/data/person";
 import { projects } from "../src/data/projects";
 import { createRoutePages } from "./create-route-pages.mjs";
 
@@ -57,7 +57,9 @@ it("gives each route its own title, description, canonical URL and share tags", 
   try {
     const project = await read("works/xelcode/index.html");
     expect(project.title).toBe("Xelcode | Tomasz Zielinski");
-    expect(meta(project, 'meta[name="description"]')).toMatch(/deployed at 12 client companies/);
+    expect(meta(project, 'meta[name="description"]')).toBe(
+      "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.",
+    );
     expect(project.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
       "https://www.tomasz-zielinski.com/works/xelcode/",
     );

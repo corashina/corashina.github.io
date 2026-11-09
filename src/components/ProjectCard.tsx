@@ -20,7 +20,6 @@ export function ProjectCard({ project }: ProjectCardProps): JSX.Element {
         <span className={styles.cardTitle}>{project.title}</span>
         <time dateTime={project.startedAt}>{project.startedLabel}</time>
       </span>
-      <span className={styles.cardSummary}>{project.description}</span>
     </Link>
   );
 }
