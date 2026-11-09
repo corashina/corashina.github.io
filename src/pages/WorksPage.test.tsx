@@ -19,7 +19,7 @@ describe("WorksPage", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { level: 1, name: "Work" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 2, name: "commercial" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "commercial · Xelto" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "freelance" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "experiments" })).toBeInTheDocument();
 
@@ -49,7 +49,12 @@ describe("WorksPage", () => {
       expect(within(link).getByText(link.getAttribute("aria-label") ?? "")).toBeInTheDocument();
     }
     const xelcode = screen.getByRole("link", { name: "Xelcode" });
-    expect(within(xelcode).getByText("2021")).toHaveAttribute("dateTime", "2021");
+    expect(within(xelcode).getByText("2020")).toHaveAttribute("dateTime", "2020");
+    expect(
+      within(xelcode).getByText(
+        "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.",
+      ),
+    ).toBeInTheDocument();
     expect(within(xelcode).queryByText(/Started:/)).not.toBeInTheDocument();
   });
 

@@ -116,6 +116,52 @@
   text-align: left;
 }
 
+.detailText h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.detailText h2 {
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.25rem;
+}
+
+.detailText .tools {
+  margin-top: 1rem;
+}
+
+.detailMeta {
+  color: $color-muted-text;
+  margin-top: 0;
+}
+
+.writeUps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.writeUps li {
+  margin: 0 0 0.35rem;
+}
+
+.hireLine {
+  border-top: 1px solid $color-25;
+  color: $color-muted-text;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+
+.cardSummary {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: $color-muted-text;
+  display: -webkit-box;
+  line-clamp: 2;
+  overflow: hidden;
+  padding: 0 0.25rem 0.25rem;
+}
+
 .tools {
   display: flex;
   flex-wrap: wrap;
