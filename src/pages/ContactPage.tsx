@@ -5,8 +5,8 @@ import {
   FaGithub,
   FaLinkedin,
   FaStackOverflow,
-  FaTwitter,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import styles from "../styles/contact.module.scss";
 import { trackContactClick } from "../analytics/analytics";
 
@@ -48,9 +48,9 @@ export function ContactPage(): JSX.Element {
             </a>
           </li>
           <li>
-            <a href="http://twitter.com/corashina" onClick={() => trackContactClick("twitter")}>
-              <FaTwitter aria-hidden="true" />
-              twitter <span>twitter.com/corashina</span>
+            <a href="https://x.com/corashina" onClick={() => trackContactClick("x")}>
+              <FaXTwitter aria-hidden="true" />
+              x <span>x.com/corashina</span>
             </a>
           </li>
         </ul>

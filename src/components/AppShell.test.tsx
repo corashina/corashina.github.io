@@ -289,9 +289,9 @@ describe("AppShell", () => {
       "href",
       "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     );
-    expect(within(links).getByRole("link", { name: /twitter/i })).toHaveAttribute(
+    expect(within(links).getByRole("link", { name: /x\.com\/corashina/i })).toHaveAttribute(
       "href",
-      "http://twitter.com/corashina",
+      "https://x.com/corashina",
     );
     const flair = screen.getByRole("link", { name: "Profile for corashina on Stack Exchange" });
     expect(flair).toHaveAttribute("href", "https://stackexchange.com/users/9864859");
