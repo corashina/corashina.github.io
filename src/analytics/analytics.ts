@@ -1,4 +1,4 @@
-export type ContactMethod = "email" | "cv" | "github" | "linkedin" | "stackoverflow" | "x";
+export type ContactMethod = "email" | "cv" | "github" | "linkedin" | "stackoverflow" | "x" | "stackexchange";
 
 const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
 const productionHosts = new Set([

@@ -41,7 +41,7 @@ const notFoundMeta: PageMeta = {
 
 export const projectMeta = (project: Project): PageMeta => ({
   title: `${project.title} | ${siteName}`,
-  description: project.role ? `${project.description} ${project.role}` : project.description,
+  description: project.description,
 });
 
 /** Metadata for every non-blog route; blog routes get theirs from the post. */

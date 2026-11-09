@@ -17,6 +17,8 @@
   margin-top: $spacing;
 }
 
-.lead {
-  text-align: left;
+.flair {
+  display: block;
+  margin: calc(2 * #{$spacing}) auto 0;
+  width: fit-content;
 }

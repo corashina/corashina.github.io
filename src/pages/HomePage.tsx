@@ -1,70 +1,47 @@
 import type { JSX } from "react";
-import { Link } from "react-router-dom";
-import { trackContactClick } from "../analytics/analytics";
-import {
-  experience,
-  featuredProjects,
-  primaryLinks,
-  toolkitGroups,
-} from "../data/profile";
 import styles from "../styles/home.module.scss";
+
+type ToolkitGroup = {
+  title: string;
+  technologies: readonly string[];
+};
+
+const toolkitGroups = [
+  {
+    title: "Languages",
+    technologies: ["TypeScript", "JavaScript", "C#", "Dart", "XSLT/XML", "GLSL"],
+  },
+  {
+    title: "Platforms",
+    technologies: [".NET", "Node.js", "React", "React Native/Expo", "Flutter", "Three.js/WebGL"],
+  },
+  {
+    title: "Systems",
+    technologies: ["REST APIs", "JWT", "n8n", "Oracle JD Edwards"],
+  },
+  {
+    title: "Delivery",
+    technologies: ["GitHub Actions", "CI/CD", "npm packages", "Vite"],
+  },
+] as const satisfies readonly ToolkitGroup[];
 
 export function HomePage(): JSX.Element {
   return (
     <div className={styles.home}>
       <section className={styles.introduction} aria-labelledby="home-title">
         <h1 id="home-title">Tomasz Zielinski</h1>
-        <h2>full-stack developer · React, TypeScript, .NET</h2>
+        <h2>full-stack developer</h2>
         <p>
-          Full-stack developer with six years at Xelto, building React and TypeScript
-          applications, .NET integrations, and React Native and Flutter mobile apps. My work
-          covers warehouse and manufacturing scanning, approval workflows, Polish e-invoicing
-          (KSeF), and document AI. I build both the interface and the API behind it, and I
-          maintain the CI/CD pipelines and shared npm packages that ship them.
+          I build platforms for business workflows, operational systems, mobile applications,
+          integrations, and document processing. I work across TypeScript, C#, Dart, and XSLT,
+          connecting user-facing products with APIs, data flows, cloud services, and delivery
+          pipelines.
         </p>
-        <p className={styles.availability}>Open to full-stack developer roles.</p>
-        <ul aria-label="Get in touch" className={styles.actions}>
-          {primaryLinks.map((link, index) => (
-            <li key={link.method}>
-              <a
-                className={index === 0 ? styles.primaryAction : styles.action}
-                href={link.href}
-                onClick={() => trackContactClick(link.method)}
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className={styles.experience} aria-labelledby="experience-title">
-        <h2 id="experience-title">Experience</h2>
-        <ol className={styles.timeline}>
-          {experience.map((entry) => (
-            <li key={`${entry.organisation}-${entry.period}`}>
-              <span className={styles.timelineRole}>
-                {entry.title} <span>· {entry.organisation}</span>
-              </span>
-              <span className={styles.timelinePeriod}>{entry.period}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={styles.featured} aria-labelledby="featured-title">
-        <h2 id="featured-title">Selected work</h2>
-        <ul className={styles.featuredList}>
-          {featuredProjects.map((project) => (
-            <li key={project.slug}>
-              <Link to={`/works/${project.slug}`}>{project.title} →</Link>
-              <p>{project.evidence}</p>
-            </li>
-          ))}
-        </ul>
-        <Link className={styles.allWork} to="/works">
-          All work →
-        </Link>
+        <p>
+          My experience covers logistics, manufacturing, workflow automation, e-invoicing, and
+          document AI. I take products from application architecture through integration and
+          release. I also build WebGL side projects with Three.js.
+        </p>
       </section>
 
       <aside className={styles.toolkit} aria-labelledby="toolkit-title">

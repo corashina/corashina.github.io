@@ -159,7 +159,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     import(pathToFileURL(fileURLToPath(new URL(path, import.meta.url))).href);
   const { projects } = await load("../src/data/projects.ts");
   const pageMeta = await load("../src/data/pageMeta.ts");
-  const { person } = await load("../src/data/profile.ts");
+  const { person } = await load("../src/data/person.ts");
   await createRoutePages({
     distDirectory: fileURLToPath(new URL("../dist", import.meta.url)),
     postsDirectory: fileURLToPath(new URL("../content/posts", import.meta.url)),
