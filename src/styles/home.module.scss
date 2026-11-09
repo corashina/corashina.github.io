@@ -13,6 +13,110 @@
   text-align: left;
 }
 
+.introduction > h2 {
+  margin-bottom: 1rem;
+}
+
+.availability {
+  color: $color-accent-text;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+}
+
+.actions li {
+  margin: 0;
+}
+
+.action,
+.primaryAction {
+  border: 1px solid $color-2;
+  border-radius: 999px;
+  display: inline-block;
+  line-height: 1.35;
+  padding: 0.45rem 1rem;
+}
+
+a.primaryAction,
+a.primaryAction:visited {
+  background: $color-3;
+  border-color: $color-3;
+  color: $color-bg;
+}
+
+a.primaryAction:hover,
+a.primaryAction:active {
+  background: $color-1;
+  border-color: $color-1;
+  color: $color-bg;
+}
+
+a.action:hover {
+  border-color: $color-3;
+}
+
+.experience h2,
+.featured h2 {
+  margin-bottom: 0.75rem;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline li {
+  border-bottom: 1px solid $color-25;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0.55rem 0;
+}
+
+.timeline li:last-child {
+  border-bottom: 0;
+}
+
+.timelineRole span,
+.timelinePeriod {
+  color: $color-muted-text;
+}
+
+.featuredList {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.featuredList li {
+  margin: 0;
+}
+
+.featuredList a {
+  font-size: 1.1rem;
+}
+
+.featuredList p {
+  color: $color-muted-text;
+  text-align: left;
+  margin: 0.2rem 0 0;
+}
+
+.allWork {
+  display: inline-block;
+}
+
 .toolkit {
   display: grid;
   gap: 1rem;
@@ -26,6 +130,7 @@
 }
 
 .toolkitGroup {
+  align-content: start;
   display: grid;
   gap: 0.5rem;
 }
@@ -49,6 +154,7 @@
 }
 
 .toolList {
+  align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;

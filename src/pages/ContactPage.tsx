@@ -9,6 +9,7 @@ import {
 import { FaXTwitter } from "react-icons/fa6";
 import styles from "../styles/contact.module.scss";
 import { trackContactClick } from "../analytics/analytics";
+import { cvUrl, email, gitHubLink, linkedInLink } from "../data/profile";
 
 export function ContactPage(): JSX.Element {
   return (
@@ -16,35 +17,38 @@ export function ContactPage(): JSX.Element {
       <h1>Contact</h1>
       <section>
         <h2>find me</h2>
+        <p className={styles.lead}>
+          Open to full-stack developer roles. Email is the fastest way to reach me.
+        </p>
         <ul aria-label="Contact links" className={styles.contact}>
           <li>
-            <a href="mailto:corashina@gmail.com" onClick={() => trackContactClick("email")}>
+            <a href={`mailto:${email}`} onClick={() => trackContactClick("email")}>
               <FaEnvelope aria-hidden="true" />
-              corashina@gmail.com
+              {email}
             </a>
           </li>
           <li>
-            <a href="/tomasz_zielinski.pdf">
+            <a href={cvUrl} onClick={() => trackContactClick("cv")}>
               <FaFile aria-hidden="true" />
-              resume
+              CV <span>PDF</span>
             </a>
           </li>
-          <li className={styles.socialStart}>
-            <a href="https://github.com/corashina" onClick={() => trackContactClick("github")}>
+          <li>
+            <a href={linkedInLink.href} onClick={() => trackContactClick("linkedin")}>
+              <FaLinkedin aria-hidden="true" />
+              linkedin <span>linkedin.com/in/tomasz-zielinski</span>
+            </a>
+          </li>
+          <li>
+            <a href={gitHubLink.href} onClick={() => trackContactClick("github")}>
               <FaGithub aria-hidden="true" />
               github <span>github.com/corashina</span>
             </a>
           </li>
-          <li>
+          <li className={styles.socialStart}>
             <a href="https://stackoverflow.com/users/7306664/corashina?tab=profile" onClick={() => trackContactClick("stackoverflow")}>
               <FaStackOverflow aria-hidden="true" />
               stack overflow <span>stackoverflow.com/corashina</span>
-            </a>
-          </li>
-          <li>
-            <a href="https://www.linkedin.com/in/tomasz-zielinski-a97999161/" onClick={() => trackContactClick("linkedin")}>
-              <FaLinkedin aria-hidden="true" />
-              linkedin <span>linkedin.com/in/tomasz-zielinski</span>
             </a>
           </li>
           <li>
@@ -54,14 +58,6 @@ export function ContactPage(): JSX.Element {
             </a>
           </li>
         </ul>
-        <a className={styles.flair} href="https://stackexchange.com/users/9864859" onClick={() => trackContactClick("stackexchange")}>
-          <img
-            alt="Profile for corashina on Stack Exchange"
-            height="58"
-            src="https://stackexchange.com/users/flair/9864859.png?theme=default"
-            width="208"
-          />
-        </a>
       </section>
     </>
   );
