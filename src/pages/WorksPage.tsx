@@ -21,7 +21,7 @@ export function WorksPage(): JSX.Element {
   return (
     <section className={styles.workPage}>
       <h1>Work</h1>
-      <h2>commercial</h2>
+      <h2>commercial · Xelto</h2>
       <div className={styles.grid}>
         {commercialProjects.map((project) => (
           <ProjectCard key={project.slug} project={project} />
