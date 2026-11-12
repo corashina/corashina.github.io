@@ -36,7 +36,7 @@ const projectData = [
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
   ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
   ["mibsi-cluster-bridge", "MIBSI Cluster Bridge", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi-cluster-bridge.mp4", "https://github.com/corashina/mibsi-cluster-bridge"],
-  ["the-long-slop", "The Long Drive", "Browser recreation of The Long Drive in Rust, Bevy and Rapier, compiled to WebAssembly.", ["rust", "bevy", "rapier", "webassembly"], "2026", "/portfolio/the-long-slop.mp4", "https://github.com/corashina/the-long-slop"],
+  ["the-long-slop", "The Long Drive", "Browser recreation of The Long Drive in Rust, Bevy and Rapier, compiled to WebAssembly.", ["rust", "bevy", "rapier", "webassembly"], "2026", "/portfolio/the-long-slop.mp4", "https://github.com/corashina/the-long-drive"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {

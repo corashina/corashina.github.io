@@ -237,8 +237,8 @@ CV_DATA = CvData(
             "Rust, Bevy, Rapier, WebAssembly",
             "Recreated the desktop driving-survival game for the browser in Rust, using "
             "Bevy and Rapier physics, compiled to WebAssembly.",
-            "https://github.com/corashina/the-long-slop",
-            "github.com/corashina/the-long-slop",
+            "https://github.com/corashina/the-long-drive",
+            "github.com/corashina/the-long-drive",
         ),
     ),
     education=(
