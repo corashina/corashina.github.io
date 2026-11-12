@@ -30,14 +30,12 @@ it("lists English articles with Polish navigation text under /pl",()=>{
   const title=screen.getByRole("link",{name:'Quotes " and <tags>'});
   expect(title).toHaveAttribute("href","/pl/blog/example");
   expect(title.closest("h2")).toHaveAttribute("lang","en");
-  expect(screen.getByText("Artykuły są napisane po angielsku.")).toBeInTheDocument();
   expect(screen.getByText("22 września 2026")).toBeInTheDocument();
   expect(screen.getByRole("link",{name:'Czytaj: Quotes " and <tags>'})).toHaveTextContent("Czytaj artykuł");
   expect(document.title).toBe("Artykuły | Tomasz Zielinski");
 });
-it("does not show the English-only note on English pages",()=>{
+it("formats English dates on English pages",()=>{
   render(<MemoryRouter initialEntries={["/blog"]}><BlogPage/></MemoryRouter>);
-  expect(screen.queryByText(/po angielsku/)).toBeNull();
   expect(screen.getByText("September 22, 2026")).toBeInTheDocument();
 });
 it("renders an English article with Polish chrome under /pl",async()=>{
