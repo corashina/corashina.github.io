@@ -87,7 +87,7 @@ describe("AppShell", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders accessible navigation and closes the mobile menu after navigation", async () => {
+  it("renders accessible navigation with every link shown directly", async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/"]}>
@@ -105,20 +105,20 @@ describe("AppShell", () => {
       "aria-current",
       "page",
     );
-
-    const menuButton = within(navigation).getByRole("button", {
-      name: "Open navigation menu",
-    });
-    expect(menuButton).toHaveAttribute("aria-expanded", "false");
-    expect(menuButton).toHaveAttribute("aria-controls", "primary-menu");
-
-    await user.click(menuButton);
-    expect(menuButton).toHaveAttribute("aria-expanded", "true");
-    expect(menuButton).toHaveAccessibleName("Close navigation menu");
+    expect(within(navigation).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Home",
+      "Work",
+      "Articles",
+      "Contact",
+    ]);
+    expect(within(navigation).queryByRole("button", { name: /navigation menu/i })).toBeNull();
 
     await user.click(within(navigation).getByRole("link", { name: "Contact" }));
     expect(await screen.findByRole("heading", { name: "Contact" })).toBeInTheDocument();
-    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    expect(within(navigation).getByRole("link", { name: "Contact" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 
   it("does not start a route transition when the active navigation link is clicked", async () => {
