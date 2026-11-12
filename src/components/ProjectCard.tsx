@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { Link } from "react-router-dom";
 import type { Project } from "../data/projects";
+import { useLocalizedPath } from "../i18n/useLocale";
 import styles from "../styles/work.module.scss";
 import { ProjectMedia } from "./ProjectMedia";
 
@@ -9,11 +10,12 @@ type ProjectCardProps = {
 };
 
 export function ProjectCard({ project }: ProjectCardProps): JSX.Element {
+  const localize = useLocalizedPath();
   return (
     <Link
       aria-label={project.title}
       className={styles.card}
-      to={`/works/${project.slug}`}
+      to={localize(`/works/${project.slug}`)}
     >
       <ProjectMedia interactive loadingMode="viewport" media={project.media} />
       <span className={styles.cardHeader}>

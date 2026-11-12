@@ -32,12 +32,24 @@
   text-underline-offset: 10px;
 }
 
+.controls {
+  align-items: center;
+  display: flex;
+  float: right;
+  gap: 1.25rem;
+  // Keeps the theme toggle where it sat before the language link was added.
+  margin-top: 0.125rem;
+}
+
+.languageSwitch {
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
 .themeControl {
   background: transparent;
   border: 0;
   cursor: pointer;
-  float: right;
-  margin-top: 0.3rem;
   padding: 0;
 }
 
@@ -119,16 +131,29 @@
     padding: 0.75rem 0;
   }
 
+  .controls {
+    float: none;
+    gap: 0;
+    margin-top: 0;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  // The language link and theme toggle stay 44px tall but 36px wide, so the
+  // Polish menu still fits on one line on a 360px-wide phone.
+  .navigation .languageSwitch {
+    justify-content: center;
+    min-width: 36px;
+    padding: 0;
+  }
+
   .themeControl {
     align-items: center;
     display: flex;
-    float: none;
-    grid-column: 2;
-    grid-row: 1;
     height: 44px;
     justify-content: center;
     margin: 0;
-    width: 44px;
+    width: 36px;
   }
 
   .menu {
@@ -148,11 +173,11 @@
     display: inline-flex;
     font-size: 1rem;
     min-height: 44px;
-    padding: 0 0.4rem;
+    padding: 0 0.25rem;
   }
 
   .navigation ul {
-    margin-left: -0.4rem;
+    margin-left: -0.25rem;
   }
 
   .navigation a.active {

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import type { Locale } from "../i18n/locales";
 export function useBlogMetadata(pathname: string, title: string, description: string): void {
   const location = useLocation();
   useEffect(() => {
@@ -10,6 +11,6 @@ export function useBlogMetadata(pathname: string, title: string, description: st
     element.content = description;
   }, [location.pathname, pathname, title, description]);
 }
-export const formatPostDate = (date: string): string =>
-  new Intl.DateTimeFormat("en", { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })
+export const formatPostDate = (date: string, locale: Locale = "en"): string =>
+  new Intl.DateTimeFormat(locale, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" })
     .format(new Date(date + "T00:00:00Z"));

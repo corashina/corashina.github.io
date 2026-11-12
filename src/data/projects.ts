@@ -1,3 +1,5 @@
+import type { Locale } from "../i18n/locales";
+
 export type ProjectMedia =
   | { kind: "image"; src: string; alt: string }
   | { kind: "video"; src: string; posterSrc: string; alt: string };
@@ -119,6 +121,93 @@ export const projects: readonly Project[] = projectData.map(
     ...projectStartDates[slug],
   }),
 ).sort((first, second) => second.startedAt.localeCompare(first.startedAt));
+
+type ProjectSlug = (typeof projectData)[number][0];
+
+/** Polish text for each project; titles, tools and links stay the same. */
+const polishProjectText: Record<ProjectSlug, { description: string; alt: string }> = {
+  "webgl-minecraft": {
+    description: "Prosty klon Minecrafta zrobiony w three.js",
+    alt: "Scena z klonu Minecrafta w WebGL",
+  },
+  "endless-city": {
+    description: "Nieskończona scena WebGL mocno inspirowana littleworkshop.fr",
+    alt: "Nieskończona proceduralna scena miasta w WebGL",
+  },
+  "flappy-pixie": {
+    description: "Klon Flappy Bird zrobiony w tydzień jako zadanie rekrutacyjne",
+    alt: "Gra Flappy Pixie",
+  },
+  civio: {
+    description: "Generowanie heksagonalnej mapy z użyciem szumu simplex",
+    alt: "Proceduralna mapa heksagonalna",
+  },
+  "particle-simulation": {
+    description: "Generator cząsteczek napisany w GLSL",
+    alt: "Symulacja cząsteczek w GLSL",
+  },
+  fitmed: {
+    description: "Prototyp systemu dla dietetyków",
+    alt: "Interfejs Fitmed",
+  },
+  xelcode: {
+    description: "Procesy magazynowe i produkcyjne obsługiwane skanerami, zintegrowane z Oracle JD Edwards E1.",
+    alt: "Interfejs Xelcode do pracy ze skanerem",
+  },
+  icr: {
+    description: "Interfejsy Document AI do obsługi plików PDF, konfiguracji promptów, analizy i ustrukturyzowanych wyników.",
+    alt: "Interfejs Doc AI do analizy dokumentów",
+  },
+  workflow: {
+    description: "Moduły akceptacji i obiegu zadań do obsługi procesów biznesowych.",
+    alt: "Interfejs akceptacji w Workflow",
+  },
+  holiday: {
+    description: "Procesy administrowania urlopami pracowników.",
+    alt: "Interfejs Holiday do zarządzania urlopami",
+  },
+  einvoicing: {
+    description: "Interfejsy e-fakturowania: reguły integracji, podgląd dokumentów i logów oraz obsługa PDF/XML.",
+    alt: "Interfejs integracji eInvoicing",
+  },
+  xelapps: {
+    description: "Moduły konfiguracji klientów i aplikacji na platformie Xelto.",
+    alt: "Interfejs konfiguracji XELapps",
+  },
+  "dont-sleep-with-the-fishes": {
+    description: "Gra survivalowa w przeglądarce na komputer: przeszukujesz tonący statek i zarządzasz szalupą, czekając na ratunek.",
+    alt: "Gra survivalowa Don't Sleep With The Fishes",
+  },
+  "cosmic-sugar": {
+    description: "Interaktywna symulacja cząsteczek w Three.js z siłami przyciągania i odpychania, którymi można rzeźbić.",
+    alt: "Symulacja cząsteczek Cosmic Sugar",
+  },
+  "mibsi-cluster-bridge": {
+    description: "Eksperymentalne narzędzia do integracji Android Auto i CarPlay z Audi Virtual Cockpit: przekazywanie nawigacji, pakiet instalacyjny i weryfikacja.",
+    alt: "Poglądowy render studyjny smartfona i cyfrowych zegarów z nawigacją",
+  },
+  "the-long-slop": {
+    description: "Przeglądarkowa wersja The Long Drive w Rust, Bevy i Rapier, skompilowana do WebAssembly.",
+    alt: "Łada 2101 z zapalonymi światłami, zaparkowana nocą na pustynnej drodze",
+  },
+};
+
+const polishSourceLabels: Record<string, string> = {
+  "Product overview →": "Opis produktu →",
+};
+
+/** Returns the project with its text in the given language. */
+export const localizeProject = (project: Project, locale: Locale): Project => {
+  if (locale === "en") return project;
+  const text = polishProjectText[project.slug as ProjectSlug];
+  if (!text) return project;
+  return {
+    ...project,
+    description: text.description,
+    media: { ...project.media, alt: text.alt },
+    sourceLabel: polishSourceLabels[project.sourceLabel] ?? project.sourceLabel,
+  };
+};
 
 export const getProjectBySlug = (slug: string): Project | undefined =>
   projects.find((project) => project.slug === slug);

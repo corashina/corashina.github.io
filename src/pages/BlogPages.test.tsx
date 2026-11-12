@@ -25,6 +25,27 @@ it("lists metadata without fetching article bodies and handles an empty blog",()
   render(<MemoryRouter><BlogPage/></MemoryRouter>);
   expect(screen.getByText(/no articles/i)).toBeInTheDocument();
 });
+it("lists English articles with Polish navigation text under /pl",()=>{
+  render(<MemoryRouter initialEntries={["/pl/blog"]}><BlogPage/></MemoryRouter>);
+  const title=screen.getByRole("link",{name:'Quotes " and <tags>'});
+  expect(title).toHaveAttribute("href","/pl/blog/example");
+  expect(title.closest("h2")).toHaveAttribute("lang","en");
+  expect(screen.getByText("22 września 2026")).toBeInTheDocument();
+  expect(screen.getByRole("link",{name:'Czytaj: Quotes " and <tags>'})).toHaveTextContent("Czytaj artykuł");
+  expect(document.title).toBe("Artykuły | Tomasz Zielinski");
+});
+it("formats English dates on English pages",()=>{
+  render(<MemoryRouter initialEntries={["/blog"]}><BlogPage/></MemoryRouter>);
+  expect(screen.getByText("September 22, 2026")).toBeInTheDocument();
+});
+it("renders an English article with Polish chrome under /pl",async()=>{
+  render(<MemoryRouter initialEntries={["/pl/blog/example"]}><Routes><Route path="/pl/blog/:slug" element={<BlogPostPage/>}/></Routes></MemoryRouter>);
+  expect(await screen.findByText("Article body")).toBeInTheDocument();
+  expect(screen.getByRole("link",{name:/Wróć do artykułów/})).toHaveAttribute("href","/pl/blog");
+  expect(screen.getByRole("heading",{name:"W tym artykule"})).toBeInTheDocument();
+  expect(screen.getByRole("heading",{level:1})).toHaveAttribute("lang","en");
+  expect(screen.getByText("Article body").closest("article")).toHaveAttribute("lang","en");
+});
 function article(path="/blog/example") {
   return render(<MemoryRouter initialEntries={[path]}><Routes><Route path="/blog/:slug" element={<BlogPostPage/>}/></Routes></MemoryRouter>);
 }

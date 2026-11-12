@@ -9,14 +9,16 @@ import {
 import { FaXTwitter } from "react-icons/fa6";
 import styles from "../styles/contact.module.scss";
 import { trackContactClick } from "../analytics/analytics";
+import { useMessages } from "../i18n/useLocale";
 
 export function ContactPage(): JSX.Element {
+  const { contact } = useMessages();
   return (
     <>
-      <h1>Contact</h1>
+      <h1>{contact.title}</h1>
       <section>
-        <h2>find me</h2>
-        <ul aria-label="Contact links" className={styles.contact}>
+        <h2>{contact.findMe}</h2>
+        <ul aria-label={contact.linksLabel} className={styles.contact}>
           <li>
             <a href="mailto:corashina@gmail.com" onClick={() => trackContactClick("email")}>
               <FaEnvelope aria-hidden="true" />
@@ -26,7 +28,7 @@ export function ContactPage(): JSX.Element {
           <li>
             <a href="/tomasz_zielinski.pdf" onClick={() => trackContactClick("cv")}>
               <FaFile aria-hidden="true" />
-              cv
+              {contact.cv}
             </a>
           </li>
           <li className={styles.socialStart}>
@@ -56,7 +58,7 @@ export function ContactPage(): JSX.Element {
         </ul>
         <a className={styles.flair} href="https://stackexchange.com/users/9864859" onClick={() => trackContactClick("stackexchange")}>
           <img
-            alt="Profile for corashina on Stack Exchange"
+            alt={contact.flairAlt}
             height="58"
             src="https://stackexchange.com/users/flair/9864859.png?theme=default"
             width="208"

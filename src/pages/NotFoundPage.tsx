@@ -1,11 +1,13 @@
 import type { JSX } from "react";
+import { useMessages } from "../i18n/useLocale";
 
 export function NotFoundPage(): JSX.Element {
+  const { notFound } = useMessages();
   return (
     <section aria-labelledby="not-found-heading">
-      <h1 id="not-found-heading">404</h1>
-      <p>not found</p>
-      <p>Sorry. This page does not exist.</p>
+      <h1 id="not-found-heading">{notFound.title}</h1>
+      <p>{notFound.subtitle}</p>
+      <p>{notFound.body}</p>
     </section>
   );
 }
