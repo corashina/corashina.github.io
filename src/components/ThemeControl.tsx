@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useMessages } from "../i18n/useLocale";
 import type { Theme } from "../theme/theme";
 import styles from "../styles/layout.module.scss";
 
@@ -8,11 +9,11 @@ type ThemeControlProps = {
 };
 
 export function ThemeControl({ theme, onToggle }: ThemeControlProps): JSX.Element {
-  const nextTheme = theme === "dark" ? "light" : "dark";
+  const messages = useMessages();
 
   return (
     <button
-      aria-label={`Switch to ${nextTheme} theme`}
+      aria-label={theme === "dark" ? messages.theme.toLight : messages.theme.toDark}
       className={styles.themeControl}
       onClick={onToggle}
       type="button"

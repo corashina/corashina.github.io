@@ -26,17 +26,26 @@ const withRouteFallback = (page: JSX.Element): JSX.Element => (
   </Suspense>
 );
 
+// Mounted at the root (English) and again under /pl (Polish). Pages read the
+// language from the URL, so they do not need to know which mount they are under.
+const pageRoutes = (
+  <>
+    <Route index element={withRouteFallback(<HomePage />)} />
+    <Route path="works" element={withRouteFallback(<WorksPage />)} />
+    <Route path="works/:slug" element={withRouteFallback(<ProjectPage />)} />
+    <Route path="blog" element={withRouteFallback(<BlogPage />)} />
+    <Route path="blog/:slug" element={withRouteFallback(<BlogPostPage />)} />
+    <Route path="contact" element={withRouteFallback(<ContactPage />)} />
+    <Route path="*" element={withRouteFallback(<NotFoundPage />)} />
+  </>
+);
+
 export function App(): JSX.Element {
   return (
     <Routes>
       <Route element={<AppShell />}>
-        <Route index element={withRouteFallback(<HomePage />)} />
-        <Route path="works" element={withRouteFallback(<WorksPage />)} />
-        <Route path="works/:slug" element={withRouteFallback(<ProjectPage />)} />
-        <Route path="blog" element={withRouteFallback(<BlogPage />)} />
-        <Route path="blog/:slug" element={withRouteFallback(<BlogPostPage />)} />
-        <Route path="contact" element={withRouteFallback(<ContactPage />)} />
-        <Route path="*" element={withRouteFallback(<NotFoundPage />)} />
+        <Route path="pl">{pageRoutes}</Route>
+        {pageRoutes}
       </Route>
     </Routes>
   );

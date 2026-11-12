@@ -21,7 +21,9 @@ import {
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 import type { CSSTransitionClassNames } from "react-transition-group/CSSTransition";
 import { getPageMeta } from "../data/pageMeta";
-import { projects } from "../data/projects";
+import { localizeProject, projects } from "../data/projects";
+import { localeFromPath, stripLocale } from "../i18n/locales";
+import { PageLocaleProvider } from "../i18n/useLocale";
 import styles from "../styles/layout.module.scss";
 import { applyTheme, type Theme } from "../theme/theme";
 import { BackgroundCanvas } from "./BackgroundCanvas";
@@ -119,7 +121,9 @@ export function AppShell(): JSX.Element {
   const location = useLocation();
   const navigationType = useNavigationType();
   const outlet = useOutlet();
-  const routeKey = location.pathname.startsWith("/blog") ? location.pathname + location.search : location.key;
+  const pagePath = stripLocale(location.pathname);
+  const locale = localeFromPath(location.pathname);
+  const routeKey = pagePath.startsWith("/blog") ? location.pathname + location.search : location.key;
   const nodeRef = useMemo(() => createRef<HTMLElement>(), [routeKey]);
   const transitionHistoryRef = useRef<TransitionHistory | null>(null);
   const previousPath = useRef(location.pathname);
@@ -139,7 +143,7 @@ export function AppShell(): JSX.Element {
   useEffect(() => {
     const from = previousPath.current;
     previousPath.current = location.pathname;
-    const isBlog = (path: string) => /^\/blog(?:\/|$)/.test(path);
+    const isBlog = (path: string) => /^\/blog(?:\/|$)/.test(stripLocale(path));
     if (from !== location.pathname && navigationType !== "POP" && !location.hash &&
         (isBlog(from) || isBlog(location.pathname))) {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -151,12 +155,19 @@ export function AppShell(): JSX.Element {
   }, [theme]);
 
   useEffect(() => {
-    if (/^\/blog(?:\/[^/]+)?\/?$/.test(location.pathname)) return;
-    const meta = getPageMeta(location.pathname, projects);
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  useEffect(() => {
+    if (/^\/blog(?:\/[^/]+)?\/?$/.test(pagePath)) return;
+    const meta = getPageMeta(
+      location.pathname,
+      projects.map((project) => localizeProject(project, locale)),
+    );
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (description) description.content = meta.description;
     document.title = meta.title;
-  }, [location.pathname]);
+  }, [location.pathname, locale, pagePath]);
 
   const direction = resolveTransitionDirection(
     navigationType,
@@ -222,7 +233,7 @@ export function AppShell(): JSX.Element {
               unmountOnExit
             >
               <main className={styles.route} ref={nodeRef}>
-                {outlet}
+                <PageLocaleProvider value={locale}>{outlet}</PageLocaleProvider>
               </main>
             </CSSTransition>
           </TransitionGroup>

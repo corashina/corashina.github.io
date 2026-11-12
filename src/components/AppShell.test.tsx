@@ -106,11 +106,13 @@ describe("AppShell", () => {
       "page",
     );
     expect(within(navigation).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "PL",
       "Home",
       "Work",
       "Articles",
       "Contact",
     ]);
+    expect(within(navigation).getByRole("link", { name: "Polska wersja" })).toHaveAttribute("href", "/pl");
     expect(within(navigation).queryByRole("button", { name: /navigation menu/i })).toBeNull();
 
     await user.click(within(navigation).getByRole("link", { name: "Contact" }));

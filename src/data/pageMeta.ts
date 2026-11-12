@@ -1,6 +1,9 @@
 // Shared by the app (document title and description on navigation) and by the
 // build step that writes one HTML file per route (scripts/create-route-pages.mjs).
-// Keep runtime imports out of this file: the build script loads it with Node.
+// The build script loads it with Node, so runtime imports must be local .ts files
+// written with their extension and free of browser or package imports.
+import { localeFromPath, stripLocale, type Locale } from "../i18n/locales.ts";
+import { messagesFor } from "../i18n/messages.ts";
 import type { Project } from "./projects";
 
 export const siteUrl = "https://www.tomasz-zielinski.com";
@@ -9,48 +12,46 @@ export const shareImage = {
   path: "/og-card.png",
   width: 1200,
   height: 630,
-  alt: "Tomasz Zielinski, full-stack developer: React, TypeScript, .NET",
+  alt: messagesFor("en").meta.shareImageAlt,
 };
+
+export const ogLocales: Record<Locale, string> = { en: "en_US", pl: "pl_PL" };
 
 export type PageMeta = {
   title: string;
   description: string;
 };
 
-export const homeMeta: PageMeta = {
-  title: "Tomasz Zielinski · Full-stack developer (React, TypeScript, .NET)",
-  description:
-    "Full-stack developer with six years at Xelto building React, TypeScript and .NET products: warehouse scanning, approval workflows, Polish e-invoicing (KSeF) and document AI.",
-};
+const titled = (title: string): string => `${title} | ${siteName}`;
 
-const worksMeta: PageMeta = {
-  title: `Work | ${siteName}`,
-  description:
-    "Commercial products, freelance work and side projects by Tomasz Zielinski, full-stack developer.",
-};
+export const homeMeta = (locale: Locale): PageMeta => ({
+  title: messagesFor(locale).meta.homeTitle,
+  description: messagesFor(locale).meta.homeDescription,
+});
 
-const contactMeta: PageMeta = {
-  title: `Contact | ${siteName}`,
-  description: "Contact Tomasz Zielinski, full-stack developer: email, CV, LinkedIn and GitHub.",
-};
-
-const notFoundMeta: PageMeta = {
-  title: `Page not found | ${siteName}`,
-  description: homeMeta.description,
-};
+export const articlesMeta = (locale: Locale): PageMeta => ({
+  title: titled(messagesFor(locale).meta.articlesTitle),
+  description: messagesFor(locale).meta.articlesDescription,
+});
 
 export const projectMeta = (project: Project): PageMeta => ({
-  title: `${project.title} | ${siteName}`,
+  title: titled(project.title),
   description: project.description,
 });
 
-/** Metadata for every non-blog route; blog routes get theirs from the post. */
+/**
+ * Metadata for every non-blog route in either language; blog routes get theirs
+ * from the post. `projects` must already be in the language of `pathname`.
+ */
 export function getPageMeta(pathname: string, projects: readonly Project[]): PageMeta {
-  const path = pathname.replace(/\/+$/, "") || "/";
-  if (path === "/") return homeMeta;
-  if (path === "/works") return worksMeta;
-  if (path === "/contact") return contactMeta;
+  const locale = localeFromPath(pathname);
+  const { meta } = messagesFor(locale);
+  const path = stripLocale(pathname).replace(/\/+$/, "") || "/";
+  if (path === "/") return homeMeta(locale);
+  if (path === "/works") return { title: titled(meta.worksTitle), description: meta.worksDescription };
+  if (path === "/contact") return { title: titled(meta.contactTitle), description: meta.contactDescription };
   const projectMatch = /^\/works\/([^/]+)$/.exec(path);
   const project = projectMatch && projects.find((entry) => entry.slug === projectMatch[1]);
-  return project ? projectMeta(project) : notFoundMeta;
+  if (project) return projectMeta(project);
+  return { title: titled(meta.notFoundTitle), description: meta.homeDescription };
 }

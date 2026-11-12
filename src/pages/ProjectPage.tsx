@@ -1,13 +1,16 @@
 import type { JSX } from "react";
 import { useParams } from "react-router-dom";
 import { ProjectMedia } from "../components/ProjectMedia";
-import { getProjectBySlug } from "../data/projects";
+import { getProjectBySlug, localizeProject } from "../data/projects";
+import { useLocale } from "../i18n/useLocale";
 import styles from "../styles/work.module.scss";
 import { NotFoundPage } from "./NotFoundPage";
 
 export function ProjectPage(): JSX.Element {
   const { slug } = useParams();
-  const project = slug ? getProjectBySlug(slug) : undefined;
+  const locale = useLocale();
+  const found = slug ? getProjectBySlug(slug) : undefined;
+  const project = found && localizeProject(found, locale);
 
   if (!project) {
     return <NotFoundPage />;
