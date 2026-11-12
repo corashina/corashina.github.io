@@ -8,7 +8,7 @@
 .post p { text-align: left; max-width: 42rem; line-height: 1.8; font-size: 1.05rem; }
 .date { display: block; font-size: 0.85rem; letter-spacing: 0.035em; color: $color-1; }
 .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0; padding: 0; list-style: none; }
-.tags li { border: 1px solid $color-25; border-radius: 3px; padding: 0.25rem 0.55rem; font-size: 0.75rem; line-height: 1.5; }
+.tags li { border: 1px solid $color-25; border-radius: 999px; padding: 0.2rem 0.65rem; font-size: 0.85rem; line-height: 1.5; }
 .readLink { display: inline-block; margin-top: 0.65rem; border-bottom: 1px solid $color-25; padding-bottom: 0.25rem; }
 .readLink span { color: inherit; }
 .backLink { display: inline-block; margin-bottom: 2rem; }

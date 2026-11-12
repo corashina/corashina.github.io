@@ -10,6 +10,7 @@
 }
 
 .introduction p {
+  max-width: 68ch;
   text-align: left;
 }
 
@@ -67,12 +68,6 @@
   line-height: 1.35;
   margin: 0;
   padding: 0.25rem 0.65rem;
-}
-
-.toolPill:hover {
-  background: $color-3;
-  border-color: $color-3;
-  color: $color-bg;
 }
 
 @media (min-width: $media-md) {

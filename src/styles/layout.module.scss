@@ -25,30 +25,11 @@
   margin-right: 1rem;
 }
 
-.active {
-  color: $color-muted-text;
-}
-
-.menuToggle {
-  background: transparent;
-  border: 0;
-  color: $color-1;
-  cursor: pointer;
-  display: block;
-  height: 2rem;
-  margin: -0.4rem 0 -0.6rem;
-  padding: 0;
-}
-
-.menuToggle:hover,
-.menuToggle:active {
+.navigation a.active {
   color: $color-accent-text;
-}
-
-.menuToggle svg {
-  fill: currentColor;
-  height: 2rem;
-  width: 2rem;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 10px;
 }
 
 .themeControl {
@@ -131,79 +112,50 @@
 
 @media (max-width: ($media-sm - 1px)) {
   .navigation {
+    align-items: center;
     display: grid;
     grid-template-columns: 1fr auto;
     margin-bottom: 2.5rem;
     padding: 0.75rem 0;
   }
 
-  .menuToggle,
   .themeControl {
     align-items: center;
     display: flex;
-    justify-content: center;
-    grid-row: 1;
-    height: 44px;
-    width: 44px;
-    margin: 0;
-  }
-
-  .menuToggle {
-    grid-column: 1;
-    justify-self: start;
-  }
-
-  .menuToggle svg {
-    height: 24px;
-    width: 24px;
-  }
-
-  .themeControl {
     float: none;
     grid-column: 2;
+    grid-row: 1;
+    height: 44px;
+    justify-content: center;
+    margin: 0;
+    width: 44px;
   }
 
   .menu {
-    display: none;
-    grid-column: 1 / -1;
-    margin-top: 0.75rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid $color-25;
-  }
-
-  .menuExpanded {
-    display: block;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
   }
 
   .navigation li {
-    display: block;
+    display: inline-block;
     margin: 0;
   }
 
   .navigation a {
     align-items: center;
     box-sizing: border-box;
-    display: flex;
-    min-height: 48px;
-    padding: 0.5rem 0.65rem;
-    font-size: 1.1rem;
+    display: inline-flex;
+    font-size: 1rem;
+    min-height: 44px;
+    padding: 0 0.4rem;
+  }
+
+  .navigation ul {
+    margin-left: -0.4rem;
   }
 
   .navigation a.active {
-    color: $color-accent-text;
-  }
-
-  .navigation a:hover {
-    background: color-mix(in srgb, $color-3 6%, transparent);
-  }
-
-  .navigation a:focus-visible {
-    outline-offset: -2px;
-  }
-}
-
-@media (min-width: $media-sm) {
-  .menuToggle {
-    display: none;
+    text-underline-offset: 8px;
   }
 }
