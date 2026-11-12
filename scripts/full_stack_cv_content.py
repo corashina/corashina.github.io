@@ -193,6 +193,8 @@ CV_DATA = CvData(
                 bullets=(
                     "Maintained the GitHub Actions CI/CD pipelines, release versioning, and "
                     "npm publishing for shared packages.",
+                    "Use AI coding agents (Claude Code) in daily delivery, with agent-written "
+                    "changes going through tests, CI and code review before release.",
                 ),
             ),
             Role(
