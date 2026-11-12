@@ -477,13 +477,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 class WielkopolskaVariantTest(unittest.TestCase):
     """The Wielkopolska variant adds only the hiring-subsidy wording."""
 
-    def test_profile_appends_one_subsidy_sentence_to_the_default_profile(self) -> None:
-        profile = WIELKOPOLSKA_CV_DATA.profile
-        self.assertTrue(profile.startswith(CV_DATA.profile + " "))
-        self.assertTrue(profile.endswith("(see Additional information)."))
-        self.assertIn("Based in Poznań", profile)
-
-    def test_only_profile_and_additional_lines_differ_from_the_default(self) -> None:
+    def test_only_additional_lines_differ_from_the_default(self) -> None:
         from dataclasses import fields
 
         changed = {
@@ -491,7 +485,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
             for field in fields(CV_DATA)
             if getattr(CV_DATA, field.name) != getattr(WIELKOPOLSKA_CV_DATA, field.name)
         }
-        self.assertEqual(changed, {"profile", "additional_lines"})
+        self.assertEqual(changed, {"additional_lines"})
         self.assertEqual(CV_DATA.additional_lines, ())
         self.assertNotIn("subsid", CV_DATA.visible_text().casefold())
 
@@ -499,7 +493,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
         (label, value), = WIELKOPOLSKA_CV_DATA.additional_lines
         self.assertEqual(label, "Hiring subsidy")
         for fragment in (
-            "Eligible for",
+            "Participant in",
             "Droga do zatrudnienia po węglu",
             "up to PLN 7,000/month",
             "up to 24 months",
@@ -521,7 +515,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
             build_cv(output, WIELKOPOLSKA_CV_DATA)
             paragraphs = [paragraph.text for paragraph in Document(output).paragraphs]
         self.assertEqual(paragraphs[-2], "Languages:  " + ", ".join(CV_DATA.languages))
-        self.assertTrue(paragraphs[-1].startswith("Hiring subsidy:  Eligible for"))
+        self.assertTrue(paragraphs[-1].startswith("Hiring subsidy:  Participant in"))
         self.assertIn(WIELKOPOLSKA_CV_DATA.profile, paragraphs)
 
     def test_pdf_stays_one_page_with_bottom_margin(self) -> None:
@@ -536,7 +530,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
         self.assertGreaterEqual(page.height - max(word["bottom"] for word in words), 36)
         self.assertIn("Hiring subsidy:", text)
         self.assertIn("Droga do zatrudnienia po węglu", text)
-        self.assertIn("Based in Poznań.", text)
+        self.assertNotIn("Poznań", text)
 
 
 if __name__ == "__main__":
