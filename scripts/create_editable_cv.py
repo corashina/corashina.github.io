@@ -18,7 +18,7 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from full_stack_cv_content import CV_DATA, CvData, Project, Role
+from full_stack_cv_content import CV_DATA, CV_VARIANTS, CvData, Project, Role
 
 
 SERIF_FONT = "Times New Roman"
@@ -555,7 +555,7 @@ def _add_project(document: Document, project: Project) -> None:
     _add_description(document, project.description)
 
 
-def build_cv(output_path: Path) -> Path:
+def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -566,17 +566,17 @@ def build_cv(output_path: Path) -> Path:
     document.core_properties.subject = "Curriculum Vitae"
 
     bullet_number_id = _create_bullet_numbering(document)
-    _add_header(document, CV_DATA)
+    _add_header(document, data)
 
     _remove_divider(_add_section_heading(document, "Profile"))
-    _add_description(document, CV_DATA.profile)
+    _add_description(document, data.profile)
 
     _add_section_heading(document, "Professional experience")
-    add_title_date(document, CV_DATA.employment.company, CV_DATA.employment.period)
-    for role in CV_DATA.employment.roles:
+    add_title_date(document, data.employment.company, data.employment.period)
+    for role in data.employment.roles:
         _add_role(document, role, bullet_number_id)
     freelance_title, freelance_place, freelance_period = (
-        part.strip() for part in CV_DATA.earlier_experience[0].split("|")
+        part.strip() for part in data.earlier_experience[0].split("|")
     )
     add_title_date(
         document,
@@ -584,17 +584,17 @@ def build_cv(output_path: Path) -> Path:
         freelance_period,
         suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
     )
-    _add_description(document, CV_DATA.earlier_experience[1])
+    _add_description(document, data.earlier_experience[1])
 
     _add_section_heading(document, "Technologies")
-    _add_technology_grid(document, CV_DATA)
+    _add_technology_grid(document, data)
 
     _add_section_heading(document, "Projects")
-    for project in CV_DATA.personal_projects:
+    for project in data.personal_projects:
         _add_project(document, project)
 
     _add_section_heading(document, "Education")
-    for education in CV_DATA.education:
+    for education in data.education:
         add_title_date(document, education.institution, education.period)
         _add_description(document, education.qualification)
 
@@ -602,9 +602,11 @@ def build_cv(output_path: Path) -> Path:
     _add_labeled_line(
         document,
         "Languages:  ",
-        ", ".join(CV_DATA.languages),
+        ", ".join(data.languages),
         after=0.5,
     )
+    for label, value in data.additional_lines:
+        _add_labeled_line(document, f"{label}:  ", value, after=0.5)
 
     document.save(output_path)
     return output_path
@@ -865,7 +867,7 @@ def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
     return y - 2
 
 
-def build_pdf(output_path: Path) -> Path:
+def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     _register_pdf_fonts()
@@ -878,23 +880,23 @@ def build_pdf(output_path: Path) -> Path:
         initialFontSize=PDF_BODY,
     )
     pdf.setTitle("Tomasz Zielinski - Full-Stack Developer CV")
-    pdf.setAuthor(CV_DATA.identity.name)
+    pdf.setAuthor(data.identity.name)
     pdf.setSubject("Curriculum Vitae")
     pdf.setCreator("scripts/create_editable_cv.py")
     pdf.setKeywords(
-        [technology for _, technologies in CV_DATA.technology_groups for technology in technologies]
+        [technology for _, technologies in data.technology_groups for technology in technologies]
     )
 
-    y = _pdf_header(pdf, CV_DATA)
+    y = _pdf_header(pdf, data)
     y = _pdf_section(pdf, "Profile", y, divider=False)
-    y = _pdf_text(pdf, CV_DATA.profile, y)
+    y = _pdf_text(pdf, data.profile, y)
 
     y = _pdf_section(pdf, "Professional experience", y)
-    y = _pdf_entry_title(pdf, CV_DATA.employment.company, CV_DATA.employment.period, y)
-    for role in CV_DATA.employment.roles:
+    y = _pdf_entry_title(pdf, data.employment.company, data.employment.period, y)
+    for role in data.employment.roles:
         y = _pdf_role(pdf, role, y)
     freelance_title, freelance_place, freelance_period = (
-        part.strip() for part in CV_DATA.earlier_experience[0].split("|")
+        part.strip() for part in data.earlier_experience[0].split("|")
     )
     y = _pdf_entry_title(
         pdf,
@@ -903,13 +905,13 @@ def build_pdf(output_path: Path) -> Path:
         y - PDF_ENTRY_GAP + 2,
         suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
     )
-    y = _pdf_text(pdf, CV_DATA.earlier_experience[1], y)
+    y = _pdf_text(pdf, data.earlier_experience[1], y)
 
     y = _pdf_section(pdf, "Technologies", y)
-    y = _pdf_technology_grid(pdf, CV_DATA, y)
+    y = _pdf_technology_grid(pdf, data, y)
 
     y = _pdf_section(pdf, "Projects", y)
-    for index, project in enumerate(CV_DATA.personal_projects):
+    for index, project in enumerate(data.personal_projects):
         if index:
             y -= PDF_ENTRY_GAP
         y = _pdf_entry_title(pdf, project.title, project.period, y)
@@ -917,14 +919,16 @@ def build_pdf(output_path: Path) -> Path:
         y = _pdf_text(pdf, project.description, y)
 
     y = _pdf_section(pdf, "Education", y)
-    for index, education in enumerate(CV_DATA.education):
+    for index, education in enumerate(data.education):
         if index:
             y -= PDF_ENTRY_GAP
         y = _pdf_entry_title(pdf, education.institution, education.period, y)
         y = _pdf_text(pdf, education.qualification, y)
 
     y = _pdf_section(pdf, "Additional information", y)
-    _pdf_labeled_line(pdf, "Languages:", ", ".join(CV_DATA.languages), y)
+    y = _pdf_labeled_line(pdf, "Languages:", ", ".join(data.languages), y)
+    for label, value in data.additional_lines:
+        y = _pdf_labeled_line(pdf, f"{label}:", value, y)
 
     pdf.showPage()
     pdf.save()
@@ -935,11 +939,18 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Create the editable Tomasz Zielinski CV.")
     parser.add_argument("output", type=Path, help="Destination DOCX path")
     parser.add_argument("--pdf", action="store_true", help="Create a PDF instead of a DOCX")
+    parser.add_argument(
+        "--variant",
+        choices=sorted(CV_VARIANTS),
+        default="default",
+        help="Content variant; 'wielkopolska' adds the EU hiring-subsidy lines",
+    )
     arguments = parser.parse_args()
+    data = CV_VARIANTS[arguments.variant]
     if arguments.pdf:
-        build_pdf(arguments.output)
+        build_pdf(arguments.output, data)
     else:
-        build_cv(arguments.output)
+        build_cv(arguments.output, data)
 
 
 if __name__ == "__main__":
