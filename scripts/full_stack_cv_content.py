@@ -256,7 +256,9 @@ CV_DATA = CvData(
 # contract: Additional information states the EU hiring subsidy (Tomasz was
 # accepted into the project on 2026-11-12). Figures follow the PUP Konin
 # rules for the "Droga do zatrudnienia po węglu" project. The profile stays
-# the same as the default CV.
+# the same as the default CV. Since 2026-11-12 the site's CV link
+# (static/tomasz_zielinski.pdf and the editable DOCX) serves this variant;
+# the default variant is for foreign and B2B applications.
 WIELKOPOLSKA_CV_DATA = replace(
     CV_DATA,
     additional_lines=(
