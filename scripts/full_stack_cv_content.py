@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -70,6 +70,8 @@ class CvData:
     personal_projects: tuple[Project, ...]
     education: tuple[Education, ...]
     languages: tuple[str, ...]
+    # Extra labelled lines under Additional information, after Languages.
+    additional_lines: tuple[tuple[str, str], ...] = ()
 
     @property
     def commercial_projects(self) -> tuple[Project, ...]:
@@ -105,6 +107,8 @@ class CvData:
         for education in self.education:
             values.extend((education.institution, education.qualification, education.period))
         values.extend(self.languages)
+        for label, value in self.additional_lines:
+            values.extend((label, value))
         return "\n".join(values)
 
 
@@ -247,6 +251,31 @@ CV_DATA = CvData(
     ),
     languages=("Polish (native)", "English (fluent)", "Spanish (basic)"),
 )
+
+# Variant for employers in Wielkopolska hiring on a full-time employment
+# contract: the profile mentions the EU hiring subsidy and Additional
+# information gives its terms. Figures follow the PUP Konin rules for the
+# "Droga do zatrudnienia po węglu" project. Change "Eligible for" to
+# "Participant in" once the labour office formally accepts Tomasz.
+WIELKOPOLSKA_CV_DATA = replace(
+    CV_DATA,
+    profile=(
+        CV_DATA.profile
+        + " Based in Poznań. My hire can be co-funded by an EU employment programme "
+        "(see Additional information)."
+    ),
+    additional_lines=(
+        (
+            "Hiring subsidy",
+            'Eligible for the "Droga do zatrudnienia po węglu" programme (EU Just '
+            "Transition Fund). The employer can be reimbursed up to PLN 7,000/month in "
+            "salary and social-security costs for up to 24 months (full-time employment "
+            "contract, workplace in Wielkopolska).",
+        ),
+    ),
+)
+
+CV_VARIANTS = {"default": CV_DATA, "wielkopolska": WIELKOPOLSKA_CV_DATA}
 
 FORBIDDEN_PUBLIC_TERMS = (
     "3,342",
