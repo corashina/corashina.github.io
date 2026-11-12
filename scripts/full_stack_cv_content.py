@@ -253,21 +253,16 @@ CV_DATA = CvData(
 )
 
 # Variant for employers in Wielkopolska hiring on a full-time employment
-# contract: the profile mentions the EU hiring subsidy and Additional
-# information gives its terms. Figures follow the PUP Konin rules for the
-# "Droga do zatrudnienia po węglu" project. Change "Eligible for" to
-# "Participant in" once the labour office formally accepts Tomasz.
+# contract: Additional information states the EU hiring subsidy (Tomasz was
+# accepted into the project on 2026-11-12). Figures follow the PUP Konin
+# rules for the "Droga do zatrudnienia po węglu" project. The profile stays
+# the same as the default CV.
 WIELKOPOLSKA_CV_DATA = replace(
     CV_DATA,
-    profile=(
-        CV_DATA.profile
-        + " Based in Poznań. My hire can be co-funded by an EU employment programme "
-        "(see Additional information)."
-    ),
     additional_lines=(
         (
             "Hiring subsidy",
-            'Eligible for the "Droga do zatrudnienia po węglu" programme (EU Just '
+            'Participant in the "Droga do zatrudnienia po węglu" programme (EU Just '
             "Transition Fund). The employer can be reimbursed up to PLN 7,000/month in "
             "salary and social-security costs for up to 24 months (full-time employment "
             "contract, workplace in Wielkopolska).",
