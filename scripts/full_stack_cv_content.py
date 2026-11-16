@@ -163,7 +163,7 @@ CV_DATA = CvData(
         ),
         ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
         ("Backend", ("C#", ".NET", "Node.js", "JWT")),
-        ("Cloud", ("Azure Functions", "Event Grid", "Bicep")),
+        ("Cloud", ("Azure Functions", "Event Grid")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
         ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
     ),
