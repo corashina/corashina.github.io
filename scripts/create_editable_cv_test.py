@@ -345,9 +345,16 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertGreater(title_style.font.size.pt, meta_style.font.size.pt)
             self.assertNotEqual(title_style.font.color.rgb, meta_style.font.color.rgb)
 
-    def test_freelance_entry_is_left_out_to_keep_one_page(self) -> None:
+    def test_freelance_work_is_inside_professional_experience(self) -> None:
         texts = [paragraph.text.strip() for paragraph in self.document.paragraphs]
-        self.assertFalse(any(text.startswith("Freelance Web Development") for text in texts))
+        professional = texts.index("Professional experience")
+        technologies = texts.index("Technologies")
+        freelance = next(
+            index for index, text in enumerate(texts)
+            if text.startswith("Freelance Web Development")
+        )
+        self.assertLess(professional, freelance)
+        self.assertLess(freelance, technologies)
         self.assertNotIn("Commercial Experience", texts)
         self.assertNotIn("Earlier Experience", texts)
 

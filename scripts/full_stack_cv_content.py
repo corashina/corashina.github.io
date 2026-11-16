@@ -191,9 +191,9 @@ CV_DATA = CvData(
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "React, TypeScript",
-                        "Built the interface where users upload PDFs, configure extraction "
-                        "prompts, and review the structured JSON results.",
+                        "C#, .NET, Azure Functions, React, TypeScript",
+                        "Built much of the .NET extraction service (LLM prompts, vector search, "
+                        "learning from user corrections) and the React UI.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
@@ -241,8 +241,11 @@ CV_DATA = CvData(
             ),
         ),
     ),
-    # The 2018 freelance entry was dropped to keep the CV on one page.
-    earlier_experience=(),
+    earlier_experience=(
+        "Freelance Web Development | Poznan, Poland | May–August 2018",
+        "Built responsive single-page application components and improved page speed "
+        "and SEO.",
+    ),
     personal_projects=(
         Project(
             "MIBSI Cluster Bridge",
