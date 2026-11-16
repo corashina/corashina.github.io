@@ -241,19 +241,11 @@ CV_DATA = CvData(
             "MIBSI Cluster Bridge",
             "2026",
             "Java, Python, QNX, Android Auto, CarPlay",
-            "Reverse-engineered Audi's head unit to show Android Auto and CarPlay navigation "
-            "in the Virtual Cockpit, and packaged an installer with verification checks.",
+            "Integrated Android Auto and CarPlay with the Audi instrument cluster on MIB2 "
+            "firmware: Java modules on QNX, plus Python build scripts that verify every input "
+            "and output.",
             "https://github.com/corashina/mibsi-cluster-bridge",
             "github.com/corashina/mibsi-cluster-bridge",
-        ),
-        Project(
-            "The Long Drive",
-            "2026",
-            "Rust, Bevy, Rapier, WebAssembly",
-            "Recreated the desktop driving-survival game for the browser in Rust, using "
-            "Bevy and Rapier physics, compiled to WebAssembly.",
-            "https://github.com/corashina/the-long-drive",
-            "github.com/corashina/the-long-drive",
         ),
     ),
     education=(
