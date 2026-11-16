@@ -555,6 +555,14 @@ def _add_project(document: Document, project: Project) -> None:
     _add_description(document, project.description)
 
 
+def _add_consent_footer(document: Document, text: str) -> None:
+    footer = document.sections[0].footer
+    paragraph = footer.paragraphs[0]
+    paragraph.paragraph_format.space_before = Pt(0)
+    paragraph.paragraph_format.space_after = Pt(0)
+    _set_font(paragraph.add_run(text), SANS_FONT, 6.5, MUTED)
+
+
 def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -608,6 +616,9 @@ def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
     for label, value in data.additional_lines:
         _add_labeled_line(document, f"{label}:  ", value, after=0.5)
 
+    if data.consent:
+        _add_consent_footer(document, data.consent)
+
     document.save(output_path)
     return output_path
 
@@ -634,6 +645,9 @@ PDF_MARKER_WIDTH = 3.2
 PDF_MARKER_HEIGHT = 11
 PDF_MARKER_INDENT = 9
 PDF_ENTRY_GAP = 8
+# The recruitment-consent line sits in the bottom margin, below the content.
+PDF_CONSENT_SIZE = 6.5
+PDF_CONSENT_BASELINE = 20
 PDF_FONT_CANDIDATES = {
     PDF_SERIF: (
         Path(r"C:\Windows\Fonts\times.ttf"),
@@ -812,6 +826,12 @@ def _pdf_labeled_line(pdf: canvas.Canvas, label: str, value: str, y: float) -> f
     )
 
 
+def _pdf_consent(pdf: canvas.Canvas, text: str) -> None:
+    pdf.setFont(PDF_SANS, PDF_CONSENT_SIZE)
+    pdf.setFillColor(PDF_MUTED)
+    pdf.drawString(PDF_LEFT, PDF_CONSENT_BASELINE, text)
+
+
 def _pdf_technology_grid(pdf: canvas.Canvas, data: CvData, y: float) -> float:
     left_width = PDF_WIDTH * TECHNOLOGY_LEFT_SHARE
     widths = (left_width, PDF_WIDTH - left_width)
@@ -929,6 +949,9 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
     y = _pdf_labeled_line(pdf, "Languages:", ", ".join(data.languages), y)
     for label, value in data.additional_lines:
         y = _pdf_labeled_line(pdf, f"{label}:", value, y)
+
+    if data.consent:
+        _pdf_consent(pdf, data.consent)
 
     pdf.showPage()
     pdf.save()
