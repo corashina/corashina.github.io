@@ -438,6 +438,9 @@ class EditableCvBuilderTest(unittest.TestCase):
             words = [word for word in words if word["size"] >= 7]
             self.assertEqual(" ".join(word["text"] for word in consent_words), GDPR_CONSENT)
             self.assertLess(max(word["x1"] for word in consent_words), rendered_page.width - 36)
+            left_gap = min(word["x0"] for word in consent_words)
+            right_gap = rendered_page.width - max(word["x1"] for word in consent_words)
+            self.assertAlmostEqual(left_gap, right_gap, delta=2)
             content_bottom = max(word["bottom"] for word in words)
             self.assertGreater(min(word["top"] for word in consent_words), content_bottom + 12)
             bottom_gap = rendered_page.height - content_bottom

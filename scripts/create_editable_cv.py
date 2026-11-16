@@ -560,6 +560,7 @@ def _add_consent_footer(document: Document, text: str) -> None:
     paragraph = footer.paragraphs[0]
     paragraph.paragraph_format.space_before = Pt(0)
     paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     _set_font(paragraph.add_run(text), SANS_FONT, 6.5, MUTED)
 
 
@@ -830,7 +831,7 @@ def _pdf_labeled_line(pdf: canvas.Canvas, label: str, value: str, y: float) -> f
 def _pdf_consent(pdf: canvas.Canvas, text: str) -> None:
     pdf.setFont(PDF_SANS, PDF_CONSENT_SIZE)
     pdf.setFillColor(PDF_MUTED)
-    pdf.drawString(PDF_LEFT, PDF_CONSENT_BASELINE, text)
+    pdf.drawCentredString(PDF_PAGE_WIDTH / 2, PDF_CONSENT_BASELINE, text)
 
 
 def _pdf_technology_grid(pdf: canvas.Canvas, data: CvData, y: float) -> float:
