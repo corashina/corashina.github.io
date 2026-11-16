@@ -162,7 +162,7 @@ CV_DATA = CvData(
             ),
         ),
         ("Backend", ("C#", ".NET", "Node.js", "REST APIs", "JWT")),
-        ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
+        ("Integrations", ("KSeF", "XSLT/XML", "n8n")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
         ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
     ),
@@ -211,8 +211,6 @@ CV_DATA = CvData(
                     ),
                 ),
                 bullets=(
-                    "Also built a logistics booking app and a leave system with manager "
-                    "approvals.",
                     "Set up build and release pipelines in Azure DevOps and GitHub Actions, "
                     "and published our shared React components to npm.",
                 ),
@@ -226,14 +224,14 @@ CV_DATA = CvData(
                         "2020–2026",
                         "React, JavaScript",
                         "Scanner apps for warehouses and production lines at 12 "
-                        "manufacturers, connected to their ERP: barcode reading, step-by-step "
-                        "validation and label printing, with MES versions for production.",
+                        "manufacturers. Workers scan barcodes on handheld terminals to receive "
+                        "goods, move stock between locations and report production steps. Each "
+                        "step is checked against the ERP before it is saved, and the app prints "
+                        "labels for the scanned items. Processes are configured per client as "
+                        "step-by-step flows, so one codebase served every site.",
                     ),
                 ),
-                bullets=(
-                    "Added translations and multi-step state so one codebase served clients "
-                    "including Fakro, Filtron, Pernod Ricard and Bakoma.",
-                ),
+                bullets=(),
             ),
         ),
     ),
@@ -296,6 +294,9 @@ FORBIDDEN_PUBLIC_TERMS = (
     "3,342",
     "17 private",
     "Roldrob",
+    "Filtron",
+    "Fakro",
+    "Bakoma",
     "Walstead",
     "LSC",
     "Malow",
