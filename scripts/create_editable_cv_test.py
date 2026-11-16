@@ -32,7 +32,7 @@ EXPECTED_HEADINGS = [
     "Education",
     "Additional information",
 ]
-PROJECT_TITLES = ["MIBSI Cluster Bridge", "The Long Drive"]
+PROJECT_TITLES = ["MIBSI Cluster Bridge"]
 
 
 class EditableCvBuilderTest(unittest.TestCase):
@@ -57,7 +57,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         cls._temp_dir.cleanup()
 
     def test_profile_names_employer_stack_and_domains(self) -> None:
-        for fragment in ("six years at Xelto", "React and TypeScript", "KSeF", "document AI"):
+        for fragment in ("six years at Xelto", "React/TypeScript", "KSeF", "document AI"):
             self.assertIn(fragment, CV_DATA.profile)
         self.assertNotIn("take ownership across the delivery lifecycle", CV_DATA.profile)
 
@@ -98,9 +98,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Profile",
             "Professional experience",
             "Xelto\t2020–2026",
-            "Workflow",
+            "Approval workflows",
             "Xelcode",
-            "Freelance Web Development",
             "Technologies",
             "Projects",
             *PROJECT_TITLES,
@@ -204,7 +203,14 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             [project.title for project in CV_DATA.commercial_projects],
-            ["Workflow", "e-Invoicing / KSeF", "Document AI / ICR", "XELapps and mobile", "Xelcode"],
+            [
+                "XELapps",
+                "Document AI / ICR",
+                "e-Invoicing / KSeF",
+                "Approval workflows",
+                "VendorPortal",
+                "Xelcode",
+            ],
         )
         self.assertEqual(
             [project.title for project in CV_DATA.personal_projects],
@@ -285,16 +291,16 @@ class EditableCvBuilderTest(unittest.TestCase):
         run = footer.paragraphs[0].runs[0]
         self.assertEqual(run.font.size.pt, 6.5)
 
-    def test_each_role_lists_its_stack_once_above_short_product_bullets(self) -> None:
+    def test_each_role_goes_straight_to_product_bullets_without_a_stack_line(self) -> None:
         texts = [paragraph.text for paragraph in self.document.paragraphs]
+        self.assertFalse(any(text.startswith("Stack:") for text in texts))
         for role in CV_DATA.employment.roles:
             index = next(
                 index for index, text in enumerate(texts) if text.startswith(role.title)
             )
-            stack_line = self.document.paragraphs[index + 1]
-            self.assertEqual(stack_line.style.name, "CV Meta")
-            self.assertEqual(stack_line.text, "Stack: " + ", ".join(role.stack))
-            self.assertEqual(len(role.stack), len(set(role.stack)))
+            first = role.products[0] if role.products else None
+            if first:
+                self.assertTrue(texts[index + 1].startswith(f"{first.title}."))
             for product in role.products:
                 bullet = next(text for text in texts if text.startswith(f"{product.title}."))
                 self.assertEqual(bullet, f"{product.title}. {product.description}")
@@ -439,11 +445,14 @@ class EditableCvBuilderTest(unittest.TestCase):
             words = [word for word in words if word["size"] >= 7]
             self.assertEqual(" ".join(word["text"] for word in consent_words), GDPR_CONSENT)
             self.assertLess(max(word["x1"] for word in consent_words), rendered_page.width - 36)
+            left_gap = min(word["x0"] for word in consent_words)
+            right_gap = rendered_page.width - max(word["x1"] for word in consent_words)
+            self.assertAlmostEqual(left_gap, right_gap, delta=2)
             content_bottom = max(word["bottom"] for word in words)
             self.assertGreater(min(word["top"] for word in consent_words), content_bottom + 12)
             bottom_gap = rendered_page.height - content_bottom
             self.assertGreaterEqual(bottom_gap, 36)
-            self.assertLessEqual(bottom_gap, 90)
+            self.assertLessEqual(bottom_gap, 155)
 
             lines: dict[float, list[dict]] = {}
             for word in words:

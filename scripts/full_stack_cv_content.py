@@ -51,6 +51,8 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
+    # A plain sentence after the role bullets. Empty hides it.
+    client_note: str = ""
 
 
 @dataclass(frozen=True)
@@ -103,6 +105,7 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
+            self.employment.client_note,
         ]
         for label, technologies in self.technology_groups:
             values.extend((label, *technologies))
@@ -139,12 +142,13 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years at Xelto, building React and TypeScript "
-        "applications, .NET integrations, and React Native and Flutter mobile apps. My "
-        "work covers warehouse and manufacturing scanning, approval workflows, Polish "
-        "e-invoicing (KSeF), and document AI. I build both the interface and the API "
-        "behind it, and I maintain the CI/CD pipelines and shared npm packages that ship "
-        "them."
+        "Full-stack developer with six years at Xelto, building software that runs "
+        "behind the paperwork at manufacturing and logistics companies. I wrote much of "
+        "our document AI service, which reads invoices with an LLM and gets better as "
+        "users correct it. I also built our KSeF e-invoicing and approval workflow "
+        "products, warehouse scanning tied to the client's ERP, and the mobile app that "
+        "covers them. I work in C#/.NET on Azure and in React/TypeScript, and I set up "
+        "the pipelines that deploy it."
     ),
     technology_groups=(
         (
@@ -155,57 +159,67 @@ CV_DATA = CvData(
                 "JavaScript",
                 "Redux Toolkit",
                 "TanStack Query",
-                "Tailwind CSS",
-                "React Native/Expo",
-                "Flutter",
             ),
         ),
-        ("Backend", ("C#", ".NET", "Node.js", "REST APIs", "JWT")),
-        ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
+        ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
+        ("Backend", ("C#", ".NET", "Node.js", "JWT")),
+        ("Cloud", ("Azure Functions", "Event Grid", "Bicep")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
-        ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
-        ("Other", ("Python", "Rust")),
+        ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
     ),
     employment=Employment(
         company="Xelto",
         period="2020–2026",
+        client_note=(
+            "Worked directly with client teams at Pernod Ricard, Fakro, Filtron, Bakoma, "
+            "Walstead and CTK Logistics, from requirements to rollout."
+        ),
         roles=(
             Role(
                 title="Full-Stack Developer",
                 period="2024–2026",
                 products=(
                     Project(
-                        "Workflow",
+                        "XELapps",
                         "2024–2026",
-                        "React, TypeScript, REST APIs",
-                        "Built configurable approval and business-process modules that "
-                        "handle documents.",
-                    ),
-                    Project(
-                        "e-Invoicing / KSeF",
-                        "2024–2026",
-                        "React, TypeScript, .NET, XSLT/XML",
-                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
-                        "views, with XSLT rendering of invoice XML.",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Web platform that hosts nine React business apps in one shell, passing "
+                        "config, navigation and sign-in between them. Built its user and "
+                        "application setup and JWT sign-in. On mobile, one Expo app covers six "
+                        "of the products, with SSO and store releases via EAS.",
                     ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "React, TypeScript, PDF, JSON",
-                        "Built the interface where users upload PDFs, configure extraction "
-                        "prompts, and review the structured JSON results.",
+                        "C#, .NET, Azure Functions, React, TypeScript",
+                        "Built much of the .NET extraction service (LLM prompts, vector search, "
+                        "learning from user corrections) and the React UI.",
                     ),
                     Project(
-                        "XELapps and mobile",
+                        "e-Invoicing / KSeF",
                         "2024–2026",
-                        "React Native/Expo, Flutter, JWT",
-                        "Built the platform's user and application setup and JWT sign-in, "
-                        "plus React Native/Expo and Flutter apps for business-process access.",
+                        "XSLT/XML",
+                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
+                        "views, with XSLT rendering of invoice XML.",
+                    ),
+                    Project(
+                        "Approval workflows",
+                        "2024–2026",
+                        "REST APIs",
+                        "Built the workflow designer (versions, history), approval chains with "
+                        "substitutes, and a configurable invoice editor.",
+                    ),
+                    Project(
+                        "VendorPortal",
+                        "2024–2026",
+                        "React, TypeScript",
+                        "Supplier portal where vendors register containers and shipments, "
+                        "matching their item codes and orders to the client's.",
                     ),
                 ),
                 bullets=(
-                    "Maintained the GitHub Actions CI/CD pipelines, release versioning, and "
-                    "npm publishing for shared packages.",
+                    "Set up build and release pipelines in Azure DevOps and GitHub Actions, "
+                    "and published our shared React components to npm.",
                 ),
             ),
             Role(
@@ -215,17 +229,15 @@ CV_DATA = CvData(
                     Project(
                         "Xelcode",
                         "2020–2026",
-                        "React, JavaScript, Oracle JD Edwards",
-                        "Built React scanner apps for warehouses and production lines, "
-                        "deployed at 12 client companies: barcode reading, per-step validation, "
-                        "label printing, and Oracle JD Edwards integration.",
+                        "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
+                        "Scanner apps for warehouses and production lines, configured per "
+                        "client as step-by-step flows. Built the scanning layer in Java and "
+                        "Kotlin on Android with the Zebra, Honeywell and Urovo SDKs, checked "
+                        "each scan against the ERP and printed labels on the device, so stock "
+                        "moves and production reports are booked live.",
                     ),
                 ),
-                bullets=(
-                    "Added localisation and multi-step process state to the scanner screens.",
-                    "Maintained the shared UI components and API code used across Xelto's "
-                    "products.",
-                ),
+                bullets=(),
             ),
         ),
     ),
@@ -238,27 +250,22 @@ CV_DATA = CvData(
         Project(
             "MIBSI Cluster Bridge",
             "2026",
-            "Java, Python, QNX, Android Auto, CarPlay",
-            "Reverse-engineered Audi's head unit to show Android Auto and CarPlay navigation "
-            "in the Virtual Cockpit, and packaged an installer with verification checks.",
+            "Java, QNX, Android Auto, CarPlay",
+            "Integrated Android Auto and CarPlay with the Audi instrument cluster on MIB2 "
+            "firmware, with Java modules running on QNX.",
             "https://github.com/corashina/mibsi-cluster-bridge",
             "github.com/corashina/mibsi-cluster-bridge",
         ),
-        Project(
-            "The Long Drive",
-            "2026",
-            "Rust, Bevy, Rapier, WebAssembly",
-            "Recreated the desktop driving-survival game for the browser in Rust, using "
-            "Bevy and Rapier physics, compiled to WebAssembly.",
-            "https://github.com/corashina/the-long-drive",
-            "github.com/corashina/the-long-drive",
-        ),
     ),
     education=(
-        Education("University of Southampton", "BSc Computer Science", "2017–2020"),
+        Education(
+            "University of Southampton",
+            "BSc Computer Science, School of Electronics and Computer Science",
+            "2017–2020",
+        ),
         Education(
             "Poznan University of Technology",
-            "Information Engineering",
+            "Information Engineering, Faculty of Electrical Engineering",
             "2016–2017",
         ),
     ),
@@ -291,10 +298,6 @@ FORBIDDEN_PUBLIC_TERMS = (
     "3,342",
     "17 private",
     "Roldrob",
-    "Filtron",
-    "Fakro",
-    "Bakoma",
-    "Walstead",
     "LSC",
     "Malow",
 )
