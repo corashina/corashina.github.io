@@ -230,15 +230,13 @@ CV_DATA = CvData(
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Scanner apps for warehouses and production lines, configured per "
-                        "client as step-by-step flows.",
+                        "client as step-by-step flows. Built the scanning layer in Java and "
+                        "Kotlin on Android with the Zebra, Honeywell and Urovo SDKs, checked "
+                        "each scan against the ERP and printed labels on the device, so stock "
+                        "moves and production reports are booked live.",
                     ),
                 ),
-                bullets=(
-                    "Built the scanning layer in Java and Kotlin on Android with the vendor "
-                    "SDKs for Zebra, Honeywell and Urovo terminals.",
-                    "Validated each scan against the ERP and printed labels on the device, so "
-                    "receipts, stock moves and production reports are booked live.",
-                ),
+                bullets=(),
             ),
         ),
     ),
