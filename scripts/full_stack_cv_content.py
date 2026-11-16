@@ -60,6 +60,15 @@ class Education:
     period: str
 
 
+# One recruitment-consent line for every employer. Polish recruiters expect it,
+# and it covers future processes too, so it does not name a company.
+GDPR_CONSENT = (
+    "I consent to the processing of my personal data for the purposes of current "
+    "and future recruitment processes, in accordance with Art. 6(1)(a) and (b) GDPR "
+    "(Regulation (EU) 2016/679)."
+)
+
+
 @dataclass(frozen=True)
 class CvData:
     identity: Identity
@@ -72,6 +81,8 @@ class CvData:
     languages: tuple[str, ...]
     # Extra labelled lines under Additional information, after Languages.
     additional_lines: tuple[tuple[str, str], ...] = ()
+    # Printed in small grey type at the foot of the page. Empty hides it.
+    consent: str = GDPR_CONSENT
 
     @property
     def commercial_projects(self) -> tuple[Project, ...]:
@@ -109,6 +120,8 @@ class CvData:
         values.extend(self.languages)
         for label, value in self.additional_lines:
             values.extend((label, value))
+        if self.consent:
+            values.append(self.consent)
         return "\n".join(values)
 
 

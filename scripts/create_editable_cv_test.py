@@ -16,7 +16,12 @@ from pypdf import PdfReader
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from create_editable_cv import build_cv, build_pdf, contact_rows
-from full_stack_cv_content import CV_DATA, FORBIDDEN_PUBLIC_TERMS, WIELKOPOLSKA_CV_DATA
+from full_stack_cv_content import (
+    CV_DATA,
+    FORBIDDEN_PUBLIC_TERMS,
+    GDPR_CONSENT,
+    WIELKOPOLSKA_CV_DATA,
+)
 
 
 EXPECTED_HEADINGS = [
@@ -269,8 +274,16 @@ class EditableCvBuilderTest(unittest.TestCase):
             marker = heading_paragraph.runs[0]._r.rPr.find(qn("w:shd"))
             self.assertEqual(marker.get(qn("w:fill")), "000000")
         self.assertNotIn("Selected Projects", self.text)
-        self.assertNotIn("processing of my personal data", self.text)
+        # The consent clause lives in the page footer, not the body.
         self.assertNotIn("GDPR", self.text)
+
+    def test_docx_footer_carries_the_general_gdpr_consent(self) -> None:
+        footer = self.document.sections[0].footer
+        self.assertEqual(
+            "\n".join(paragraph.text for paragraph in footer.paragraphs), GDPR_CONSENT
+        )
+        run = footer.paragraphs[0].runs[0]
+        self.assertEqual(run.font.size.pt, 6.5)
 
     def test_each_role_lists_its_stack_once_above_short_product_bullets(self) -> None:
         texts = [paragraph.text for paragraph in self.document.paragraphs]
@@ -422,7 +435,13 @@ class EditableCvBuilderTest(unittest.TestCase):
                 rendered_page = pdf.pages[0]
                 words = rendered_page.extract_words(extra_attrs=["fontname", "size"])
             self.assertTrue(words)
-            bottom_gap = rendered_page.height - max(word["bottom"] for word in words)
+            consent_words = [word for word in words if word["size"] < 7]
+            words = [word for word in words if word["size"] >= 7]
+            self.assertEqual(" ".join(word["text"] for word in consent_words), GDPR_CONSENT)
+            self.assertLess(max(word["x1"] for word in consent_words), rendered_page.width - 36)
+            content_bottom = max(word["bottom"] for word in words)
+            self.assertGreater(min(word["top"] for word in consent_words), content_bottom + 12)
+            bottom_gap = rendered_page.height - content_bottom
             self.assertGreaterEqual(bottom_gap, 36)
             self.assertLessEqual(bottom_gap, 90)
 
@@ -525,9 +544,11 @@ class WielkopolskaVariantTest(unittest.TestCase):
             self.assertEqual(len(PdfReader(output).pages), 1)
             with pdfplumber.open(output) as pdf:
                 page = pdf.pages[0]
-                words = page.extract_words()
+                words = page.extract_words(extra_attrs=["size"])
                 text = page.extract_text()
-        self.assertGreaterEqual(page.height - max(word["bottom"] for word in words), 36)
+        content = [word for word in words if word["size"] >= 7]
+        self.assertGreaterEqual(page.height - max(word["bottom"] for word in content), 36)
+        self.assertIn("Art. 6(1)(a) and (b) GDPR", text)
         self.assertIn("Hiring subsidy:", text)
         self.assertIn("Droga do zatrudnienia po węglu", text)
         self.assertNotIn("Poznań", text)
