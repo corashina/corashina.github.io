@@ -524,29 +524,29 @@ def _add_section_heading(document: Document, text: str):
     return paragraph
 
 
-def _add_product_bullet(document: Document, product: Project, number_id: int) -> None:
+# Matches PDF_BULLET_GAP and PDF_ROLE_GAP.
+DOCX_BULLET_GAP = Pt(3.5)
+DOCX_ROLE_GAP = Pt(10)
+
+
+def _add_product_bullet(document: Document, product: Project, number_id: int):
     paragraph = _add_bullet(document, "", number_id)
     name = paragraph.add_run(f"{product.title}.")
     name.font.bold = True
     paragraph.add_run(f" {product.description}")
+    return paragraph
 
 
-def _add_stack_line(document: Document, role: Role) -> None:
-    paragraph = document.add_paragraph(style="CV Meta")
-    paragraph.paragraph_format.keep_with_next = True
-    label = paragraph.add_run("Stack:")
-    label.font.bold = True
-    paragraph.add_run(" " + ", ".join(role.stack))
-
-
-def _add_role(document: Document, role: Role, bullet_number_id: int) -> None:
+def _add_role(document: Document, role: Role, bullet_number_id: int, last: bool) -> None:
     add_title_date(document, role.title, role.period, style="CV Position")
-    if role.stack:
-        _add_stack_line(document, role)
-    for product in role.products:
-        _add_product_bullet(document, product, bullet_number_id)
-    for bullet in role.bullets:
-        _add_bullet(document, bullet, bullet_number_id)
+    paragraphs = [
+        _add_product_bullet(document, product, bullet_number_id) for product in role.products
+    ]
+    paragraphs += [_add_bullet(document, bullet, bullet_number_id) for bullet in role.bullets]
+    for paragraph in paragraphs:
+        paragraph.paragraph_format.space_after = DOCX_BULLET_GAP
+    if paragraphs and not last:
+        paragraphs[-1].paragraph_format.space_after = DOCX_ROLE_GAP
 
 
 def _add_project(document: Document, project: Project) -> None:
@@ -582,8 +582,9 @@ def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
 
     _add_section_heading(document, "Professional experience")
     add_title_date(document, data.employment.company, data.employment.period)
-    for role in data.employment.roles:
-        _add_role(document, role, bullet_number_id)
+    roles = data.employment.roles
+    for index, role in enumerate(roles):
+        _add_role(document, role, bullet_number_id, last=index == len(roles) - 1)
     if data.earlier_experience:
         freelance_title, freelance_place, freelance_period = (
             part.strip() for part in data.earlier_experience[0].split("|")
@@ -858,23 +859,22 @@ def _pdf_technology_grid(pdf: canvas.Canvas, data: CvData, y: float) -> float:
     return min(bottoms)
 
 
+# Space under each experience bullet and between roles. The role stack is
+# not printed: the Technologies section lists it once, which keeps the
+# experience section even.
+PDF_BULLET_GAP = 3.5
+PDF_ROLE_GAP = 10
+
+
 def _pdf_bullet(pdf: canvas.Canvas, segments: list[Segment], y: float) -> float:
     pdf.setFillColor(black)
     pdf.setFont(PDF_SANS, PDF_BODY)
     pdf.drawString(PDF_LEFT + 1, y, "\N{BULLET}")
-    return _pdf_rich_text(pdf, segments, PDF_LEFT + 9, y, PDF_WIDTH - 9) - 0.6
+    return _pdf_rich_text(pdf, segments, PDF_LEFT + 9, y, PDF_WIDTH - 9) - PDF_BULLET_GAP
 
 
 def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
-    y = _pdf_position(pdf, role.title, role.period, y)
-    if role.stack:
-        y = _pdf_rich_text(
-            pdf,
-            [("Stack:", PDF_SANS_BOLD, PDF_META), (" " + ", ".join(role.stack), PDF_SANS, PDF_META)],
-            PDF_LEFT,
-            y,
-            PDF_WIDTH,
-        ) - 1
+    y = _pdf_position(pdf, role.title, role.period, y) - 1
     for product in role.products:
         y = _pdf_bullet(
             pdf,
@@ -886,7 +886,7 @@ def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
         )
     for bullet in role.bullets:
         y = _pdf_bullet(pdf, [(bullet, PDF_SANS, black)], y)
-    return y - 2
+    return y
 
 
 def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
@@ -915,7 +915,9 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
 
     y = _pdf_section(pdf, "Professional experience", y)
     y = _pdf_entry_title(pdf, data.employment.company, data.employment.period, y)
-    for role in data.employment.roles:
+    for index, role in enumerate(data.employment.roles):
+        if index:
+            y -= PDF_ROLE_GAP
         y = _pdf_role(pdf, role, y)
     if data.earlier_experience:
         freelance_title, freelance_place, freelance_period = (

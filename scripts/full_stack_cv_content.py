@@ -157,9 +157,9 @@ CV_DATA = CvData(
                 "Redux Toolkit",
                 "TanStack Query",
                 "Tailwind CSS",
-                "React Native/Expo",
             ),
         ),
+        ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
         ("Backend", ("C#", ".NET", "Node.js", "JWT")),
         ("Integrations", ("KSeF", "XSLT/XML", "n8n")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
@@ -184,8 +184,8 @@ CV_DATA = CvData(
                         "Cloud and integration",
                         "2025–2026",
                         "C#, .NET, Azure Functions, Event Grid, Bicep, Azure DevOps",
-                        "Event-driven processing on Azure Functions and Event Grid, e-mail "
-                        "intake via SendGrid, webhooks to client systems, Bicep and Azure DevOps.",
+                        "Event-driven processing on Azure Functions and Event Grid, SendGrid "
+                        "e-mail intake, webhooks and Bicep.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
@@ -205,8 +205,8 @@ CV_DATA = CvData(
                         "XELapps and mobile",
                         "2024–2026",
                         "React Native/Expo, Flutter",
-                        "Built the platform's user and application setup and JWT sign-in, "
-                        "and one Expo app for six products with SSO and store releases via EAS.",
+                        "Built user and application setup, JWT sign-in, and one Expo app for "
+                        "six products with SSO and EAS releases.",
                     ),
                 ),
                 bullets=(
@@ -223,16 +223,15 @@ CV_DATA = CvData(
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Scanner apps for warehouses and production lines at 12 "
-                        "manufacturers. Built the scanning layer in Java and Kotlin on Android "
-                        "with the vendor SDKs for Zebra, Honeywell and Urovo terminals. Workers "
-                        "scan barcodes on the handhelds to receive "
-                        "goods, move stock between locations and report production steps. Each "
-                        "step is checked against the ERP before it is saved, and the app prints "
-                        "labels for the scanned items. Processes are configured per client as "
-                        "step-by-step flows, so one codebase served every site.",
+                        "manufacturers, configured per client as step-by-step flows.",
                     ),
                 ),
-                bullets=(),
+                bullets=(
+                    "Built the scanning layer in Java and Kotlin on Android with the vendor "
+                    "SDKs for Zebra, Honeywell and Urovo terminals.",
+                    "Workers scan barcodes to receive goods, move stock, report production and "
+                    "print labels, with every step checked against the ERP.",
+                ),
             ),
         ),
     ),

@@ -291,16 +291,16 @@ class EditableCvBuilderTest(unittest.TestCase):
         run = footer.paragraphs[0].runs[0]
         self.assertEqual(run.font.size.pt, 6.5)
 
-    def test_each_role_lists_its_stack_once_above_short_product_bullets(self) -> None:
+    def test_each_role_goes_straight_to_product_bullets_without_a_stack_line(self) -> None:
         texts = [paragraph.text for paragraph in self.document.paragraphs]
+        self.assertFalse(any(text.startswith("Stack:") for text in texts))
         for role in CV_DATA.employment.roles:
             index = next(
                 index for index, text in enumerate(texts) if text.startswith(role.title)
             )
-            stack_line = self.document.paragraphs[index + 1]
-            self.assertEqual(stack_line.style.name, "CV Meta")
-            self.assertEqual(stack_line.text, "Stack: " + ", ".join(role.stack))
-            self.assertEqual(len(role.stack), len(set(role.stack)))
+            first = role.products[0] if role.products else None
+            if first:
+                self.assertTrue(texts[index + 1].startswith(f"{first.title}."))
             for product in role.products:
                 bullet = next(text for text in texts if text.startswith(f"{product.title}."))
                 self.assertEqual(bullet, f"{product.title}. {product.description}")
@@ -445,7 +445,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertGreater(min(word["top"] for word in consent_words), content_bottom + 12)
             bottom_gap = rendered_page.height - content_bottom
             self.assertGreaterEqual(bottom_gap, 36)
-            self.assertLessEqual(bottom_gap, 140)
+            self.assertLessEqual(bottom_gap, 155)
 
             lines: dict[float, list[dict]] = {}
             for word in words:
