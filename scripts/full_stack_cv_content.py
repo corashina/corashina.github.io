@@ -51,6 +51,8 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
+    # Printed under the company name. Empty hides it.
+    clients: str = ""
 
 
 @dataclass(frozen=True)
@@ -103,6 +105,7 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
+            self.employment.clients,
         ]
         for label, technologies in self.technology_groups:
             values.extend((label, *technologies))
@@ -156,18 +159,22 @@ CV_DATA = CvData(
                 "JavaScript",
                 "Redux Toolkit",
                 "TanStack Query",
-                "Tailwind CSS",
             ),
         ),
         ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
         ("Backend", ("C#", ".NET", "Node.js", "JWT")),
-        ("Integrations", ("KSeF", "XSLT/XML", "n8n")),
+        ("Cloud", ("Azure Functions", "Event Grid", "Bicep")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
-        ("Delivery", ("GitHub Actions", "Vite")),
+        ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
+        ("Way of working", ("Scrum", "code review", "Azure Boards", "Git")),
     ),
     employment=Employment(
         company="Xelto",
         period="2020–2026",
+        clients=(
+            "Pernod Ricard, Fakro, Filtron, Bakoma, Walstead, Melle, IMI, Efektor, "
+            "Drosed, Komagra Kosów, CTK Logistics"
+        ),
         roles=(
             Role(
                 title="Full-Stack Developer",
@@ -179,13 +186,6 @@ CV_DATA = CvData(
                         "React, TypeScript",
                         "Built the interface where users upload PDFs, configure extraction "
                         "prompts, and review the structured JSON results.",
-                    ),
-                    Project(
-                        "Cloud and integration",
-                        "2025–2026",
-                        "C#, .NET, Azure Functions, Event Grid, Bicep, Azure DevOps",
-                        "Event-driven processing on Azure Functions and Event Grid, SendGrid "
-                        "e-mail intake, webhooks and Bicep.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
@@ -222,15 +222,15 @@ CV_DATA = CvData(
                         "Xelcode",
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
-                        "Scanner apps for warehouses and production lines at 12 "
-                        "manufacturers, configured per client as step-by-step flows.",
+                        "Scanner apps for warehouses and production lines, configured per "
+                        "client as step-by-step flows.",
                     ),
                 ),
                 bullets=(
                     "Built the scanning layer in Java and Kotlin on Android with the vendor "
                     "SDKs for Zebra, Honeywell and Urovo terminals.",
-                    "Workers scan barcodes to receive goods, move stock, report production and "
-                    "print labels, with every step checked against the ERP.",
+                    "Validated each scan against the ERP and printed labels on the device, so "
+                    "receipts, stock moves and production reports are booked live.",
                 ),
             ),
         ),
@@ -289,10 +289,6 @@ FORBIDDEN_PUBLIC_TERMS = (
     "3,342",
     "17 private",
     "Roldrob",
-    "Filtron",
-    "Fakro",
-    "Bakoma",
-    "Walstead",
     "LSC",
     "Malow",
 )

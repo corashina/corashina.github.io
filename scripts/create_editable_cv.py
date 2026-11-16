@@ -582,6 +582,11 @@ def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
 
     _add_section_heading(document, "Professional experience")
     add_title_date(document, data.employment.company, data.employment.period)
+    if data.employment.clients:
+        clients = document.add_paragraph(style="CV Meta")
+        clients.paragraph_format.keep_with_next = True
+        clients.add_run("Clients:").font.bold = True
+        clients.add_run(" " + data.employment.clients)
     roles = data.employment.roles
     for index, role in enumerate(roles):
         _add_role(document, role, bullet_number_id, last=index == len(roles) - 1)
@@ -915,6 +920,17 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
 
     y = _pdf_section(pdf, "Professional experience", y)
     y = _pdf_entry_title(pdf, data.employment.company, data.employment.period, y)
+    if data.employment.clients:
+        y = _pdf_rich_text(
+            pdf,
+            [
+                ("Clients:", PDF_SANS_BOLD, PDF_META),
+                (" " + data.employment.clients, PDF_SANS, PDF_META),
+            ],
+            PDF_LEFT,
+            y,
+            PDF_WIDTH,
+        ) - 2
     for index, role in enumerate(data.employment.roles):
         if index:
             y -= PDF_ROLE_GAP

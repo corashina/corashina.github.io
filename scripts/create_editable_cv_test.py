@@ -205,7 +205,6 @@ class EditableCvBuilderTest(unittest.TestCase):
             [project.title for project in CV_DATA.commercial_projects],
             [
                 "Document AI / ICR",
-                "Cloud and integration",
                 "e-Invoicing / KSeF",
                 "Approval workflows",
                 "XELapps and mobile",
