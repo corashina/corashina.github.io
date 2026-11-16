@@ -166,7 +166,6 @@ CV_DATA = CvData(
         ("Cloud", ("Azure Functions", "Event Grid", "Bicep")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
         ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
-        ("Way of working", ("Scrum", "code review", "Azure Boards", "Git")),
     ),
     employment=Employment(
         company="Xelto",
@@ -180,6 +179,15 @@ CV_DATA = CvData(
                 title="Full-Stack Developer",
                 period="2024–2026",
                 products=(
+                    Project(
+                        "XELapps",
+                        "2024–2026",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Web platform that hosts nine React business apps in one shell, passing "
+                        "config, navigation and sign-in between them. Built its user and "
+                        "application setup and JWT sign-in. On mobile, one Expo app covers six "
+                        "of the products, with SSO and store releases via EAS.",
+                    ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
@@ -207,13 +215,6 @@ CV_DATA = CvData(
                         "React, TypeScript",
                         "Supplier portal where vendors register containers and shipments, "
                         "matching their item codes and orders to the client's.",
-                    ),
-                    Project(
-                        "XELapps",
-                        "2024–2026",
-                        "React Native/Expo, Flutter",
-                        "Web app: built user and application setup and JWT sign-in. Mobile app: "
-                        "one Expo app for six products, with SSO and EAS releases.",
                     ),
                 ),
                 bullets=(

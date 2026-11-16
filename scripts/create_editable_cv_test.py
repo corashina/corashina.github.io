@@ -204,11 +204,11 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(
             [project.title for project in CV_DATA.commercial_projects],
             [
+                "XELapps",
                 "Document AI / ICR",
                 "e-Invoicing / KSeF",
                 "Approval workflows",
                 "VendorPortal",
-                "XELapps",
                 "Xelcode",
             ],
         )

@@ -542,7 +542,8 @@ def _add_role(document: Document, role: Role, bullet_number_id: int, last: bool)
     paragraphs = [
         _add_product_bullet(document, product, bullet_number_id) for product in role.products
     ]
-    paragraphs += [_add_bullet(document, bullet, bullet_number_id) for bullet in role.bullets]
+    # Role-wide lines (not tied to one product) print as plain text, not bullets.
+    paragraphs += [_add_description(document, line) for line in role.bullets]
     for paragraph in paragraphs:
         paragraph.paragraph_format.space_after = DOCX_BULLET_GAP
     if paragraphs and not last:
@@ -886,8 +887,9 @@ def _pdf_role(pdf: canvas.Canvas, role: Role, y: float) -> float:
             ],
             y,
         )
-    for bullet in role.bullets:
-        y = _pdf_bullet(pdf, [(bullet, PDF_SANS, black)], y)
+    # Role-wide lines (not tied to one product) print as plain text, not bullets.
+    for line in role.bullets:
+        y = _pdf_text(pdf, line, y) - PDF_BULLET_GAP
     return y
 
 
