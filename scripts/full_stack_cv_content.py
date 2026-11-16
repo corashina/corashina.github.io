@@ -202,11 +202,11 @@ CV_DATA = CvData(
                         "substitutes, and a configurable invoice editor.",
                     ),
                     Project(
-                        "XELapps and mobile",
+                        "XELapps",
                         "2024–2026",
                         "React Native/Expo, Flutter",
-                        "Built user and application setup, JWT sign-in, and one Expo app for "
-                        "six products with SSO and EAS releases.",
+                        "Web app: built user and application setup and JWT sign-in. Mobile app: "
+                        "one Expo app for six products, with SSO and EAS releases.",
                     ),
                 ),
                 bullets=(
