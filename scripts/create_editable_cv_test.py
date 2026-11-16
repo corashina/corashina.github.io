@@ -187,7 +187,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertNotIn(forbidden, self.text)
 
     def test_full_stack_content_model_contains_approved_current_facts(self) -> None:
-        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer · .NET, React")
+        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
         self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")

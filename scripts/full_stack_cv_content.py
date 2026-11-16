@@ -128,7 +128,7 @@ class CvData:
 CV_DATA = CvData(
     identity=Identity(
         name="Tomasz Zielinski",
-        role="Full-Stack Developer · .NET, React",
+        role="Full-Stack Developer",
         phone="+48 791 748 226",
         email="corashina@gmail.com",
         website_text="corashina.github.io",
