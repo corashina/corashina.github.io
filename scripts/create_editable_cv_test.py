@@ -445,7 +445,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertGreater(min(word["top"] for word in consent_words), content_bottom + 12)
             bottom_gap = rendered_page.height - content_bottom
             self.assertGreaterEqual(bottom_gap, 36)
-            self.assertLessEqual(bottom_gap, 130)
+            self.assertLessEqual(bottom_gap, 140)
 
             lines: dict[float, list[dict]] = {}
             for word in words:

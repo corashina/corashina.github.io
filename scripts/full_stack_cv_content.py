@@ -240,19 +240,22 @@ CV_DATA = CvData(
         Project(
             "MIBSI Cluster Bridge",
             "2026",
-            "Java, Python, QNX, Android Auto, CarPlay",
+            "Java, QNX, Android Auto, CarPlay",
             "Integrated Android Auto and CarPlay with the Audi instrument cluster on MIB2 "
-            "firmware: Java modules on QNX, plus Python build scripts that verify every input "
-            "and output.",
+            "firmware, with Java modules running on QNX.",
             "https://github.com/corashina/mibsi-cluster-bridge",
             "github.com/corashina/mibsi-cluster-bridge",
         ),
     ),
     education=(
-        Education("University of Southampton", "BSc Computer Science", "2017–2020"),
+        Education(
+            "University of Southampton",
+            "BSc Computer Science, School of Electronics and Computer Science",
+            "2017–2020",
+        ),
         Education(
             "Poznan University of Technology",
-            "Information Engineering",
+            "Information Engineering, Faculty of Electrical Engineering",
             "2016–2017",
         ),
     ),
