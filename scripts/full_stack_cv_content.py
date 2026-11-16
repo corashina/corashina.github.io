@@ -128,7 +128,7 @@ class CvData:
 CV_DATA = CvData(
     identity=Identity(
         name="Tomasz Zielinski",
-        role="Full-Stack Developer",
+        role="Full-Stack Developer · .NET, React",
         phone="+48 791 748 226",
         email="corashina@gmail.com",
         website_text="corashina.github.io",
@@ -139,12 +139,13 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years at Xelto, building React and TypeScript "
-        "applications, .NET integrations, and React Native and Flutter mobile apps. My "
-        "work covers warehouse and manufacturing scanning, approval workflows, Polish "
-        "e-invoicing (KSeF), and document AI. I build both the interface and the API "
-        "behind it, and I maintain the CI/CD pipelines and shared npm packages that ship "
-        "them."
+        "Full-stack developer with six years at Xelto, building software that runs "
+        "behind the paperwork at manufacturing and logistics companies. I wrote much of "
+        "our document AI service, which reads invoices with an LLM and gets better as "
+        "users correct it. I also built our KSeF e-invoicing and approval workflow "
+        "products, warehouse scanning tied to the client's ERP, and the mobile app that "
+        "covers them. I work in C#/.NET on Azure and in React/TypeScript, and I set up "
+        "the pipelines that deploy it."
     ),
     technology_groups=(
         (
@@ -164,7 +165,6 @@ CV_DATA = CvData(
         ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
         ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
-        ("Other", ("Python", "Rust")),
     ),
     employment=Employment(
         company="Xelto",
@@ -175,37 +175,46 @@ CV_DATA = CvData(
                 period="2024–2026",
                 products=(
                     Project(
-                        "Workflow",
-                        "2024–2026",
-                        "React, TypeScript, REST APIs",
-                        "Built configurable approval and business-process modules that "
-                        "handle documents.",
-                    ),
-                    Project(
-                        "e-Invoicing / KSeF",
-                        "2024–2026",
-                        "React, TypeScript, .NET, XSLT/XML",
-                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
-                        "views, with XSLT rendering of invoice XML.",
-                    ),
-                    Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "React, TypeScript, PDF, JSON",
+                        "React, TypeScript",
                         "Built the interface where users upload PDFs, configure extraction "
                         "prompts, and review the structured JSON results.",
                     ),
                     Project(
+                        "Cloud and integration",
+                        "2025–2026",
+                        "C#, .NET, Azure Functions, Event Grid, Bicep, Azure DevOps",
+                        "Event-driven processing on Azure Functions and Event Grid, e-mail "
+                        "intake via SendGrid, webhooks to client systems, Bicep and Azure DevOps.",
+                    ),
+                    Project(
+                        "e-Invoicing / KSeF",
+                        "2024–2026",
+                        "XSLT/XML",
+                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
+                        "views, with XSLT rendering of invoice XML.",
+                    ),
+                    Project(
+                        "Approval workflows",
+                        "2024–2026",
+                        "REST APIs",
+                        "Built the workflow designer (versions, history), approval chains with "
+                        "substitutes, and a configurable invoice editor.",
+                    ),
+                    Project(
                         "XELapps and mobile",
                         "2024–2026",
-                        "React Native/Expo, Flutter, JWT",
+                        "React Native/Expo, Flutter",
                         "Built the platform's user and application setup and JWT sign-in, "
-                        "plus React Native/Expo and Flutter apps for business-process access.",
+                        "and one Expo app for six products with SSO and store releases via EAS.",
                     ),
                 ),
                 bullets=(
-                    "Maintained the GitHub Actions CI/CD pipelines, release versioning, and "
-                    "npm publishing for shared packages.",
+                    "Also built a logistics booking app and a leave system with manager "
+                    "approvals.",
+                    "Set up build and release pipelines in Azure DevOps and GitHub Actions, "
+                    "and published our shared React components to npm.",
                 ),
             ),
             Role(
@@ -215,25 +224,21 @@ CV_DATA = CvData(
                     Project(
                         "Xelcode",
                         "2020–2026",
-                        "React, JavaScript, Oracle JD Edwards",
-                        "Built React scanner apps for warehouses and production lines, "
-                        "deployed at 12 client companies: barcode reading, per-step validation, "
-                        "label printing, and Oracle JD Edwards integration.",
+                        "React, JavaScript",
+                        "Scanner apps for warehouses and production lines at 12 "
+                        "manufacturers, connected to their ERP: barcode reading, step-by-step "
+                        "validation and label printing, with MES versions for production.",
                     ),
                 ),
                 bullets=(
-                    "Added localisation and multi-step process state to the scanner screens.",
-                    "Maintained the shared UI components and API code used across Xelto's "
-                    "products.",
+                    "Added translations and multi-step state so one codebase served clients "
+                    "including Fakro, Filtron, Pernod Ricard and Bakoma.",
                 ),
             ),
         ),
     ),
-    earlier_experience=(
-        "Freelance Web Development | Poznan, Poland | May–August 2018",
-        "Built responsive single-page application components and improved page speed "
-        "and SEO.",
-    ),
+    # The 2018 freelance entry was dropped to keep the CV on one page.
+    earlier_experience=(),
     personal_projects=(
         Project(
             "MIBSI Cluster Bridge",
@@ -291,9 +296,6 @@ FORBIDDEN_PUBLIC_TERMS = (
     "3,342",
     "17 private",
     "Roldrob",
-    "Filtron",
-    "Fakro",
-    "Bakoma",
     "Walstead",
     "LSC",
     "Malow",

@@ -583,16 +583,17 @@ def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
     add_title_date(document, data.employment.company, data.employment.period)
     for role in data.employment.roles:
         _add_role(document, role, bullet_number_id)
-    freelance_title, freelance_place, freelance_period = (
-        part.strip() for part in data.earlier_experience[0].split("|")
-    )
-    add_title_date(
-        document,
-        freelance_title,
-        freelance_period,
-        suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
-    )
-    _add_description(document, data.earlier_experience[1])
+    if data.earlier_experience:
+        freelance_title, freelance_place, freelance_period = (
+            part.strip() for part in data.earlier_experience[0].split("|")
+        )
+        add_title_date(
+            document,
+            freelance_title,
+            freelance_period,
+            suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
+        )
+        _add_description(document, data.earlier_experience[1])
 
     _add_section_heading(document, "Technologies")
     _add_technology_grid(document, data)
@@ -915,17 +916,18 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
     y = _pdf_entry_title(pdf, data.employment.company, data.employment.period, y)
     for role in data.employment.roles:
         y = _pdf_role(pdf, role, y)
-    freelance_title, freelance_place, freelance_period = (
-        part.strip() for part in data.earlier_experience[0].split("|")
-    )
-    y = _pdf_entry_title(
-        pdf,
-        freelance_title,
-        freelance_period,
-        y - PDF_ENTRY_GAP + 2,
-        suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
-    )
-    y = _pdf_text(pdf, data.earlier_experience[1], y)
+    if data.earlier_experience:
+        freelance_title, freelance_place, freelance_period = (
+            part.strip() for part in data.earlier_experience[0].split("|")
+        )
+        y = _pdf_entry_title(
+            pdf,
+            freelance_title,
+            freelance_period,
+            y - PDF_ENTRY_GAP + 2,
+            suffix=f"  \N{MIDDLE DOT}  {freelance_place}",
+        )
+        y = _pdf_text(pdf, data.earlier_experience[1], y)
 
     y = _pdf_section(pdf, "Technologies", y)
     y = _pdf_technology_grid(pdf, data, y)

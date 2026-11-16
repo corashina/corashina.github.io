@@ -57,7 +57,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         cls._temp_dir.cleanup()
 
     def test_profile_names_employer_stack_and_domains(self) -> None:
-        for fragment in ("six years at Xelto", "React and TypeScript", "KSeF", "document AI"):
+        for fragment in ("six years at Xelto", "React/TypeScript", "KSeF", "document AI"):
             self.assertIn(fragment, CV_DATA.profile)
         self.assertNotIn("take ownership across the delivery lifecycle", CV_DATA.profile)
 
@@ -98,9 +98,8 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Profile",
             "Professional experience",
             "Xelto\t2020–2026",
-            "Workflow",
+            "Approval workflows",
             "Xelcode",
-            "Freelance Web Development",
             "Technologies",
             "Projects",
             *PROJECT_TITLES,
@@ -188,7 +187,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertNotIn(forbidden, self.text)
 
     def test_full_stack_content_model_contains_approved_current_facts(self) -> None:
-        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
+        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer · .NET, React")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
         self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
@@ -204,7 +203,14 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             [project.title for project in CV_DATA.commercial_projects],
-            ["Workflow", "e-Invoicing / KSeF", "Document AI / ICR", "XELapps and mobile", "Xelcode"],
+            [
+                "Document AI / ICR",
+                "Cloud and integration",
+                "e-Invoicing / KSeF",
+                "Approval workflows",
+                "XELapps and mobile",
+                "Xelcode",
+            ],
         )
         self.assertEqual(
             [project.title for project in CV_DATA.personal_projects],
@@ -339,16 +345,9 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertGreater(title_style.font.size.pt, meta_style.font.size.pt)
             self.assertNotEqual(title_style.font.color.rgb, meta_style.font.color.rgb)
 
-    def test_freelance_work_is_inside_professional_experience(self) -> None:
+    def test_freelance_entry_is_left_out_to_keep_one_page(self) -> None:
         texts = [paragraph.text.strip() for paragraph in self.document.paragraphs]
-        professional = texts.index("Professional experience")
-        technologies = texts.index("Technologies")
-        freelance = next(
-            index for index, text in enumerate(texts)
-            if text.startswith("Freelance Web Development")
-        )
-        self.assertLess(professional, freelance)
-        self.assertLess(freelance, technologies)
+        self.assertFalse(any(text.startswith("Freelance Web Development") for text in texts))
         self.assertNotIn("Commercial Experience", texts)
         self.assertNotIn("Earlier Experience", texts)
 
