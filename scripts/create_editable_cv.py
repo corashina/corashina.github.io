@@ -879,7 +879,7 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
         initialFontName=PDF_SANS,
         initialFontSize=PDF_BODY,
     )
-    pdf.setTitle("Tomasz Zielinski - Full-Stack Developer CV")
+    pdf.setTitle("Tomasz Zielinski - Full-Stack Engineer CV")
     pdf.setAuthor(data.identity.name)
     pdf.setSubject("Curriculum Vitae")
     pdf.setCreator("scripts/create_editable_cv.py")

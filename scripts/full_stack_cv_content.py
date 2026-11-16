@@ -115,7 +115,7 @@ class CvData:
 CV_DATA = CvData(
     identity=Identity(
         name="Tomasz Zielinski",
-        role="Full-Stack Developer",
+        role="Full-Stack Engineer · .NET, React, Document AI",
         phone="+48 791 748 226",
         email="corashina@gmail.com",
         website_text="corashina.github.io",
@@ -126,74 +126,92 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years at Xelto, building React and TypeScript "
-        "applications, .NET integrations, and React Native and Flutter mobile apps. My "
-        "work covers warehouse and manufacturing scanning, approval workflows, Polish "
-        "e-invoicing (KSeF), and document AI. I build both the interface and the API "
-        "behind it, and I maintain the CI/CD pipelines and shared npm packages that ship "
-        "them."
+        "Full-stack engineer with six years at Xelto, a Polish company that builds ERP "
+        "add-ons for manufacturers. I wrote much of our document AI service, which reads "
+        "invoices with Gemini and gets better as users correct it. I also built our KSeF "
+        "e-invoicing and approval workflow products, and the mobile app that covers them. "
+        "I work in C#/.NET on Azure and in React/TypeScript, and I set up the pipelines "
+        "that deploy it."
     ),
     technology_groups=(
         (
-            "Frontend",
+            "AI",
             (
-                "React",
-                "TypeScript",
-                "JavaScript",
-                "Redux Toolkit",
-                "TanStack Query",
-                "Tailwind CSS",
-                "React Native/Expo",
-                "Flutter",
+                "Gemini (Vertex AI)",
+                "LLM prompting",
+                "embeddings",
+                "vector search",
+                "structured output",
             ),
         ),
-        ("Backend", ("C#", ".NET", "Node.js", "REST APIs", "JWT")),
-        ("Integrations", ("Oracle JD Edwards", "KSeF", "XSLT/XML", "n8n")),
-        ("Testing", ("Playwright", "Vitest", "React Testing Library")),
-        ("Delivery", ("GitHub Actions", "CI/CD", "npm packages", "Vite")),
-        ("Other", ("Python", "Rust")),
+        (
+            "Backend",
+            ("C#", ".NET 8", "Azure Functions", "EF Core", "SQL Server", "REST", "webhooks"),
+        ),
+        (
+            "Frontend",
+            ("React", "TypeScript", "TanStack", "Tailwind CSS", "React Native/Expo", "Flutter"),
+        ),
+        (
+            "Cloud",
+            (
+                "Azure (Event Grid, API Management, App Insights)",
+                "Bicep",
+                "Azure DevOps",
+                "GitHub Actions",
+            ),
+        ),
+        ("Integrations", ("KSeF", "XSLT/XML", "Oracle JD Edwards", "n8n", "SendGrid")),
+        ("Testing", ("Jest", "Vitest", "Playwright", "Storybook")),
     ),
     employment=Employment(
         company="Xelto",
         period="2020–2026",
         roles=(
             Role(
-                title="Full-Stack Developer",
+                title="Full-Stack Engineer",
                 period="2024–2026",
                 products=(
                     Project(
-                        "Workflow",
-                        "2024–2026",
-                        "React, TypeScript, REST APIs",
-                        "Built configurable approval and business-process modules that "
-                        "handle documents.",
+                        "Document AI (ICR)",
+                        "2025–2026",
+                        "C#, .NET 8, Azure Functions, SQL Server, Gemini, React",
+                        "Wrote much of the backend for our invoice reader. Gemini on Vertex "
+                        "AI pulls fields out of PDFs, and vector search over embeddings "
+                        "matches the supplier layout to the right prompts. It repairs broken "
+                        "model JSON and counts tokens per client for billing.",
+                    ),
+                    Project(
+                        "Learning from corrections",
+                        "2025–2026",
+                        "n8n",
+                        "Users' fixes are saved per layout, and a scheduled job hands them "
+                        "to an n8n flow that rewrites that layout's prompts.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
-                        "React, TypeScript, .NET, XSLT/XML",
-                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
-                        "views, with XSLT rendering of invoice XML.",
+                        "XSLT/XML, TypeScript",
+                        "Built the React app for sending and tracking KSeF invoices, and the "
+                        "XSLT that turns FA(3) and FA_RR invoice XML into readable PDFs, kept "
+                        "up to date with each schema change.",
                     ),
                     Project(
-                        "Document AI / ICR",
-                        "2025–2026",
-                        "React, TypeScript, PDF, JSON",
-                        "Built the interface where users upload PDFs, configure extraction "
-                        "prompts, and review the structured JSON results.",
-                    ),
-                    Project(
-                        "XELapps and mobile",
+                        "Workflow and platform",
                         "2024–2026",
-                        "React Native/Expo, Flutter, JWT",
-                        "Built the platform's user and application setup and JWT sign-in, "
-                        "plus React Native/Expo and Flutter apps for business-process access.",
+                        "Bicep, Azure DevOps",
+                        "Built the approval workflow designer and the shell that hosts nine "
+                        "product apps, with SSO and API keys.",
+                    ),
+                    Project(
+                        "Mobile",
+                        "2025–2026",
+                        "React Native/Expo",
+                        "One Expo app for six products in five languages, with 196 tests "
+                        "running in CI.",
                     ),
                 ),
-                bullets=(
-                    "Maintained the GitHub Actions CI/CD pipelines, release versioning, and "
-                    "npm publishing for shared packages.",
-                ),
+                bullets=(),
             ),
             Role(
                 title="Frontend Developer",
@@ -201,18 +219,15 @@ CV_DATA = CvData(
                 products=(
                     Project(
                         "Xelcode",
-                        "2020–2026",
+                        "2020–2024",
                         "React, JavaScript, Oracle JD Edwards",
-                        "Built React scanner apps for warehouses and production lines, "
-                        "deployed at 12 client companies: barcode reading, per-step validation, "
-                        "label printing, and Oracle JD Edwards integration.",
+                        "Scanner apps for warehouses and production lines at 12 "
+                        "manufacturers, connected to Oracle JD Edwards: barcode reading, "
+                        "step-by-step validation and label printing, with MES and Ukrainian "
+                        "versions.",
                     ),
                 ),
-                bullets=(
-                    "Added localisation and multi-step process state to the scanner screens.",
-                    "Maintained the shared UI components and API code used across Xelto's "
-                    "products.",
-                ),
+                bullets=(),
             ),
         ),
     ),

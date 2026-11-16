@@ -52,7 +52,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         cls._temp_dir.cleanup()
 
     def test_profile_names_employer_stack_and_domains(self) -> None:
-        for fragment in ("six years at Xelto", "React and TypeScript", "KSeF", "document AI"):
+        for fragment in ("six years at Xelto", "React/TypeScript", "KSeF", "document AI"):
             self.assertIn(fragment, CV_DATA.profile)
         self.assertNotIn("take ownership across the delivery lifecycle", CV_DATA.profile)
 
@@ -86,7 +86,7 @@ class EditableCvBuilderTest(unittest.TestCase):
 
         expected_fragments = [
             "Tomasz Zielinski",
-            "Full-Stack Developer",
+            "Full-Stack Engineer",
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
@@ -183,7 +183,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             self.assertNotIn(forbidden, self.text)
 
     def test_full_stack_content_model_contains_approved_current_facts(self) -> None:
-        self.assertEqual(CV_DATA.identity.role, "Full-Stack Developer")
+        self.assertEqual(CV_DATA.identity.role, "Full-Stack Engineer · .NET, React, Document AI")
         self.assertEqual(CV_DATA.identity.phone, "+48 791 748 226")
         self.assertEqual(CV_DATA.identity.email, "corashina@gmail.com")
         self.assertEqual(CV_DATA.identity.website_text, "corashina.github.io")
@@ -193,13 +193,20 @@ class EditableCvBuilderTest(unittest.TestCase):
         self.assertEqual(
             [(role.title, role.period) for role in CV_DATA.employment.roles],
             [
-                ("Full-Stack Developer", "2024–2026"),
+                ("Full-Stack Engineer", "2024–2026"),
                 ("Frontend Developer", "2020–2024"),
             ],
         )
         self.assertEqual(
             [project.title for project in CV_DATA.commercial_projects],
-            ["Workflow", "e-Invoicing / KSeF", "Document AI / ICR", "XELapps and mobile", "Xelcode"],
+            [
+                "Document AI (ICR)",
+                "Learning from corrections",
+                "e-Invoicing / KSeF",
+                "Workflow and platform",
+                "Mobile",
+                "Xelcode",
+            ],
         )
         self.assertEqual(
             [project.title for project in CV_DATA.personal_projects],
@@ -240,7 +247,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         role_paragraph = next(
             paragraph for paragraph in self.document.paragraphs
-            if paragraph.text.startswith("Full-Stack Developer")
+            if paragraph.text.startswith("Full-Stack Engineer")
         )
         self.assertEqual(company_paragraph.style.name, "CV Entry Title")
         self.assertEqual(role_paragraph.style.name, "CV Position")
@@ -352,8 +359,7 @@ class EditableCvBuilderTest(unittest.TestCase):
         with ZipFile(self.output_path) as archive:
             document_xml = archive.read("word/document.xml")
         self.assertEqual(document_xml.count(b'w:type="page"'), 0)
-        self.assertIn(b"Full-Stack Developer", document_xml)
-        self.assertNotIn(b"Full-Stack Engineer", document_xml)
+        self.assertIn(b"Full-Stack Engineer", document_xml)
         self.assertNotIn(b"expected in July 2020", document_xml)
 
     def test_docx_has_only_approved_contact_rows_and_projects(self) -> None:
