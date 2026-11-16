@@ -221,9 +221,11 @@ CV_DATA = CvData(
                     Project(
                         "Xelcode",
                         "2020–2026",
-                        "React, JavaScript",
+                        "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Scanner apps for warehouses and production lines at 12 "
-                        "manufacturers. Workers scan barcodes on handheld terminals to receive "
+                        "manufacturers. Built the scanning layer in Java and Kotlin on Android "
+                        "with the vendor SDKs for Zebra, Honeywell and Urovo terminals. Workers "
+                        "scan barcodes on the handhelds to receive "
                         "goods, move stock between locations and report production steps. Each "
                         "step is checked against the ERP before it is saved, and the app prints "
                         "labels for the scanned items. Processes are configured per client as "
