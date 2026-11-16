@@ -51,8 +51,8 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
-    # Printed under the company name. Empty hides it.
-    clients: str = ""
+    # A plain sentence after the role bullets. Empty hides it.
+    client_note: str = ""
 
 
 @dataclass(frozen=True)
@@ -105,7 +105,7 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
-            self.employment.clients,
+            self.employment.client_note,
         ]
         for label, technologies in self.technology_groups:
             values.extend((label, *technologies))
@@ -171,9 +171,9 @@ CV_DATA = CvData(
     employment=Employment(
         company="Xelto",
         period="2020–2026",
-        clients=(
-            "Pernod Ricard, Fakro, Filtron, Bakoma, Walstead, Melle, IMI, Efektor, "
-            "Drosed, Komagra Kosów, CTK Logistics"
+        client_note=(
+            "Worked directly with client teams at Pernod Ricard, Fakro, Filtron, Bakoma, "
+            "Walstead and CTK Logistics, from requirements to rollout."
         ),
         roles=(
             Role(
