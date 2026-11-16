@@ -207,6 +207,7 @@ class EditableCvBuilderTest(unittest.TestCase):
                 "Document AI / ICR",
                 "e-Invoicing / KSeF",
                 "Approval workflows",
+                "VendorPortal",
                 "XELapps",
                 "Xelcode",
             ],

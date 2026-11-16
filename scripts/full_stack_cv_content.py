@@ -202,6 +202,13 @@ CV_DATA = CvData(
                         "substitutes, and a configurable invoice editor.",
                     ),
                     Project(
+                        "VendorPortal",
+                        "2024–2026",
+                        "React, TypeScript",
+                        "Supplier portal where vendors register containers and shipments, "
+                        "matching their item codes and orders to the client's.",
+                    ),
+                    Project(
                         "XELapps",
                         "2024–2026",
                         "React Native/Expo, Flutter",
