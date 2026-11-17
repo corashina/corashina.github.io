@@ -149,7 +149,9 @@ CV_DATA = CvData(
         "I began in React and Android, and now work across the stack: React/TypeScript "
         "and React Native on the front, C#/.NET and SQL Server on the "
         "back. Most of my work is document-heavy business software, including LLM "
-        "extraction and e-invoicing."
+        "extraction and e-invoicing. Comfortable with AI-assisted development (Claude "
+        "Code, OpenCode) for boilerplate and refactoring, and with building LLM features "
+        "into products."
     ),
     technology_groups=(
         (
