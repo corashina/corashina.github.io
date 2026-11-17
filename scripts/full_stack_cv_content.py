@@ -181,34 +181,34 @@ CV_DATA = CvData(
                         "XELapps",
                         "2024–2026",
                         "React, TypeScript, React Native/Expo, Flutter",
-                        "Web platform that hosts React business apps in one shell, passing "
-                        "config, navigation and sign-in between them. Worked on its user and "
-                        "application setup and JWT sign-in, and on the Expo mobile app (SSO, EAS "
+                        "Worked on user and application setup and JWT sign-in for our web shell, "
+                        "which hosts React business apps and passes config, navigation and "
+                        "sign-in between them. Also contributed to the Expo mobile app (SSO, EAS "
                         "store releases).",
                     ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, React, TypeScript",
-                        "Document AI that turns emailed invoices into structured data. Worked on "
-                        "the .NET extraction pipeline (Gemini via Vertex AI, "
-                        "embeddings, prompt versions) and the React review screens.",
+                        "Co-developed the .NET pipeline that turns emailed invoices into "
+                        "structured data (Gemini via Vertex AI, embeddings, prompt versions), "
+                        "plus the React screens for reviewing results.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "XSLT/XML",
-                        "KSeF e-invoicing platform. Worked on the document dashboard and "
-                        "integration rules, and on XSLT templates that render FA(3) invoice XML "
-                        "as HTML and PDF previews.",
+                        "Platform for sending and receiving invoices through Poland's KSeF. "
+                        "Built parts of the document dashboard and integration rules, and created "
+                        "XSLT templates that render FA(3) invoice XML as HTML and PDF previews.",
                     ),
                     Project(
                         "Approval workflows",
                         "2024–2026",
                         "REST APIs",
-                        "Approval chains for invoices, purchase orders and holiday requests, "
-                        "built from steps and conditions. Worked on the designer and "
-                        "on approving from the web, mobile swipe cards and email.",
+                        "Helped build the step-and-condition designer behind our approval chains "
+                        "for invoices, purchase orders and holiday requests. Approvers can act "
+                        "from the web, mobile swipe cards or email.",
                     ),
                     Project(
                         "VendorPortal",
