@@ -3,7 +3,7 @@ title: "Coordinating orders, stock, and worker threads"
 description: "A Java client-server simulation where kitchen staff, delivery drones, and persistence share changing business state."
 date: "2018-05-19"
 tags: [Java, Concurrency, Networking]
-draft: false
+draft: true
 ---
 
 Sushi-Go was a coursework management system with separate customer and server interfaces. Customers could register, log in, assemble a basket, and place orders. The server interface managed dishes, ingredients, suppliers, staff, and delivery drones.

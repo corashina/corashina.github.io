@@ -3,7 +3,7 @@ title: "Generating a coordinate grid inside country borders"
 description: "Bounding boxes, polygon tests, and the edge cases behind a small geographic sampling package."
 date: "2019-09-10"
 tags: [JavaScript, Geometry, GeoJSON]
-draft: false
+draft: true
 ---
 
 I built `points-in-country` to generate points inside a country's boundary. The public interface takes a country name and an optional interval, then returns coordinate pairs. A caller can use those points to place markers or sample a region without maintaining a separate country lookup.

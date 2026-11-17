@@ -3,7 +3,7 @@ title: "From a client questionnaire to a printable weekly meal plan"
 description: "Connecting intake forms, recipe editing, persisted schedules, and PDF output in a React and Redux application."
 date: "2018-08-13"
 tags: [React, Redux, Node.js, MongoDB]
-draft: false
+draft: true
 ---
 
 Fitmed was a prototype system for dietitians, built with React, Redux, Express, and MongoDB. A client could provide dietary preferences and view a plan. An administrator could maintain recipes, place them into a weekly schedule, and add comments. The client could then download the schedule, recipes, and a shopping list as a PDF.

@@ -3,7 +3,7 @@ title: "Drawing with rotational symmetry and editable stroke history"
 description: "Representing strokes once, repeating them through transforms, and preserving drawing state in a Java Swing application."
 date: "2018-06-23"
 tags: [Java, Graphics, Interaction]
-draft: false
+draft: true
 ---
 
 Digital Doily repeats a drawn stroke around the centre of a canvas. A curve made with the mouse can become a radial pattern, and reflection adds a mirrored copy within each sector. The user can change the number of sectors, choose a colour and pen width, undo strokes, and save previews into a gallery.
