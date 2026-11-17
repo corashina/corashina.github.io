@@ -51,6 +51,8 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
+    # Shown after the company name, like the freelance entry's place. Empty hides it.
+    location: str = ""
     # A plain sentence after the role bullets. Empty hides it.
     client_note: str = ""
 
@@ -105,6 +107,7 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
+            self.employment.location,
             self.employment.client_note,
         ]
         for label, technologies in self.technology_groups:
@@ -158,6 +161,7 @@ CV_DATA = CvData(
                 "React",
                 "Redux Toolkit",
                 "TanStack Query",
+                "Mantine",
             ),
         ),
         ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
@@ -169,6 +173,7 @@ CV_DATA = CvData(
     employment=Employment(
         company="Xelto",
         period="2020–2026",
+        location="Warsaw, Poland",
         client_note=(
             "Worked directly with client teams at Pernod Ricard, Fakro, Filtron, Bakoma, "
             "Walstead and CTK Logistics, from requirements to rollout."
@@ -241,7 +246,7 @@ CV_DATA = CvData(
         ),
     ),
     earlier_experience=(
-        "Freelance Web Development | Poznan, Poland | May–August 2018",
+        "Freelance Web Development | Poznan, Poland | 2018–2020",
         "Built responsive single-page application components and improved page speed "
         "and SEO.",
     ),

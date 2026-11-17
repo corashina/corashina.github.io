@@ -97,7 +97,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "+48 791 748 226",
             "Profile",
             "Professional experience",
-            "Xelto\t2020–2026",
+            "Xelto  \N{MIDDLE DOT}  Warsaw, Poland\t2020–2026",
             "Approval workflows",
             "Xelcode",
             "Technologies",
