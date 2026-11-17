@@ -561,7 +561,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
         self.assertIn("Art. 6(1)(a) and (b) GDPR", text)
         self.assertIn("Hiring subsidy:", text)
         self.assertIn("Droga do zatrudnienia po węglu", text)
-        self.assertIn("based in Poznań", text)
+        self.assertIn("Based in Poznań", text)
 
 
 if __name__ == "__main__":
