@@ -107,6 +107,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "University of Southampton",
             "2017–2020",
             "Additional information",
+            "English (C1)",
             "Polish (native)",
             "Spanish (basic)",
         ]

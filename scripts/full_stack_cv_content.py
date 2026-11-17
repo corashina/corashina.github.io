@@ -272,7 +272,7 @@ CV_DATA = CvData(
             "2016–2017",
         ),
     ),
-    languages=("Polish (native)", "English (fluent)", "Spanish (basic)"),
+    languages=("English (C1)", "Polish (native)", "Spanish (basic)"),
 )
 
 # Variant for employers in Wielkopolska hiring on a full-time employment
