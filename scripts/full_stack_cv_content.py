@@ -213,8 +213,9 @@ CV_DATA = CvData(
                         "VendorPortal",
                         "2024–2026",
                         "React, TypeScript",
-                        "Supplier portal where vendors register containers and shipments, "
-                        "matching their item codes and orders to the client's.",
+                        "Supplier portal for tracking inbound containers down to item, lot and "
+                        "order, with mapping screens that translate vendor codes, sites and units "
+                        "into the client's.",
                     ),
                 ),
                 bullets=(
