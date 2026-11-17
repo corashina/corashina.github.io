@@ -165,7 +165,7 @@ CV_DATA = CvData(
             ),
         ),
         ("Mobile", ("React Native", "Expo", "EAS", "Android (Java, Kotlin)")),
-        ("Backend", ("C#", ".NET", "Node.js", "JWT")),
+        ("Backend", ("C#/.NET", "SQL Server", "Node.js")),
         ("Cloud", ("Azure", "Firebase")),
         ("Testing", ("Playwright", "Vitest")),
         ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
