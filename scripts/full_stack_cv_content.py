@@ -187,7 +187,7 @@ CV_DATA = CvData(
                         "XELapps",
                         "2024–2026",
                         "React, TypeScript, React Native/Expo, Flutter",
-                        "Web platform that hosts nine React business apps in one shell, passing "
+                        "Web platform that hosts React business apps in one shell, passing "
                         "config, navigation and sign-in between them. Built its user and "
                         "application setup and JWT sign-in. On mobile, one Expo app covers six "
                         "of the products, with SSO and store releases via EAS.",
