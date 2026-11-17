@@ -25,7 +25,7 @@ from full_stack_cv_content import (
 
 
 EXPECTED_HEADINGS = [
-    "Profile",
+    "About me",
     "Professional experience",
     "Technologies",
     "Projects",
@@ -56,8 +56,8 @@ class EditableCvBuilderTest(unittest.TestCase):
     def tearDownClass(cls) -> None:
         cls._temp_dir.cleanup()
 
-    def test_profile_names_employer_stack_and_domains(self) -> None:
-        for fragment in ("six years at Xelto", "React/TypeScript", "KSeF", "document AI"):
+    def test_profile_names_experience_stack_and_domains(self) -> None:
+        for fragment in ("six years of commercial experience", "React/TypeScript", "C#/.NET", "LLM"):
             self.assertIn(fragment, CV_DATA.profile)
         self.assertNotIn("take ownership across the delivery lifecycle", CV_DATA.profile)
 
@@ -95,9 +95,9 @@ class EditableCvBuilderTest(unittest.TestCase):
             "corashina.github.io",
             "corashina@gmail.com",
             "+48 791 748 226",
-            "Profile",
+            "About me",
             "Professional experience",
-            "Xelto\t2020–2026",
+            "Xelto  \N{MIDDLE DOT}  Warsaw, Poland\t2020–2026",
             "Approval workflows",
             "Xelcode",
             "Technologies",
@@ -107,6 +107,7 @@ class EditableCvBuilderTest(unittest.TestCase):
             "University of Southampton",
             "2017–2020",
             "Additional information",
+            "English (C1)",
             "Polish (native)",
             "Spanish (basic)",
         ]
@@ -560,7 +561,7 @@ class WielkopolskaVariantTest(unittest.TestCase):
         self.assertIn("Art. 6(1)(a) and (b) GDPR", text)
         self.assertIn("Hiring subsidy:", text)
         self.assertIn("Droga do zatrudnienia po węglu", text)
-        self.assertNotIn("Poznań", text)
+        self.assertIn("based in Poznań", text)
 
 
 if __name__ == "__main__":

@@ -51,6 +51,8 @@ class Employment:
     company: str
     period: str
     roles: tuple[Role, ...]
+    # Shown after the company name, like the freelance entry's place. Empty hides it.
+    location: str = ""
     # A plain sentence after the role bullets. Empty hides it.
     client_note: str = ""
 
@@ -105,6 +107,7 @@ class CvData:
             self.profile,
             self.employment.company,
             self.employment.period,
+            self.employment.location,
             self.employment.client_note,
         ]
         for label, technologies in self.technology_groups:
@@ -142,38 +145,34 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years at Xelto, building software that runs "
-        "behind the paperwork at manufacturing and logistics companies. I wrote much of "
-        "our document AI service, which reads invoices with an LLM and gets better as "
-        "users correct it. I also built our KSeF e-invoicing and approval workflow "
-        "products, warehouse scanning tied to the client's ERP, and the mobile app that "
-        "covers them. I work in C#/.NET on Azure and in React/TypeScript, and I set up "
-        "the pipelines that deploy it."
+        "Full-stack developer based in Poznań with six years of commercial experience. "
+        "I began in React and Android, and now work across the stack: React/TypeScript "
+        "and React Native on the front, C#/.NET and SQL Server on the "
+        "back. Most of my work is document-heavy business software, including LLM "
+        "extraction and e-invoicing. Comfortable with AI coding tools like Claude Code "
+        "and OpenCode for everyday development."
     ),
     technology_groups=(
         (
             "Frontend",
             (
-                "React",
                 "TypeScript",
-                "JavaScript",
-                "Redux Toolkit",
-                "TanStack Query",
+                "React",
+                "Redux",
+                "TanStack",
+                "Mantine",
             ),
         ),
-        ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
-        ("Backend", ("C#", ".NET", "Node.js", "JWT")),
-        ("Cloud", ("Azure Functions", "Event Grid")),
-        ("Testing", ("Playwright", "Vitest", "React Testing Library")),
-        ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
+        ("Mobile", ("React Native", "Expo", "Android (Java, Kotlin)")),
+        ("Backend", ("C#/.NET", "SQL Server", "Node.js")),
+        ("Cloud", ("Azure", "Firebase")),
+        ("Testing", ("Playwright", "Vitest")),
+        ("Delivery", ("GitHub Actions", "EAS")),
     ),
     employment=Employment(
         company="Xelto",
         period="2020–2026",
-        client_note=(
-            "Worked directly with client teams at Pernod Ricard, Fakro, Filtron, Bakoma, "
-            "Walstead and CTK Logistics, from requirements to rollout."
-        ),
+        location="Warsaw, Poland",
         roles=(
             Role(
                 title="Full-Stack Developer",
@@ -183,43 +182,47 @@ CV_DATA = CvData(
                         "XELapps",
                         "2024–2026",
                         "React, TypeScript, React Native/Expo, Flutter",
-                        "Web platform that hosts nine React business apps in one shell, passing "
-                        "config, navigation and sign-in between them. Built its user and "
-                        "application setup and JWT sign-in. On mobile, one Expo app covers six "
-                        "of the products, with SSO and store releases via EAS.",
+                        "Web platform that hosts React business apps in one shell, passing "
+                        "config, navigation and sign-in between them. Worked on its user and "
+                        "application setup and JWT sign-in, and on the Expo mobile app with SSO "
+                        "and store releases via EAS.",
                     ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "C#, .NET, Azure Functions, React, TypeScript",
-                        "Built much of the .NET extraction service (LLM prompts, vector search, "
-                        "learning from user corrections) and the React UI.",
+                        "C#, .NET, React, TypeScript",
+                        "Document AI that turns emailed invoices into structured data. Worked on "
+                        "the .NET extraction pipeline (Gemini via Vertex AI, "
+                        "embeddings, prompt versions) and the React review screens.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "XSLT/XML",
-                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
-                        "views, with XSLT rendering of invoice XML.",
+                        "KSeF e-invoicing platform. Worked on the document dashboard and actions, "
+                        "the integration and notification rules, and XSLT templates that turn "
+                        "FA(3) invoice XML into readable views.",
                     ),
                     Project(
                         "Approval workflows",
                         "2024–2026",
                         "REST APIs",
-                        "Built the workflow designer (versions, history), approval chains with "
-                        "substitutes, and a configurable invoice editor.",
+                        "Approval chains for invoices, purchase orders and holiday requests, "
+                        "built from steps, conditions and approvers. Worked on the designer and "
+                        "on approving from the web, mobile swipe cards and email.",
                     ),
                     Project(
                         "VendorPortal",
                         "2024–2026",
                         "React, TypeScript",
-                        "Supplier portal where vendors register containers and shipments, "
-                        "matching their item codes and orders to the client's.",
+                        "Supplier portal for tracking inbound containers down to item, lot and "
+                        "order. Worked on the container views and the mapping screens that "
+                        "translate vendor codes, sites and units into the client's.",
                     ),
                 ),
                 bullets=(
-                    "Set up build and release pipelines in Azure DevOps and GitHub Actions, "
-                    "and published our shared React components to npm.",
+                    "Worked directly with Pernod Ricard, Fakro, Filtron, Walstead, CTK Logistics, "
+                    "Melle, IMI Hydronic Engineering, Efektor and Drosed.",
                 ),
             ),
             Role(
@@ -230,19 +233,21 @@ CV_DATA = CvData(
                         "Xelcode",
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
-                        "Scanner apps for warehouses and production lines, configured per "
-                        "client as step-by-step flows. Built the scanning layer in Java and "
-                        "Kotlin on Android with the Zebra, Honeywell and Urovo SDKs, checked "
-                        "each scan against the ERP and printed labels on the device, so stock "
-                        "moves and production reports are booked live.",
+                        "Android scanner suite for warehouses and production, integrated with "
+                        "Oracle JD Edwards E1. Built the scanning layer in Java and Kotlin with "
+                        "the Zebra, Honeywell and Urovo SDKs, with live stock booking and "
+                        "on-device label printing.",
                     ),
                 ),
-                bullets=(),
+                bullets=(
+                    "Set up CI/CD pipelines in GitHub Actions and published our shared React "
+                    "components to npm.",
+                ),
             ),
         ),
     ),
     earlier_experience=(
-        "Freelance Web Development | Poznan, Poland | May–August 2018",
+        "Freelance Web Development | Poznan, Poland | 2018–2020",
         "Built responsive single-page application components and improved page speed "
         "and SEO.",
     ),
@@ -269,7 +274,7 @@ CV_DATA = CvData(
             "2016–2017",
         ),
     ),
-    languages=("Polish (native)", "English (fluent)", "Spanish (basic)"),
+    languages=("English (C1)", "Polish (native)", "Spanish (basic)"),
 )
 
 # Variant for employers in Wielkopolska hiring on a full-time employment
