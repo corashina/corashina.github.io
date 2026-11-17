@@ -3,7 +3,7 @@ title: "Building an editable voxel world in the browser"
 description: "Chunk generation, raycast block editing, and collision handling in an early Three.js terrain prototype."
 date: "2018-09-08"
 tags: [Three.js, WebGL, Game development]
-draft: true
+draft: false
 ---
 
 I built WebGL Minecraft to explore a small set of first-person interactions: walk around a block world, jump, remove a block, choose a material, and place another block against a surface. The project uses Three.js, pointer-lock controls, and simplex noise.

@@ -3,7 +3,7 @@ title: "Animating particles from their birth time in GLSL"
 description: "A fixed particle pool, timestamp-based motion, and the boundary between CPU spawning and GPU rendering."
 date: "2019-03-20"
 tags: [GLSL, Three.js, TypeScript]
-draft: true
+draft: false
 ---
 
 My 2019 Particle Simulation experiment uses a fixed pool of 10,000 points. JavaScript chooses the properties of newly spawned particles. A vertex shader calculates where each particle should appear from its starting position, velocity, and age.

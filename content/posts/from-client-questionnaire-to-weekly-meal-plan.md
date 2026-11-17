@@ -1,68 +1,60 @@
 ---
 title: "From a client questionnaire to a printable weekly meal plan"
-description: "Connecting intake forms, recipe editing, persisted schedules, and PDF output in a React and Redux application."
+description: "Carrying one plan through a questionnaire, an editable schedule, MongoDB and a printable PDF in a React, Redux and Express app for dietitians."
 date: "2018-08-13"
 tags: [React, Redux, Node.js, MongoDB]
-draft: true
+draft: false
 ---
 
-Fitmed was a prototype system for dietitians, built with React, Redux, Express, and MongoDB. A client could provide dietary preferences and view a plan. An administrator could maintain recipes, place them into a weekly schedule, and add comments. The client could then download the schedule, recipes, and a shopping list as a PDF.
+Fitmed was a system for dietitians and their clients, built with React, Redux, Express and MongoDB. A client filled in a questionnaire about their diet and preferences. The dietitian kept a recipe catalogue, placed recipes into the client's weekly schedule and added comments. The client could then view the plan and download it as a PDF with the schedule, the recipes and a shopping list.
 
-I worked on this project with another contributor during July and August 2018. This account focuses on the PDF export milestone of 13 August, before later revisions in January 2019.
+I built it with one other developer over July and August 2018. This article follows the PDF export milestone of 13 August.
 
-The engineering problem was carrying one plan through several representations: a questionnaire, an editable schedule, a database document, and a printable document. Each representation needed enough shared structure to remain consistent with the others.
+The main engineering task was carrying one plan through four forms: a questionnaire, an editable schedule, a database document and a printable document. All four had to agree.
 
 ## Modelling the work around a weekly schedule
 
-The data model separates products, recipes, and diets. Products hold nutritional information. Recipes combine ingredients with preparation text and nutritional values. A diet records the client's intake information and the meal schedule.
+The data model has three parts. Products hold nutritional information. Recipes combine ingredients with preparation steps and nutritional values. A diet holds the client's questionnaire answers and their meal schedule.
 
-The schedule has four meal periods across seven days. The prototype represents these as 28 named fields, such as `time_01_monday`, with separate fields for the four meal times.
+The schedule covers four meal periods across seven days, stored as 28 named fields such as `time_01_monday`, plus four fields for the meal times.
 
-This maps directly onto a table in the interface. The client and administrator can address a cell by name, and the PDF generator can group those fields into seven-column rows. It avoids a transformation layer between the database shape and the initial screen layout.
-
-The cost appears when the structure changes. A fifth meal period or a different planning duration would require changes in several places. An array of days and meals would make that structure more flexible, but the archived version uses explicit fields. The [diet model](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/models/Diet.js) shows both the questionnaire and schedule in the same document.
+I chose that shape because it matches the screen exactly. The schedule is a 7 by 4 table in the interface, a 7-column table in the PDF and a set of named slots in the API. Every layer can address the same cell by the same name, with no conversion layer between the database and the screen. For a fixed weekly format, that simplicity was worth more than flexibility. If the format had needed to change, for example with a fifth meal or a two-week plan, the next step would have been an array of days and meals. The [diet model](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/models/Diet.js) keeps the questionnaire and the schedule in one document.
 
 ## Following an edit through the application
 
-The administrator selects a recipe and a target meal field. A Redux action sends the recipe data and field name to an Express endpoint. The server updates the diet with MongoDB's `$addToSet`, reads the resulting document, and returns it. The reducer replaces its diet state with that response.
+The dietitian picks a recipe and a meal slot. A Redux action sends the recipe and the slot name to an Express endpoint. The server adds the recipe with MongoDB's `$addToSet`, reads back the updated diet and returns it. The reducer replaces its diet state with that response.
 
 ```text
 Select recipe and meal slot
-    -> Redux action sends the mutation
+    -> Redux action sends the change
     -> Express authenticates and updates the diet
     -> server returns the updated document
     -> reducer replaces the current diet
     -> connected views render the result
 ```
 
-Returning the document keeps the accepted server state visible to the client. The browser does not need to reproduce the database update rules to show the result. Removal follows a similar path using `$pull`.
+Returning the whole document means the screen always shows what the server actually saved. The browser doesn't need its own copy of the update rules, and `$addToSet` stops the same recipe from landing in one slot twice. Removing a recipe follows the same path with `$pull`. The [diet actions](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/actions/dietActions.js) and [API handlers](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/api/diets.js) show the full request path.
 
-That approach is easy to trace in a small application. It can transfer more data than a narrow patch, and concurrent responses can arrive out of order. The prototype does not implement revision checking or conflict resolution. The [diet actions](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/actions/dietActions.js) and [API handlers](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/api/diets.js) provide the complete request path.
+This round trip is easy to follow and debug. At a larger scale, I would send smaller patches and add revision checks so that two dietitians editing the same plan could not overwrite each other.
 
-## Distinguishing identity from permission
+## Separating identity from permission
 
-The server uses Passport strategies for JWT authentication. The regular strategy checks the user's verified status; the administrator strategy checks the administrative role. Editing operations such as adding a recipe to a diet use the administrator strategy.
+Clients and dietitians use the same API, so the screen a user sees can't decide what they're allowed to change. The server enforces that with two Passport JWT strategies. The regular strategy checks that the user is verified. The administrator strategy also checks the dietitian role, and every schedule edit goes through it.
 
-The distinction belongs on the server because the client-facing and administrator-facing screens share the same API. Choosing which screen to render does not determine which mutations a request may perform.
+That split keeps the rule in one place on the server. A client who calls the edit endpoint directly is refused, whatever the interface shows them.
 
-Coverage is uneven in the archived implementation. Some diet reads and comment operations use the regular strategy without a corresponding ownership check. Dynamic field names also need an allowlist before becoming database update paths. Those are limits of this prototype, rather than properties of a complete permission model.
+## Linking schedules to recipes
 
-## Keeping recipe identity stable
+A meal slot stores the recipe's name. That keeps the slot readable in the database and in the PDF, and the interface can look up the full recipe from the loaded catalogue.
 
-The schedule stores recipe names. That makes a meal slot readable and lets the interface find a recipe by comparing its name against the loaded catalogue.
-
-A rename exposes the weakness of that representation. The schedule now contains a label that may no longer match a recipe. Duplicate names create a similar ambiguity. Using stable recipe identifiers would separate the relationship from the text displayed to the user.
-
-Historical plans introduce another choice: should they reflect the latest recipe or preserve the recipe as it existed when the plan was prepared? The prototype does not version recipes. A system intended to preserve old plans would need to decide whether to store references, snapshots, or both.
-
-These decisions affect PDF output as well as database design. A document generated next month should have a defined relationship to the plan the client saw today.
+Working on this raised a broader question that any planning system has to answer: when a recipe changes later, should old plans change with it? A client's printed plan from last month should still match what they were given. The options are to store a reference to the recipe, a snapshot of it, or both. In a next version, I would store stable recipe IDs together with a snapshot taken when the plan is published. Renames would then stay safe, and historical plans would stay exactly as delivered.
 
 ## Building the PDF from the same fields
 
-The client uses pdfMake to construct a document definition. It groups the 28 meal fields into four schedule rows, adds recipe descriptions, and derives a shopping list from ingredient names. Page breaks separate the schedule from the recipe and shopping sections.
+The client builds the PDF with pdfMake. It groups the 28 meal fields into a weekly table, adds the description of each recipe and builds a shopping list from the ingredients. Page breaks keep the schedule, the recipes and the shopping list on separate pages. The document includes Polish text, so it bundles fonts that support Polish characters.
 
-Generating a document definition gives the export its own layout while retaining the same underlying plan data. It also requires explicit decisions about table widths, text wrapping, and page boundaries. The implementation includes Polish text and bundled PDF fonts.
+Building a document definition, instead of printing the web page, gave the PDF its own print layout while reading the same plan data. Column widths, text wrapping and page breaks were all chosen for paper rather than for the screen. The [export code](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/routes/client/Diet.js) shows the full document definition.
 
-The [export code](https://github.com/corashina/fitmed/blob/f6165d8bb54eb8343effa1ab50bada59817d570e/client/src/routes/client/Diet.js) contains a selection mistake worth separating from the intended flow: it uses the recipe array as the left side of `||`, so the filtered selection is bypassed when that array exists. As written, the export can include the entire loaded catalogue. Ingredient deduplication produces names, not aggregated purchase quantities.
+## What the project taught me
 
-The prototype connects intake, editing, persistence, and printable output through a visible workflow. Its strongest lesson is the reach of a data-model choice: a recipe name used as an identifier affects editing, navigation, historical plans, and the shopping list at once.
+Fitmed connected intake, editing, storage and printing into one workflow that a dietitian could actually use. Its most lasting lesson was how far one data-model decision reaches. The way a schedule refers to a recipe shaped the editor, the API, the PDF and what happens to a plan months later. I now settle that question early in any system that produces documents.
