@@ -145,10 +145,9 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer based in Poznań with six years of commercial experience. "
-        "I began in React and Android, and now work across the stack: React/TypeScript "
-        "and React Native on the front, C#/.NET and SQL Server on the "
-        "back. Most of my work is document-heavy business software, including LLM "
+        "Based in Poznań, with six years of commercial experience. I began in React and "
+        "Android, and now work across the stack in React/TypeScript, React Native, "
+        "C#/.NET and SQL Server. Most of my work is document-heavy business software, including LLM "
         "extraction and e-invoicing. Comfortable with AI coding tools like Claude Code "
         "and OpenCode for everyday development."
     ),
@@ -182,42 +181,42 @@ CV_DATA = CvData(
                         "XELapps",
                         "2024–2026",
                         "React, TypeScript, React Native/Expo, Flutter",
-                        "Web platform that hosts React business apps in one shell, passing "
-                        "config, navigation and sign-in between them. Worked on its user and "
-                        "application setup and JWT sign-in, and on the Expo mobile app with SSO "
-                        "and store releases via EAS.",
+                        "Worked on user and application setup and JWT sign-in for our web shell, "
+                        "which hosts React business apps and passes config, navigation and "
+                        "sign-in between them. Also contributed to the Expo mobile app (SSO, EAS "
+                        "store releases).",
                     ),
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, React, TypeScript",
-                        "Document AI that turns emailed invoices into structured data. Worked on "
-                        "the .NET extraction pipeline (Gemini via Vertex AI, "
-                        "embeddings, prompt versions) and the React review screens.",
+                        "Co-developed the .NET pipeline that turns emailed invoices into "
+                        "structured data (Gemini via Vertex AI, embeddings, prompt versions), "
+                        "plus the React screens for reviewing results.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "XSLT/XML",
-                        "KSeF e-invoicing platform. Worked on the document dashboard and actions, "
-                        "the integration and notification rules, and XSLT templates that turn "
-                        "FA(3) invoice XML into readable views.",
+                        "Platform for sending and receiving invoices through Poland's KSeF. "
+                        "Built parts of the document dashboard and integration rules, and created "
+                        "XSLT templates that render FA(3) invoice XML as HTML and PDF previews.",
                     ),
                     Project(
                         "Approval workflows",
                         "2024–2026",
                         "REST APIs",
-                        "Approval chains for invoices, purchase orders and holiday requests, "
-                        "built from steps, conditions and approvers. Worked on the designer and "
-                        "on approving from the web, mobile swipe cards and email.",
+                        "Helped build the step-and-condition designer behind our approval chains "
+                        "for invoices, purchase orders and holiday requests. Approvers can act "
+                        "from the web, mobile swipe cards or email.",
                     ),
                     Project(
                         "VendorPortal",
                         "2024–2026",
                         "React, TypeScript",
-                        "Supplier portal for tracking inbound containers down to item, lot and "
-                        "order. Worked on the container views and the mapping screens that "
-                        "translate vendor codes, sites and units into the client's.",
+                        "Supplier portal for tracking inbound containers down to lot and order. "
+                        "Worked on the container views and the screens that map vendor codes and "
+                        "units to the client's.",
                     ),
                 ),
                 bullets=(
@@ -234,9 +233,9 @@ CV_DATA = CvData(
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Android scanner suite for warehouses and production, integrated with "
-                        "Oracle JD Edwards E1. Built the scanning layer in Java and Kotlin with "
-                        "the Zebra, Honeywell and Urovo SDKs, with live stock booking and "
-                        "on-device label printing.",
+                        "Oracle JD Edwards E1. Built the scanning layer in Java and Kotlin on "
+                        "the Zebra, Honeywell and Urovo SDKs. Stock is booked live and labels "
+                        "print on the device.",
                     ),
                 ),
                 bullets=(
@@ -257,7 +256,7 @@ CV_DATA = CvData(
             "2026",
             "Java, QNX, Android Auto, CarPlay",
             "Integrated Android Auto and CarPlay with the Audi instrument cluster on MIB2 "
-            "firmware, with Java modules running on QNX.",
+            "firmware, using Java modules on QNX.",
             "https://github.com/corashina/mibsi-cluster-bridge",
             "github.com/corashina/mibsi-cluster-bridge",
         ),
