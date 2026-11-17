@@ -192,8 +192,9 @@ CV_DATA = CvData(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, Azure Functions, React, TypeScript",
-                        "Worked on the .NET extraction service (LLM prompts, vector search, "
-                        "learning from user corrections) and the React UI.",
+                        "Document AI that turns emailed invoices into structured data. Worked on "
+                        "the .NET extraction pipeline on Azure Functions (Gemini via Vertex AI, "
+                        "embeddings, prompt versions) and the React review screens.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
