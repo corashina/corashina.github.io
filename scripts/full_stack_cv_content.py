@@ -164,7 +164,7 @@ CV_DATA = CvData(
                 "Mantine",
             ),
         ),
-        ("Mobile", ("React Native/Expo", "Android", "Java", "Kotlin")),
+        ("Mobile", ("React Native", "Expo", "EAS", "Android (Java, Kotlin)")),
         ("Backend", ("C#", ".NET", "Node.js", "JWT")),
         ("Cloud", ("Azure Functions", "Event Grid")),
         ("Testing", ("Playwright", "Vitest", "React Testing Library")),
