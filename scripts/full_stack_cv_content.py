@@ -175,8 +175,8 @@ CV_DATA = CvData(
         period="2020–2026",
         location="Warsaw, Poland",
         client_note=(
-            "Worked directly with Pernod Ricard, Fakro, Filtron, Bakoma, "
-            "Walstead, CTK Logistics, Melle, IMI, Efektor, Drosed and Komagra Kosów."
+            "Worked directly with Pernod Ricard, Fakro, Filtron, Walstead, CTK Logistics, "
+            "Melle, IMI Hydronic Engineering, Efektor and Drosed."
         ),
         roles=(
             Role(
