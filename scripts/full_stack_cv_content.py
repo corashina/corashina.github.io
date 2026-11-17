@@ -234,11 +234,10 @@ CV_DATA = CvData(
                         "Xelcode",
                         "2020–2026",
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
-                        "Scanner apps for warehouses and production lines, configured per "
-                        "client as step-by-step flows. Built the scanning layer in Java and "
-                        "Kotlin on Android with the Zebra, Honeywell and Urovo SDKs, checked "
-                        "each scan against the ERP and printed labels on the device, so stock "
-                        "moves and production reports are booked live.",
+                        "Android scanner suite for warehouses and production, integrated with "
+                        "Oracle JD Edwards E1. Built the scanning layer in Java and Kotlin with "
+                        "the Zebra, Honeywell and Urovo SDKs, with live stock booking and "
+                        "on-device label printing.",
                     ),
                 ),
                 bullets=(),
