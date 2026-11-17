@@ -184,7 +184,7 @@ CV_DATA = CvData(
                         "2024–2026",
                         "React, TypeScript, React Native/Expo, Flutter",
                         "Web platform that hosts React business apps in one shell, passing "
-                        "config, navigation and sign-in between them. Built its user and "
+                        "config, navigation and sign-in between them. Worked on its user and "
                         "application setup and JWT sign-in. On mobile, one Expo app covers six "
                         "of the products, with SSO and store releases via EAS.",
                     ),
@@ -192,30 +192,31 @@ CV_DATA = CvData(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, Azure Functions, React, TypeScript",
-                        "Built much of the .NET extraction service (LLM prompts, vector search, "
+                        "Worked on the .NET extraction service (LLM prompts, vector search, "
                         "learning from user corrections) and the React UI.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "XSLT/XML",
-                        "Built screens for KSeF integration rules, logs, and PDF/XML invoice "
+                        "Worked on screens for KSeF integration rules, logs, and PDF/XML invoice "
                         "views, with XSLT rendering of invoice XML.",
                     ),
                     Project(
                         "Approval workflows",
                         "2024–2026",
                         "REST APIs",
-                        "Built the workflow designer (versions, history), approval chains with "
-                        "substitutes, and a configurable invoice editor.",
+                        "Approval chains for invoices, purchase orders and holiday requests, "
+                        "built from steps, conditions and approvers. Worked on the designer and "
+                        "on approving from the web, mobile swipe cards and email.",
                     ),
                     Project(
                         "VendorPortal",
                         "2024–2026",
                         "React, TypeScript",
                         "Supplier portal for tracking inbound containers down to item, lot and "
-                        "order, with mapping screens that translate vendor codes, sites and units "
-                        "into the client's.",
+                        "order. Worked on the container views and the mapping screens that "
+                        "translate vendor codes, sites and units into the client's.",
                     ),
                 ),
                 bullets=(
