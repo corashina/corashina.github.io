@@ -164,11 +164,11 @@ CV_DATA = CvData(
                 "Mantine",
             ),
         ),
-        ("Mobile", ("React Native", "Expo", "EAS", "Android (Java, Kotlin)")),
+        ("Mobile", ("React Native", "Expo", "Android (Java, Kotlin)")),
         ("Backend", ("C#/.NET", "SQL Server", "Node.js")),
         ("Cloud", ("Azure", "Firebase")),
         ("Testing", ("Playwright", "Vitest")),
-        ("Delivery", ("GitHub Actions", "Azure DevOps", "Vite")),
+        ("Delivery", ("GitHub Actions", "EAS")),
     ),
     employment=Employment(
         company="Xelto",
