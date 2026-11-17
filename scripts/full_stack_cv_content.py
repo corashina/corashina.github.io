@@ -147,7 +147,7 @@ CV_DATA = CvData(
     profile=(
         "Full-stack developer based in Poznań with six years of commercial experience. "
         "I began in React and Android, and now work across the stack: React/TypeScript "
-        "and React Native on the front, C#/.NET, Azure Functions and SQL Server on the "
+        "and React Native on the front, C#/.NET and SQL Server on the "
         "back. Most of my work is document-heavy business software, including LLM "
         "extraction and e-invoicing."
     ),
@@ -189,9 +189,9 @@ CV_DATA = CvData(
                     Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "C#, .NET, Azure Functions, React, TypeScript",
+                        "C#, .NET, React, TypeScript",
                         "Document AI that turns emailed invoices into structured data. Worked on "
-                        "the .NET extraction pipeline on Azure Functions (Gemini via Vertex AI, "
+                        "the .NET extraction pipeline (Gemini via Vertex AI, "
                         "embeddings, prompt versions) and the React review screens.",
                     ),
                     Project(
