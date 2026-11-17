@@ -145,7 +145,7 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer with six years at Xelto, building software that runs "
+        "Full-stack developer based in Poznań, with six years at Xelto, building software that runs "
         "behind the paperwork at manufacturing and logistics companies. I wrote much of "
         "our document AI service, which reads invoices with an LLM and gets better as "
         "users correct it. I also built our KSeF e-invoicing and approval workflow "
