@@ -185,8 +185,8 @@ CV_DATA = CvData(
                         "React, TypeScript, React Native/Expo, Flutter",
                         "Web platform that hosts React business apps in one shell, passing "
                         "config, navigation and sign-in between them. Worked on its user and "
-                        "application setup and JWT sign-in. On mobile, one Expo app covers six "
-                        "of the products, with SSO and store releases via EAS.",
+                        "application setup and JWT sign-in, and on the Expo mobile app with SSO "
+                        "and store releases via EAS.",
                     ),
                     Project(
                         "Document AI / ICR",
