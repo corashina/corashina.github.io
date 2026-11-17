@@ -159,8 +159,8 @@ CV_DATA = CvData(
             (
                 "TypeScript",
                 "React",
-                "Redux Toolkit",
-                "TanStack Query",
+                "Redux",
+                "TanStack",
                 "Mantine",
             ),
         ),
@@ -175,8 +175,8 @@ CV_DATA = CvData(
         period="2020–2026",
         location="Warsaw, Poland",
         client_note=(
-            "Worked directly with client teams at Pernod Ricard, Fakro, Filtron, Bakoma, "
-            "Walstead and CTK Logistics, from requirements to rollout."
+            "Worked directly with Pernod Ricard, Fakro, Filtron, Bakoma, "
+            "Walstead, CTK Logistics, Melle, IMI, Efektor, Drosed and Komagra Kosów."
         ),
         roles=(
             Role(
