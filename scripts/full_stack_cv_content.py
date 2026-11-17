@@ -174,10 +174,6 @@ CV_DATA = CvData(
         company="Xelto",
         period="2020–2026",
         location="Warsaw, Poland",
-        client_note=(
-            "Worked directly with Pernod Ricard, Fakro, Filtron, Walstead, CTK Logistics, "
-            "Melle, IMI Hydronic Engineering, Efektor and Drosed."
-        ),
         roles=(
             Role(
                 title="Full-Stack Developer",
@@ -222,8 +218,8 @@ CV_DATA = CvData(
                     ),
                 ),
                 bullets=(
-                    "Set up build and release pipelines in Azure DevOps and GitHub Actions, "
-                    "and published our shared React components to npm.",
+                    "Worked directly with Pernod Ricard, Fakro, Filtron, Walstead, CTK Logistics, "
+                    "Melle, IMI Hydronic Engineering, Efektor and Drosed.",
                 ),
             ),
             Role(
@@ -240,7 +236,10 @@ CV_DATA = CvData(
                         "on-device label printing.",
                     ),
                 ),
-                bullets=(),
+                bullets=(
+                    "Set up CI/CD pipelines in GitHub Actions and published our shared React "
+                    "components to npm.",
+                ),
             ),
         ),
     ),
