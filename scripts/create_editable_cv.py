@@ -578,7 +578,7 @@ def build_cv(output_path: Path, data: CvData = CV_DATA) -> Path:
     bullet_number_id = _create_bullet_numbering(document)
     _add_header(document, data)
 
-    _remove_divider(_add_section_heading(document, "Profile"))
+    _remove_divider(_add_section_heading(document, "About me"))
     _add_description(document, data.profile)
 
     _add_section_heading(document, "Professional experience")
@@ -919,7 +919,7 @@ def build_pdf(output_path: Path, data: CvData = CV_DATA) -> Path:
     )
 
     y = _pdf_header(pdf, data)
-    y = _pdf_section(pdf, "Profile", y, divider=False)
+    y = _pdf_section(pdf, "About me", y, divider=False)
     y = _pdf_text(pdf, data.profile, y)
 
     y = _pdf_section(pdf, "Professional experience", y)

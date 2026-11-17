@@ -145,13 +145,11 @@ CV_DATA = CvData(
         linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
     ),
     profile=(
-        "Full-stack developer based in Poznań, with six years at Xelto, building software that runs "
-        "behind the paperwork at manufacturing and logistics companies. I wrote much of "
-        "our document AI service, which reads invoices with an LLM and gets better as "
-        "users correct it. I also built our KSeF e-invoicing and approval workflow "
-        "products, warehouse scanning tied to the client's ERP, and the mobile app that "
-        "covers them. I work in C#/.NET on Azure and in React/TypeScript, and I set up "
-        "the pipelines that deploy it."
+        "Full-stack developer based in Poznań with six years of commercial experience. "
+        "I began in React and Android, and now work across the stack: React/TypeScript "
+        "and React Native on the front, C#/.NET, Azure Functions and SQL Server on the "
+        "back. Most of my work is document-heavy business software, including LLM "
+        "extraction and e-invoicing."
     ),
     technology_groups=(
         (
