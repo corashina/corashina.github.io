@@ -154,9 +154,8 @@ CV_DATA = CvData(
         (
             "Frontend",
             (
-                "React",
                 "TypeScript",
-                "JavaScript",
+                "React",
                 "Redux Toolkit",
                 "TanStack Query",
             ),
