@@ -199,8 +199,9 @@ CV_DATA = CvData(
                         "e-Invoicing / KSeF",
                         "2024–2026",
                         "XSLT/XML",
-                        "Worked on screens for KSeF integration rules, logs, and PDF/XML invoice "
-                        "views, with XSLT rendering of invoice XML.",
+                        "KSeF e-invoicing platform. Worked on the document dashboard and actions, "
+                        "the integration and notification rules, and XSLT templates that turn "
+                        "FA(3) invoice XML into readable views.",
                     ),
                     Project(
                         "Approval workflows",
