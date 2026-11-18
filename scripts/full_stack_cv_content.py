@@ -178,45 +178,46 @@ CV_DATA = CvData(
                 period="2024–2026",
                 products=(
                     Project(
-                        "XELapps",
-                        "2024–2026",
-                        "React, TypeScript, React Native/Expo, Flutter",
-                        "Worked on user and application setup and JWT sign-in for our web shell, "
-                        "which hosts React business apps and passes config, navigation and "
-                        "sign-in between them. Also contributed to the Expo mobile app (SSO, EAS "
-                        "store releases).",
-                    ),
-                    Project(
                         "Document AI / ICR",
                         "2025–2026",
-                        "C#, .NET, React, TypeScript",
-                        "Co-developed the .NET pipeline that turns emailed invoices into "
-                        "structured data (Gemini via Vertex AI, embeddings, prompt versions), "
-                        "plus the React screens for reviewing results.",
+                        "C#, .NET, Azure Functions, Azure SQL, React, TypeScript",
+                        "Co-developed the .NET 8 service on Azure Functions that reads emailed "
+                        "invoices with Gemini (Vertex AI) and sends structured JSON to client "
+                        "webhooks, matching supplier layouts with embeddings and Azure SQL vector "
+                        "search. Built the React screens for reviewing results and tuning prompts.",
                     ),
                     Project(
                         "e-Invoicing / KSeF",
                         "2024–2026",
-                        "XSLT/XML",
-                        "Platform for sending and receiving invoices through Poland's KSeF. "
-                        "Built parts of the document dashboard and integration rules, and created "
-                        "XSLT templates that render FA(3) invoice XML as HTML and PDF previews.",
+                        "XSLT/XML, React, TypeScript",
+                        "Created the XSLT templates that render FA(3) invoice XML as HTML and PDF "
+                        "previews, and built parts of the React dashboard and integration rules for "
+                        "sending and receiving invoices through Poland's KSeF.",
                     ),
                     Project(
                         "Approval workflows",
                         "2024–2026",
-                        "REST APIs",
-                        "Helped build the step-and-condition designer behind our approval chains "
-                        "for invoices, purchase orders and holiday requests. Approvers can act "
-                        "from the web, mobile swipe cards or email.",
+                        "React, TypeScript",
+                        "Helped build the designer clients use to set up approval chains for "
+                        "invoices, purchase orders and holiday requests (steps, conditions, "
+                        "substitutes, versions). Approvers act from the web, mobile swipe cards or "
+                        "email.",
+                    ),
+                    Project(
+                        "XELapps",
+                        "2024–2026",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Worked on user and application setup and JWT sign-in for the web shell "
+                        "that hosts our React business apps, and on SSO sign-in and EAS store "
+                        "releases for the Expo app that covers six of our products.",
                     ),
                     Project(
                         "VendorPortal",
                         "2024–2026",
                         "React, TypeScript",
-                        "Supplier portal for tracking inbound containers down to lot and order. "
-                        "Worked on the container views and the screens that map vendor codes and "
-                        "units to the client's.",
+                        "Worked on the container views and the dictionaries that map supplier codes "
+                        "and units to the client's, in a portal that tracks inbound shipments down "
+                        "to lot and order.",
                     ),
                 ),
                 bullets=(
