@@ -14,6 +14,13 @@
   text-align: left;
 }
 
+.introduction .homeLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
 .toolkit {
   display: grid;
   gap: 1rem;
@@ -27,6 +34,7 @@
 }
 
 .toolkitGroup {
+  align-content: start;
   display: grid;
   gap: 0.5rem;
 }
@@ -50,6 +58,7 @@
 }
 
 .toolList {
+  align-items: flex-start;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;

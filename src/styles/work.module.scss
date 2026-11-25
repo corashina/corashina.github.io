@@ -124,6 +124,24 @@
   text-align: left;
 }
 
+// The project title is the page's h1 but keeps the old h2 look; the year keeps the old h4 look.
+.detail .detailTitle {
+  color: $color-muted-text;
+  font-size: 1.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.detail .detailYear {
+  color: $color-muted-text;
+  margin: 0 0 0.5rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
 .tools {
   display: flex;
   flex-wrap: wrap;

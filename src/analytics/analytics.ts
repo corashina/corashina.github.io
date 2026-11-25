@@ -1,59 +1,28 @@
-export type ContactMethod = "email" | "cv" | "github" | "linkedin" | "stackoverflow" | "x" | "stackexchange";
-
-const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
+// Cloudflare Web Analytics: a cookieless page-view counter, so the site needs
+// no consent banner. It counts page views and SPA navigations only; there are
+// no custom events.
+const beaconToken = import.meta.env.VITE_CF_BEACON_TOKEN as string | undefined;
 const productionHosts = new Set([
   "www.tomasz-zielinski.com",
   "tomasz-zielinski.com",
   "corashina.github.io",
 ]);
 
-type GoogleTag = (...args: unknown[]) => void;
-declare global {
-  interface Window {
-    dataLayer?: IArguments[];
-    gtag?: GoogleTag;
-  }
-}
-
 let initialized = false;
 
 function isAnalyticsEnabled(): boolean {
   return import.meta.env.PROD &&
-    typeof measurementId === "string" && /^G-[A-Z0-9]+$/.test(measurementId) &&
+    typeof beaconToken === "string" && /^[0-9a-f]{32}$/.test(beaconToken) &&
     productionHosts.has(window.location.hostname);
 }
 
 export function initializeAnalytics(): void {
   if (initialized || !isAnalyticsEnabled()) return;
-  const analyticsWindow = window;
-
   initialized = true;
-  analyticsWindow.dataLayer = analyticsWindow.dataLayer ?? [];
-  analyticsWindow.gtag = function () {
-    analyticsWindow.dataLayer!.push(arguments);
-  };
-  const gtag = analyticsWindow.gtag;
-  gtag("js", new Date());
-  gtag("config", measurementId, {
-    allow_google_signals: false,
-    allow_ad_personalization_signals: false,
-    cookie_domain: "none",
-    cookie_path: "/",
-  });
-
-  // Enhanced measurement owns initial/history page views, downloads and outbound
-  // links. Do not also send page_view events from React Router.
   const script = document.createElement("script");
-  script.id = "google-analytics";
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+  script.id = "cloudflare-web-analytics";
+  script.defer = true;
+  script.src = "https://static.cloudflareinsights.com/beacon.min.js";
+  script.dataset.cfBeacon = JSON.stringify({ token: beaconToken, spa: true });
   document.head.appendChild(script);
-}
-
-export function trackContactClick(method: ContactMethod): void {
-  if (!initialized || !isAnalyticsEnabled()) return;
-  window.gtag?.("event", "contact_click", {
-    contact_method: method,
-    transport_type: "beacon",
-  });
 }

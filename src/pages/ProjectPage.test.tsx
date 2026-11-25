@@ -21,10 +21,10 @@ describe("ProjectPage", () => {
     renderProject("webgl-minecraft");
 
     expect(
-      screen.getByRole("heading", { level: 2, name: "WebGL-Minecraft" }),
+      screen.getByRole("heading", { level: 1, name: "WebGL-Minecraft" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 4, name: "2018" })).toBeInTheDocument();
-    expect(screen.getByText("Primitive minecraft clone made with three.js")).toBeInTheDocument();
+    expect(screen.getByText("2018").tagName).toBe("TIME");
+    expect(screen.getByText("Primitive Minecraft clone made with three.js")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual([
       "javascript",
       "three.js",
@@ -32,17 +32,27 @@ describe("ProjectPage", () => {
     ]);
     expect(screen.getByRole("link", { name: "github →" })).toHaveAttribute(
       "href",
-      "https://github.com/corashina/webGL-Minecraft",
+      "https://github.com/corashina/webgl-minecraft",
     );
   });
 
   it("renders a company product overview instead of a GitHub link", () => {
     renderProject("xelcode");
 
-    expect(screen.getByRole("heading", { level: 2, name: "Xelcode" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Xelcode" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Product overview →" })).toHaveAttribute(
       "href",
       "https://xelcode.com/product/",
+    );
+    expect(screen.queryByRole("link", { name: "play →" })).not.toBeInTheDocument();
+  });
+
+  it("links a playable build next to the source when there is one", () => {
+    renderProject("dont-sleep-with-the-fishes");
+
+    expect(screen.getByRole("link", { name: "play →" })).toHaveAttribute(
+      "href",
+      "https://dontsleepwiththefishes.pages.dev/",
     );
   });
 

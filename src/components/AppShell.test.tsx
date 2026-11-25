@@ -289,7 +289,7 @@ describe("AppShell", () => {
     );
     expect(within(links).getByRole("link", { name: /linkedin/i })).toHaveAttribute(
       "href",
-      "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+      "https://www.linkedin.com/in/corashina/",
     );
     expect(within(links).getByRole("link", { name: /x\.com\/corashina/i })).toHaveAttribute(
       "href",

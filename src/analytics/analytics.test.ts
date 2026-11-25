@@ -1,70 +1,46 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-const measurementId = "G-XN363XBN6Z";
+const token = "d833a464098749e993ece3a34cb58c63";
 let analytics: typeof import("./analytics");
-let browser: {
-  location: { hostname: string };
-  dataLayer?: IArguments[];
-};
-const commands = (): unknown[][] => browser.dataLayer?.map((args) => Array.from(args)) ?? [];
+const beacon = () => document.querySelector("#cloudflare-web-analytics");
 
 beforeEach(async () => {
   vi.resetModules();
   vi.stubEnv("PROD", true);
-  vi.stubEnv("VITE_GA_MEASUREMENT_ID", measurementId);
-  browser = { location: { hostname: "www.tomasz-zielinski.com" } };
-  vi.stubGlobal("window", browser);
+  vi.stubEnv("VITE_CF_BEACON_TOKEN", token);
+  vi.stubGlobal("window", { location: { hostname: "www.tomasz-zielinski.com" } });
   analytics = await import("./analytics");
 });
 
 afterEach(() => {
-  document.querySelector("#google-analytics")?.remove();
+  beacon()?.remove();
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
 
-it("starts automatically without stored consent and initializes only once", () => {
+it("loads the cookieless Cloudflare beacon once, with SPA tracking", () => {
   analytics.initializeAnalytics();
   analytics.initializeAnalytics();
-  expect(document.querySelectorAll("#google-analytics")).toHaveLength(1);
-  expect(document.querySelector("#google-analytics")).toHaveAttribute(
-    "src", `https://www.googletagmanager.com/gtag/js?id=${measurementId}`,
-  );
-  expect(commands()).toEqual([
-    ["js", expect.any(Date)],
-    ["config", measurementId, {
-      allow_google_signals: false, allow_ad_personalization_signals: false,
-      cookie_domain: "none", cookie_path: "/",
-    }],
-  ]);
+  expect(document.querySelectorAll("#cloudflare-web-analytics")).toHaveLength(1);
+  expect(beacon()).toHaveAttribute("src", "https://static.cloudflareinsights.com/beacon.min.js");
+  expect(JSON.parse(beacon()!.getAttribute("data-cf-beacon")!)).toEqual({ token, spa: true });
 });
 
-it("records a contact click after automatic initialization", () => {
+it("does not load Google Analytics", () => {
   analytics.initializeAnalytics();
-  analytics.trackContactClick("email");
-  expect(commands().at(-1)).toEqual(["event", "contact_click", {
-    contact_method: "email", transport_type: "beacon",
-  }]);
+  expect(document.querySelector('script[src*="googletagmanager"]')).toBeNull();
 });
 
-it.each(["localhost", "127.0.0.1", "preview.example.com"])("does not track on %s", (hostname) => {
-  browser.location.hostname = hostname;
-  analytics.initializeAnalytics();
-  analytics.trackContactClick("github");
-  expect(document.querySelector("#google-analytics")).toBeNull();
-  expect(commands()).toEqual([]);
-});
-
-it("does not track development builds even on a production hostname", () => {
-  vi.stubEnv("PROD", false);
-  analytics.initializeAnalytics();
-  expect(document.querySelector("#google-analytics")).toBeNull();
-});
-
-it("does not install a tag when its measurement ID is missing", async () => {
-  vi.stubEnv("VITE_GA_MEASUREMENT_ID", "");
+it("stays off on other hosts", async () => {
   vi.resetModules();
-  const unconfigured = await import("./analytics");
-  unconfigured.initializeAnalytics();
-  expect(document.querySelector("#google-analytics")).toBeNull();
+  vi.stubGlobal("window", { location: { hostname: "localhost" } });
+  (await import("./analytics")).initializeAnalytics();
+  expect(beacon()).toBeNull();
+});
+
+it("stays off without a valid token", async () => {
+  vi.resetModules();
+  vi.stubEnv("VITE_CF_BEACON_TOKEN", "");
+  (await import("./analytics")).initializeAnalytics();
+  expect(beacon()).toBeNull();
 });

@@ -1,6 +1,6 @@
 ---
 title: "Recreating The Long Drive in Rust and WebAssembly"
-description: "The engineering behind a browser port of a Unity driving game: exporting an installed build, a simulation worker, floating-origin physics, WheelCollider tires, and a WebGPU frame budget."
+description: "Porting a Unity driving game to the browser: a simulation worker, floating-origin physics, WheelCollider tires and a WebGPU frame budget."
 date: "2026-11-02"
 tags: [Game development, Rust, WebAssembly]
 draft: false

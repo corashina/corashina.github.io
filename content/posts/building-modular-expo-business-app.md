@@ -12,8 +12,6 @@ The source project uses React Native, TypeScript, React Navigation, Zustand, Tan
 
 The difficult work sat between those layers. The app had to restore a half-finished login, resolve inconsistent application names, keep public approval links reachable without a session, and save files through different Android and iOS APIs.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## One shell, six modules
 
 The application registry maps a selected application to a module key. Stable application IDs take priority. Normalized names provide aliases for cases where an API returns a product label instead of the expected ID.

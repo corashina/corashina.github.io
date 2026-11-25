@@ -26,17 +26,17 @@ describe("WorksPage", () => {
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(16);
     expect(links.map((link) => link.getAttribute("href"))).toEqual([
-      "/works/xelapps",
       "/works/icr",
       "/works/workflow",
       "/works/holiday",
       "/works/einvoicing",
+      "/works/xelapps",
       "/works/xelcode",
-      "/works/mibsi-cluster-bridge",
       "/works/fitmed",
-      "/works/the-long-slop",
+      "/works/the-long-drive",
       "/works/dont-sleep-with-the-fishes",
       "/works/cosmic-sugar",
+      "/works/mibsi-cluster-bridge",
       "/works/flappy-pixie",
       "/works/endless-city",
       "/works/webgl-minecraft",
@@ -49,7 +49,7 @@ describe("WorksPage", () => {
       expect(within(link).getByText(link.getAttribute("aria-label") ?? "")).toBeInTheDocument();
     }
     const xelcode = screen.getByRole("link", { name: "Xelcode" });
-    expect(within(xelcode).getByText("2021")).toHaveAttribute("dateTime", "2021");
+    expect(within(xelcode).getByText("2020–2024")).toHaveAttribute("dateTime", "2020");
     expect(within(xelcode).queryByText(/Started:/)).not.toBeInTheDocument();
   });
 

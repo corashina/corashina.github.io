@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 import { expect, it } from "vitest";
 import * as pageMeta from "../src/data/pageMeta";
 import { person } from "../src/data/person";
-import { localizeProject, projects } from "../src/data/projects";
+import { localizeProject, projectRedirects, projects } from "../src/data/projects";
 import { messagesFor } from "../src/i18n/messages";
 import { createRoutePages } from "./create-route-pages.mjs";
 
@@ -25,7 +25,7 @@ async function build() {
   await writeFile(join(postsDirectory, "example.md"), markdown);
   await writeFile(join(postsDirectory, "draft.md"), markdown.replace("\n---\nBody", "\ndraft: true\n---\nBody"));
   const paths = await createRoutePages({
-    distDirectory, postsDirectory, projects, localizeProject, messagesFor, pageMeta, person,
+    distDirectory, postsDirectory, projects, localizeProject, messagesFor, pageMeta, person, projectRedirects,
   });
   const read = async (path: string) =>
     new JSDOM(await readFile(join(distDirectory, path), "utf8")).window.document;
@@ -188,6 +188,23 @@ it("points Polish article pages at the English article, which is the only copy",
     );
     expect(polish.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
     expect(polish.querySelector('meta[property="og:locale:alternate"]')).toBeNull();
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+it("forwards renamed project URLs in both languages and keeps them out of the sitemap", async () => {
+  const { root, distDirectory, paths, read } = await build();
+  try {
+    const english = await read("works/the-long-slop/index.html");
+    expect(meta(english, 'meta[http-equiv="refresh"]')).toBe("0; url=/works/the-long-drive/");
+    expect(english.querySelector('link[rel="canonical"]')?.getAttribute("href"))
+      .toBe("https://www.tomasz-zielinski.com/works/the-long-drive/");
+    expect(meta(english, 'meta[name="robots"]')).toBe("noindex");
+    const polish = await read("pl/works/the-long-slop/index.html");
+    expect(meta(polish, 'meta[http-equiv="refresh"]')).toBe("0; url=/pl/works/the-long-drive/");
+    expect(paths).not.toContain("works/the-long-slop");
+    expect(await readFile(join(distDirectory, "sitemap.xml"), "utf8")).not.toContain("the-long-slop");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

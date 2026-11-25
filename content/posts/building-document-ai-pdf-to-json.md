@@ -10,8 +10,6 @@ I worked on a [document AI product](/works/icr/) that turns uploaded business do
 
 The main challenge came from uncertainty at several layers. A customer can upload the wrong document type. A model can return malformed JSON. A prompt that works for one document cluster can lose quality on another. An operator needs enough context to correct a result without seeing internal configuration that their role should hide.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## Keeping upload work short
 
 The upload endpoint does not hold an HTTP request open while an AI model processes a file. It parses one multipart upload, validates the tenant and document type, checks the caller's permission, validates optional JSON metadata, and creates a pending document record. The service then stores the binary and publishes an event. The caller receives an accepted response with the document ID.

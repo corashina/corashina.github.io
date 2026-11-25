@@ -10,7 +10,7 @@ export const person = {
   email: "mailto:corashina@gmail.com",
   sameAs: [
     "https://github.com/corashina",
-    "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+    "https://www.linkedin.com/in/corashina/",
     "https://stackoverflow.com/users/7306664/corashina",
     "https://x.com/corashina",
   ],
