@@ -95,7 +95,6 @@ class EditableCvBuilderTest(unittest.TestCase):
             "Tomasz Zielinski",
             "Full-Stack Developer",
             "tomasz-zielinski.com",
-            "linkedin.com/in/corashina",
             "corashina@gmail.com",
             "+48 791 748 226",
             "About me",
@@ -386,7 +385,9 @@ class EditableCvBuilderTest(unittest.TestCase):
         )
         self.assertEqual(
             rows,
-            ("tomasz-zielinski.com", "linkedin.com/in/corashina", "corashina@gmail.com", "+48 791 748 226"),
+            ("tomasz-zielinski.com", "corashina@gmail.com", "+48 791 748 226"),
+        )
+        self.assertNotIn("linkedin", self.text.lower()
         )
         for value in PROJECT_TITLES:
             self.assertIn(value, self.text)
