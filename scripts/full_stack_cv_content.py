@@ -179,8 +179,8 @@ CV_DATA = CvData(
         "Based in Poznań, with six years of commercial experience. I began in React and "
         "Android, and now work across the stack in React/TypeScript, React Native, "
         "C#/.NET and SQL Server. Most of my work is document-heavy business software, including LLM "
-        "extraction and e-invoicing. Comfortable with AI coding tools like Claude Code "
-        "and OpenCode for everyday development."
+        "extraction and e-invoicing. AI coding tools such as Claude Code are part "
+        "of my everyday development."
     ),
     technology_groups=(
         (
@@ -266,8 +266,7 @@ CV_DATA = CvData(
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Android scanner suite for warehouses and production, integrated with "
                         "Oracle JD Edwards E1. Built the scanning layer in Java and Kotlin on "
-                        "the Zebra, Honeywell and Urovo SDKs. Stock is booked live and labels "
-                        "print on the device.",
+                        "the Zebra, Honeywell and Urovo SDKs.",
                     ),
                 ),
                 bullets=(
@@ -344,8 +343,8 @@ POLISH_CV_DATA = replace(
         "Mieszkam w Poznaniu, mam sześć lat doświadczenia komercyjnego. Zaczynałem od "
         "Reacta i Androida, dziś pracuję w całym stacku: React/TypeScript, React Native, "
         "C#/.NET i SQL Server. Głównie tworzę oprogramowanie biznesowe do obsługi "
-        "dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Na co dzień "
-        "programuję z narzędziami AI, takimi jak Claude Code i OpenCode."
+        "dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Narzędzia AI do "
+        "programowania, takie jak Claude Code, są częścią mojej codziennej pracy."
     ),
     technology_groups=(
         ("Frontend", CV_DATA.technology_groups[0][1]),
@@ -424,8 +423,7 @@ POLISH_CV_DATA = replace(
                         "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
                         "Aplikacje na skanery z Androidem dla magazynów i produkcji, zintegrowane "
                         "z Oracle JD Edwards E1. Warstwę skanowania napisałem w Javie i Kotlinie "
-                        "(SDK Zebra, Honeywell, Urovo). Ruchy magazynowe księgują się na bieżąco, "
-                        "etykiety drukują się na urządzeniu.",
+                        "(SDK Zebra, Honeywell, Urovo).",
                     ),
                 ),
                 bullets=(
