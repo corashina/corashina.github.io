@@ -49,7 +49,7 @@ describe("WorksPage", () => {
       expect(within(link).getByText(link.getAttribute("aria-label") ?? "")).toBeInTheDocument();
     }
     const xelcode = screen.getByRole("link", { name: "Xelcode" });
-    expect(within(xelcode).getByText("2020–2024")).toHaveAttribute("dateTime", "2020");
+    expect(within(xelcode).getByText("2020–2026")).toHaveAttribute("dateTime", "2020");
     expect(within(xelcode).queryByText(/Started:/)).not.toBeInTheDocument();
   });
 

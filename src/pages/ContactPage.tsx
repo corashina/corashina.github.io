@@ -6,7 +6,6 @@ import {
   FaLinkedin,
   FaStackOverflow,
 } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
 import styles from "../styles/contact.module.scss";
 import { useMessages } from "../i18n/useLocale";
 
@@ -47,12 +46,6 @@ export function ContactPage(): JSX.Element {
             <a href="https://www.linkedin.com/in/corashina/">
               <FaLinkedin aria-hidden="true" />
               linkedin <span>linkedin.com/in/corashina</span>
-            </a>
-          </li>
-          <li>
-            <a href="https://x.com/corashina">
-              <FaXTwitter aria-hidden="true" />
-              x <span>x.com/corashina</span>
             </a>
           </li>
         </ul>

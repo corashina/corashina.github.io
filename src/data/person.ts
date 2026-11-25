@@ -12,7 +12,6 @@ export const person = {
     "https://github.com/corashina",
     "https://www.linkedin.com/in/corashina/",
     "https://stackoverflow.com/users/7306664/corashina",
-    "https://x.com/corashina",
   ],
   alumniOf: { "@type": "CollegeOrUniversity", name: "University of Southampton" },
   knowsAbout: ["React", "TypeScript", ".NET", "C#", "Node.js", "React Native", "Oracle JD Edwards", "KSeF"],

@@ -4,28 +4,19 @@ import { useLocalizedPath, useMessages } from "../i18n/useLocale";
 import type { Messages } from "../i18n/messages";
 import styles from "../styles/home.module.scss";
 
+// Mirrors the Technologies block of the CV (scripts/full_stack_cv_content.py).
 type ToolkitGroup = {
-  title: keyof Pick<Messages["home"], "languages" | "platforms" | "systems" | "delivery">;
+  title: keyof Pick<Messages["home"], "frontend" | "mobile" | "backend" | "cloud" | "testing" | "delivery">;
   technologies: readonly string[];
 };
 
 const toolkitGroups = [
-  {
-    title: "languages",
-    technologies: ["TypeScript", "JavaScript", "C#", "SQL", "Kotlin", "Java", "XSLT/XML"],
-  },
-  {
-    title: "platforms",
-    technologies: ["React", "React Native/Expo", ".NET", "Node.js", "Android", "Flutter", "Three.js/WebGL"],
-  },
-  {
-    title: "systems",
-    technologies: ["SQL Server", "Azure", "REST APIs", "JWT", "n8n", "Oracle JD Edwards"],
-  },
-  {
-    title: "delivery",
-    technologies: ["GitHub Actions", "CI/CD", "npm packages", "Vite"],
-  },
+  { title: "frontend", technologies: ["TypeScript", "React", "Redux", "TanStack", "Mantine"] },
+  { title: "mobile", technologies: ["React Native", "Expo", "Android (Java, Kotlin)"] },
+  { title: "backend", technologies: ["C#/.NET", "SQL Server", "Node.js"] },
+  { title: "cloud", technologies: ["Azure", "Firebase"] },
+  { title: "testing", technologies: ["Playwright", "Vitest"] },
+  { title: "delivery", technologies: ["GitHub Actions", "EAS"] },
 ] as const satisfies readonly ToolkitGroup[];
 
 export function HomePage(): JSX.Element {
