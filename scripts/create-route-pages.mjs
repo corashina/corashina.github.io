@@ -48,6 +48,7 @@ const localizedPath = (englishPath, locale) =>
  *   pageMeta: {
  *     siteUrl: string,
  *     siteName: string,
+ *     siteNameFor: (locale: Locale) => string,
  *     shareImage: { path: string, width: number, height: number, alt: string },
  *     ogLocales: Record<Locale, string>,
  *     getPageMeta: (pathname: string, projects: any) => PageMeta,
@@ -91,7 +92,7 @@ export async function createRoutePages({
       page("blog", { ...pageMeta.articlesMeta(locale), lastModified: newestPost }),
       ...posts.map(({ meta: post }) =>
         page(`blog/${post.slug}`, {
-          title: `${post.title} | ${pageMeta.siteName}`,
+          title: `${post.title} | ${pageMeta.siteNameFor(locale)}`,
           description: post.description,
           type: "article",
           publishedTime: post.date,

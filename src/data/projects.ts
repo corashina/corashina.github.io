@@ -127,7 +127,7 @@ type ProjectSlug = (typeof projectData)[number][0];
 /** Polish text for each project; titles, tools and links stay the same. */
 const polishProjectText: Record<ProjectSlug, { description: string; alt: string }> = {
   "webgl-minecraft": {
-    description: "Prosty klon Minecrafta zrobiony w three.js",
+    description: "Prosty klon Minecrafta zrobiony w Three.js",
     alt: "Scena z klonu Minecrafta w WebGL",
   },
   "endless-city": {
@@ -135,7 +135,7 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
     alt: "Nieskończona proceduralna scena miasta w WebGL",
   },
   "flappy-pixie": {
-    description: "Klon Flappy Bird zrobiony w tydzień jako zadanie rekrutacyjne",
+    description: "Klon Flappy Bird zrobiony w ciągu tygodnia jako zadanie rekrutacyjne",
     alt: "Gra Flappy Pixie",
   },
   civio: {
@@ -143,8 +143,8 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
     alt: "Proceduralna mapa heksagonalna",
   },
   "particle-simulation": {
-    description: "Generator cząsteczek napisany w GLSL",
-    alt: "Symulacja cząsteczek w GLSL",
+    description: "Generator cząstek w GLSL",
+    alt: "Symulacja cząstek w GLSL",
   },
   fitmed: {
     description: "Prototyp systemu dla dietetyków",
@@ -163,7 +163,7 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
     alt: "Interfejs akceptacji w Workflow",
   },
   holiday: {
-    description: "Procesy administrowania urlopami pracowników.",
+    description: "Obsługa wniosków urlopowych i zarządzanie urlopami pracowników.",
     alt: "Interfejs Holiday do zarządzania urlopami",
   },
   einvoicing: {
@@ -179,8 +179,8 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
     alt: "Gra survivalowa Don't Sleep With The Fishes",
   },
   "cosmic-sugar": {
-    description: "Interaktywna symulacja cząsteczek w Three.js z siłami przyciągania i odpychania, którymi można rzeźbić.",
-    alt: "Symulacja cząsteczek Cosmic Sugar",
+    description: "Interaktywna symulacja cząstek w Three.js z siłami przyciągania i odpychania, którymi można rzeźbić.",
+    alt: "Symulacja cząstek Cosmic Sugar",
   },
   "mibsi-cluster-bridge": {
     description: "Eksperymentalne narzędzia do integracji Android Auto i CarPlay z Audi Virtual Cockpit: przekazywanie nawigacji, pakiet instalacyjny i weryfikacja.",

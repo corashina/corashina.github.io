@@ -22,7 +22,10 @@ export type PageMeta = {
   description: string;
 };
 
-const titled = (title: string): string => `${title} | ${siteName}`;
+/** The site name as written in the given language (Polish spells it Zieliński). */
+export const siteNameFor = (locale: Locale): string => messagesFor(locale).meta.name;
+
+const titled = (title: string, locale: Locale): string => `${title} | ${siteNameFor(locale)}`;
 
 export const homeMeta = (locale: Locale): PageMeta => ({
   title: messagesFor(locale).meta.homeTitle,
@@ -30,12 +33,12 @@ export const homeMeta = (locale: Locale): PageMeta => ({
 });
 
 export const articlesMeta = (locale: Locale): PageMeta => ({
-  title: titled(messagesFor(locale).meta.articlesTitle),
+  title: titled(messagesFor(locale).meta.articlesTitle, locale),
   description: messagesFor(locale).meta.articlesDescription,
 });
 
-export const projectMeta = (project: Project): PageMeta => ({
-  title: titled(project.title),
+export const projectMeta = (project: Project, locale: Locale = "en"): PageMeta => ({
+  title: titled(project.title, locale),
   description: project.description,
 });
 
@@ -48,10 +51,10 @@ export function getPageMeta(pathname: string, projects: readonly Project[]): Pag
   const { meta } = messagesFor(locale);
   const path = stripLocale(pathname).replace(/\/+$/, "") || "/";
   if (path === "/") return homeMeta(locale);
-  if (path === "/works") return { title: titled(meta.worksTitle), description: meta.worksDescription };
-  if (path === "/contact") return { title: titled(meta.contactTitle), description: meta.contactDescription };
+  if (path === "/works") return { title: titled(meta.worksTitle, locale), description: meta.worksDescription };
+  if (path === "/contact") return { title: titled(meta.contactTitle, locale), description: meta.contactDescription };
   const projectMatch = /^\/works\/([^/]+)$/.exec(path);
   const project = projectMatch && projects.find((entry) => entry.slug === projectMatch[1]);
-  if (project) return projectMeta(project);
-  return { title: titled(meta.notFoundTitle), description: meta.homeDescription };
+  if (project) return projectMeta(project, locale);
+  return { title: titled(meta.notFoundTitle, locale), description: meta.homeDescription };
 }

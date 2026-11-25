@@ -67,6 +67,8 @@ const en = {
     body: "Sorry. This page does not exist.",
   },
   meta: {
+    /** The name as written in this language. */
+    name: "Tomasz Zielinski",
     homeTitle: "Tomasz Zielinski · Full-stack developer (React, TypeScript, .NET)",
     homeDescription:
       "Full-stack developer with six years at Xelto building React, TypeScript and .NET products: warehouse scanning, approval workflows, Polish e-invoicing (KSeF) and document AI.",
@@ -107,7 +109,7 @@ const pl: Messages = {
   home: {
     role: "programista full-stack",
     intro: [
-      "Tworzę platformy do obsługi procesów biznesowych, systemy wspierające operacje firm, aplikacje mobilne, integracje i narzędzia do przetwarzania dokumentów. Pracuję w TypeScripcie, C#, Dart i XSLT, łącząc aplikacje dla użytkowników z API, przepływami danych, usługami chmurowymi i procesem wdrożeń.",
+      "Tworzę platformy do obsługi procesów biznesowych, systemy wspierające operacje firm, aplikacje mobilne, integracje i narzędzia do przetwarzania dokumentów. Piszę w TypeScripcie, C#, Darcie i XSLT, łącząc aplikacje dla użytkowników z API, przepływami danych, usługami chmurowymi i pipeline'ami CI/CD.",
       "Mam doświadczenie w logistyce, produkcji, automatyzacji procesów, e-fakturowaniu i AI do analizy dokumentów. Prowadzę produkty od architektury aplikacji, przez integracje, aż po wdrożenie. Po godzinach tworzę projekty WebGL w Three.js.",
     ],
     toolkit: "Narzędzia",
@@ -149,23 +151,24 @@ const pl: Messages = {
   notFound: {
     title: "404",
     subtitle: "nie znaleziono",
-    body: "Przepraszam, ta strona nie istnieje.",
+    body: "Ta strona nie istnieje.",
   },
   meta: {
-    homeTitle: "Tomasz Zielinski · Programista full-stack (React, TypeScript, .NET)",
+    name: "Tomasz Zieliński",
+    homeTitle: "Tomasz Zieliński · Programista full-stack (React, TypeScript, .NET)",
     homeDescription:
       "Programista full-stack z sześcioletnim doświadczeniem w Xelto. Tworzę produkty w React, TypeScript i .NET: skanowanie magazynowe, obieg akceptacji, e-fakturowanie w KSeF i AI do analizy dokumentów.",
     worksTitle: "Projekty",
     worksDescription:
-      "Produkty komercyjne, zlecenia freelance i projekty własne Tomasza Zielinskiego, programisty full-stack.",
+      "Produkty komercyjne, zlecenia freelance i projekty własne Tomasza Zielińskiego, programisty full-stack.",
     contactTitle: "Kontakt",
-    contactDescription: "Kontakt z Tomaszem Zielinskim, programistą full-stack: e-mail, CV, LinkedIn i GitHub.",
+    contactDescription: "Kontakt z Tomaszem Zielińskim, programistą full-stack: e-mail, CV, LinkedIn i GitHub.",
     notFoundTitle: "Nie znaleziono strony",
     articlesTitle: "Artykuły",
-    articlesDescription: "Artykuły i notatki techniczne Tomasza Zielinskiego.",
+    articlesDescription: "Artykuły i notatki techniczne Tomasza Zielińskiego.",
     articleNotFoundTitle: "404",
-    shareImageAlt: "Tomasz Zielinski, programista full-stack: React, TypeScript, .NET",
-    noscript: "Tomasz Zielinski, programista full-stack (React, TypeScript, .NET).",
+    shareImageAlt: "Tomasz Zieliński, programista full-stack: React, TypeScript, .NET",
+    noscript: "Tomasz Zieliński, programista full-stack (React, TypeScript, .NET).",
     jobTitle: "Programista full-stack",
   },
 };

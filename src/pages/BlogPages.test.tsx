@@ -32,7 +32,7 @@ it("lists English articles with Polish navigation text under /pl",()=>{
   expect(title.closest("h2")).toHaveAttribute("lang","en");
   expect(screen.getByText("22 września 2026")).toBeInTheDocument();
   expect(screen.getByRole("link",{name:'Czytaj: Quotes " and <tags>'})).toHaveTextContent("Czytaj artykuł");
-  expect(document.title).toBe("Artykuły | Tomasz Zielinski");
+  expect(document.title).toBe("Artykuły | Tomasz Zieliński");
 });
 it("formats English dates on English pages",()=>{
   render(<MemoryRouter initialEntries={["/blog"]}><BlogPage/></MemoryRouter>);

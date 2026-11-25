@@ -159,7 +159,7 @@ it("writes Polish twins with their own language, text and alternates", async () 
     expect(meta(polish, 'meta[property="og:locale:alternate"]')).toBe("en_US");
     expect(meta(english, 'meta[property="og:locale"]')).toBe("en_US");
     expect(meta(polish, 'meta[property="og:image:alt"]')).toBe(
-      "Tomasz Zielinski, programista full-stack: React, TypeScript, .NET",
+      "Tomasz Zieliński, programista full-stack: React, TypeScript, .NET",
     );
 
     const polishHome = await read("pl/index.html");
@@ -170,9 +170,9 @@ it("writes Polish twins with their own language, text and alternates", async () 
     const data = JSON.parse(polishHome.querySelector('script[type="application/ld+json"]')?.textContent ?? "{}");
     expect(data).toMatchObject({ "@type": "Person", jobTitle: "Programista full-stack" });
 
-    expect((await read("pl/works/index.html")).title).toBe("Projekty | Tomasz Zielinski");
-    expect((await read("pl/contact/index.html")).title).toBe("Kontakt | Tomasz Zielinski");
-    expect((await read("pl/blog/index.html")).title).toBe("Artykuły | Tomasz Zielinski");
+    expect((await read("pl/works/index.html")).title).toBe("Projekty | Tomasz Zieliński");
+    expect((await read("pl/contact/index.html")).title).toBe("Kontakt | Tomasz Zieliński");
+    expect((await read("pl/blog/index.html")).title).toBe("Artykuły | Tomasz Zieliński");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

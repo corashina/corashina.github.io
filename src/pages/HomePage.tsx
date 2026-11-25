@@ -28,11 +28,11 @@ const toolkitGroups = [
 ] as const satisfies readonly ToolkitGroup[];
 
 export function HomePage(): JSX.Element {
-  const { home } = useMessages();
+  const { home, meta } = useMessages();
   return (
     <div className={styles.home}>
       <section className={styles.introduction} aria-labelledby="home-title">
-        <h1 id="home-title">Tomasz Zielinski</h1>
+        <h1 id="home-title">{meta.name}</h1>
         <h2>{home.role}</h2>
         {home.intro.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
