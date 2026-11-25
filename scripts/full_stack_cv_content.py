@@ -179,8 +179,8 @@ CV_DATA = CvData(
         "Based in Poznań, with six years of commercial experience. I began in React and "
         "Android, and now work across the stack in React/TypeScript, React Native, "
         "C#/.NET and SQL Server. Most of my work is document-heavy business software, including LLM "
-        "extraction and e-invoicing. AI coding tools such as Claude Code and OpenCode "
-        "are part of my everyday development."
+        "extraction and e-invoicing. AI coding tools such as Claude Code are part "
+        "of my everyday development."
     ),
     technology_groups=(
         (
@@ -344,7 +344,7 @@ POLISH_CV_DATA = replace(
         "Reacta i Androida, dziś pracuję w całym stacku: React/TypeScript, React Native, "
         "C#/.NET i SQL Server. Głównie tworzę oprogramowanie biznesowe do obsługi "
         "dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Narzędzia AI do "
-        "programowania, takie jak Claude Code i OpenCode, są częścią mojej codziennej pracy."
+        "programowania, takie jak Claude Code, są częścią mojej codziennej pracy."
     ),
     technology_groups=(
         ("Frontend", CV_DATA.technology_groups[0][1]),
