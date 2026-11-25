@@ -97,7 +97,7 @@ const projectCategories: Record<string, ProjectCategory> = {
   einvoicing: "commercial",
   xelcode: "commercial",
   fitmed: "freelance",
-  "mibsi-cluster-bridge": "experiments",
+  "mibsi-cluster-bridge": "freelance",
   "flappy-pixie": "experiments",
   "endless-city": "experiments",
   "webgl-minecraft": "experiments",
