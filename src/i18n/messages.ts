@@ -44,6 +44,8 @@ const en = {
     findMe: "find me",
     linksLabel: "Contact links",
     cv: "cv",
+    /** The CV file in this language. */
+    cvHref: "/tomasz_zielinski.pdf",
     flairAlt: "Profile for corashina on Stack Exchange",
   },
   blog: {
@@ -131,6 +133,7 @@ const pl: Messages = {
     findMe: "znajdź mnie",
     linksLabel: "Linki kontaktowe",
     cv: "cv",
+    cvHref: "/tomasz_zielinski_pl.pdf",
     flairAlt: "Profil corashina w serwisie Stack Exchange",
   },
   blog: {

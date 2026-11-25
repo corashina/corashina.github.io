@@ -64,6 +64,36 @@ class Education:
     period: str
 
 
+@dataclass(frozen=True)
+class CvLabels:
+    """Fixed wording the generator prints around the content, per language."""
+
+    about: str = "About me"
+    experience: str = "Professional experience"
+    technologies: str = "Technologies"
+    projects: str = "Projects"
+    education: str = "Education"
+    additional: str = "Additional information"
+    languages: str = "Languages"
+    subject: str = "Curriculum Vitae"
+    docx_title: str = "Tomasz Zielinski - CV"
+    pdf_title: str = "Tomasz Zielinski - Full-Stack Developer CV"
+
+
+POLISH_LABELS = CvLabels(
+    about="O mnie",
+    experience="Doświadczenie zawodowe",
+    technologies="Technologie",
+    projects="Projekty",
+    education="Wykształcenie",
+    additional="Informacje dodatkowe",
+    languages="Języki",
+    subject="Życiorys",
+    docx_title="Tomasz Zieliński - CV",
+    pdf_title="Tomasz Zieliński - CV, Full-Stack Developer",
+)
+
+
 # One recruitment-consent line for every employer. Polish recruiters expect it,
 # and it covers future processes too, so it does not name a company.
 GDPR_CONSENT = (
@@ -87,6 +117,7 @@ class CvData:
     additional_lines: tuple[tuple[str, str], ...] = ()
     # Printed in small grey type at the foot of the page. Empty hides it.
     consent: str = GDPR_CONSENT
+    labels: CvLabels = CvLabels()
 
     @property
     def commercial_projects(self) -> tuple[Project, ...]:
@@ -297,7 +328,155 @@ WIELKOPOLSKA_CV_DATA = replace(
     ),
 )
 
-CV_VARIANTS = {"default": CV_DATA, "wielkopolska": WIELKOPOLSKA_CV_DATA}
+# Polish CV: the Wielkopolska variant in Polish, linked from the /pl/ pages.
+# Job titles, product names and technologies stay in English, as Polish IT
+# recruiters read them that way. Straight quotes only (unslop rules).
+POLISH_GDPR_CONSENT = (
+    "Wyrażam zgodę na przetwarzanie moich danych osobowych na potrzeby obecnych "
+    "i przyszłych procesów rekrutacyjnych, zgodnie z art. 6 ust. 1 lit. a i b RODO "
+    "(Rozporządzenie (UE) 2016/679)."
+)
+
+POLISH_CV_DATA = replace(
+    WIELKOPOLSKA_CV_DATA,
+    identity=replace(CV_DATA.identity, name="Tomasz Zieliński"),
+    profile=(
+        "Mieszkam w Poznaniu, mam sześć lat doświadczenia komercyjnego. Zaczynałem od "
+        "Reacta i Androida, dziś pracuję w całym stacku: React/TypeScript, React Native, "
+        "C#/.NET i SQL Server. Głównie tworzę oprogramowanie biznesowe do obsługi "
+        "dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Na co dzień "
+        "programuję z narzędziami AI, takimi jak Claude Code i OpenCode."
+    ),
+    technology_groups=(
+        ("Frontend", CV_DATA.technology_groups[0][1]),
+        ("Mobile", CV_DATA.technology_groups[1][1]),
+        ("Backend", CV_DATA.technology_groups[2][1]),
+        ("Chmura", CV_DATA.technology_groups[3][1]),
+        ("Testy", CV_DATA.technology_groups[4][1]),
+        ("Wdrażanie", CV_DATA.technology_groups[5][1]),
+    ),
+    employment=Employment(
+        company="Xelto",
+        period="2020–2026",
+        location="Warszawa",
+        roles=(
+            Role(
+                title="Full-Stack Developer",
+                period="2024–2026",
+                products=(
+                    Project(
+                        "Document AI / ICR",
+                        "2025–2026",
+                        "C#, .NET, Azure Functions, Azure SQL, React, TypeScript",
+                        "Współtworzyłem usługę .NET 8 (Azure Functions), która czyta faktury z "
+                        "e-maili przez Gemini (Vertex AI) i wysyła ustrukturyzowany JSON do "
+                        "webhooków klientów. Układ dokumentu dostawcy rozpoznaje przez embeddingi "
+                        "i wyszukiwanie wektorowe w Azure SQL. Zbudowałem ekrany React do "
+                        "przeglądu wyników i dostrajania promptów.",
+                    ),
+                    Project(
+                        "E-fakturowanie / KSeF",
+                        "2024–2026",
+                        "XSLT/XML, React, TypeScript",
+                        "Stworzyłem szablony XSLT, które zamieniają XML faktur FA(3) na podglądy "
+                        "HTML i PDF. Budowałem też część panelu React i reguły integracji do "
+                        "wysyłania i odbierania faktur przez KSeF.",
+                    ),
+                    Project(
+                        "Obieg akceptacji",
+                        "2024–2026",
+                        "React, TypeScript",
+                        "Współtworzyłem kreator, w którym klienci ustawiają ścieżki akceptacji "
+                        "faktur, zamówień zakupu i wniosków urlopowych (kroki, warunki, zastępstwa, "
+                        "wersje). Akceptujący decydują w przeglądarce, w aplikacji mobilnej "
+                        "(przesuwane karty) lub e-mailem.",
+                    ),
+                    Project(
+                        "XELapps",
+                        "2024–2026",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Pracowałem nad konfiguracją użytkowników i aplikacji oraz logowaniem JWT "
+                        "w webowej powłoce dla naszych aplikacji biznesowych w React. W aplikacji "
+                        "Expo, która obsługuje sześć naszych produktów, robiłem logowanie SSO "
+                        "i publikację w sklepach przez EAS.",
+                    ),
+                    Project(
+                        "VendorPortal",
+                        "2024–2026",
+                        "React, TypeScript",
+                        "Pracowałem nad widokami kontenerów i słownikami, które mapują kody "
+                        "i jednostki dostawców na kody klienta, w portalu śledzącym dostawy "
+                        "przychodzące aż do poziomu partii i zamówienia.",
+                    ),
+                ),
+                bullets=(
+                    "Współpracowałem bezpośrednio z Pernod Ricard, Fakro, Filtron, "
+                    "Walstead, CTK Logistics, Melle, IMI Hydronic Engineering, Efektor i Drosed.",
+                ),
+            ),
+            Role(
+                title="Frontend Developer",
+                period="2020–2024",
+                products=(
+                    Project(
+                        "Xelcode",
+                        "2020–2026",
+                        "React, JavaScript, Java, Kotlin, Android, Zebra/Honeywell/Urovo SDKs",
+                        "Aplikacje na skanery z Androidem dla magazynów i produkcji, zintegrowane "
+                        "z Oracle JD Edwards E1. Warstwę skanowania napisałem w Javie i Kotlinie "
+                        "(SDK Zebra, Honeywell, Urovo). Ruchy magazynowe księgują się na bieżąco, "
+                        "etykiety drukują się na urządzeniu.",
+                    ),
+                ),
+                bullets=(
+                    "Skonfigurowałem pipeline'y CI/CD w GitHub Actions i opublikowałem nasze "
+                    "współdzielone komponenty React w npm.",
+                ),
+            ),
+        ),
+    ),
+    earlier_experience=(
+        "Web Developer (freelance) | Poznań | 2018–2020",
+        "Tworzyłem responsywne komponenty aplikacji SPA, poprawiałem szybkość ładowania "
+        "stron i SEO.",
+    ),
+    personal_projects=(
+        Project(
+            "MIBSI Cluster Bridge",
+            "2026",
+            "Java, QNX, Android Auto, CarPlay",
+            "Połączyłem Android Auto i CarPlay z cyfrowymi zegarami Audi na oprogramowaniu "
+            "MIB2, używając modułów w Javie działających na QNX.",
+            "https://github.com/corashina/mibsi-cluster-bridge",
+            "github.com/corashina/mibsi-cluster-bridge",
+        ),
+    ),
+    education=(
+        Education(
+            "University of Southampton",
+            "Informatyka, BSc (School of Electronics and Computer Science)",
+            "2017–2020",
+        ),
+        Education(
+            "Politechnika Poznańska",
+            "Informatyka, Wydział Elektryczny",
+            "2016–2017",
+        ),
+    ),
+    languages=("angielski (C1)", "polski (ojczysty)", "hiszpański (podstawowy)"),
+    additional_lines=(
+        (
+            "Dofinansowanie zatrudnienia",
+            'Uczestnik projektu "Droga do zatrudnienia po węglu" (FST). Pracodawca może '
+            "dostać zwrot wynagrodzenia i składek ZUS do 7000 zł/mies. przez maks. 24 "
+            "miesiące (umowa o pracę na pełny etat, praca w Wielkopolsce).",
+        ),
+    ),
+    consent=POLISH_GDPR_CONSENT,
+    labels=POLISH_LABELS,
+)
+
+CV_VARIANTS = {"default": CV_DATA, "wielkopolska": WIELKOPOLSKA_CV_DATA, "polish": POLISH_CV_DATA}
 
 FORBIDDEN_PUBLIC_TERMS = (
     "3,342",

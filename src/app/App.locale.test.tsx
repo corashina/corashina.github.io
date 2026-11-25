@@ -70,6 +70,14 @@ describe("Polish routes", () => {
     expect(document.title).toBe("Kontakt | Tomasz Zieliński");
     expect(screen.getByRole("button", { name: "Włącz jasny motyw" })).toBeInTheDocument();
   });
+
+  it.each([
+    ["/contact", "/tomasz_zielinski.pdf"],
+    ["/pl/contact", "/tomasz_zielinski_pl.pdf"],
+  ])("links %s to the CV in its own language", async (path, href) => {
+    renderAt(path);
+    expect(await screen.findByRole("link", { name: "cv" })).toHaveAttribute("href", href);
+  });
 });
 
 describe("language switch", () => {
