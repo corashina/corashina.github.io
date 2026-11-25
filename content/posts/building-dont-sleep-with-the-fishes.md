@@ -39,7 +39,7 @@ Player input
 
 `SurvivalSession` owns mutable game state. Event selection and resource rules sit in focused modules around it. The scene consumes snapshots and outcomes, which lets me exercise a survival run without loading models or creating a canvas.
 
-The separation has a practical limit. `SurvivalEventFlow` still coordinates many encounter-specific sequences, and it is a large file. Separating state from rendering makes the rules testable; it does not remove the work of coordinating cameras, item use, event exits, and cleanup. The [director](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/Game.ts) and [session](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/survival/SurvivalSession.ts) show that division.
+The separation has a practical limit. `SurvivalEventFlow` still coordinates many encounter-specific sequences, and it is a large file. Separating state from rendering makes the rules testable; it does not remove the work of coordinating cameras, item use, event exits, and cleanup. The [director](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/Game.ts) and [session](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/survival/SurvivalSession.ts) show that division.
 
 ## Making the boat follow the rendered ocean
 
@@ -57,13 +57,13 @@ roll   = atan2(port - starboard, boat width)
 
 The boat moves toward that target with exponential damping. The blend factor is `1 - exp(-damping * dt)`, so the smoothing accounts for elapsed time. Reusable sample objects keep this frame path from creating a new set of vectors on each update.
 
-This is a sampled pose model. It does not solve the hull's displaced volume, water pressure, or fluid forces. Four samples give the lifeboat a useful response to the visible sea at a small CPU cost. You can inspect the [wave sampler](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/ocean/WaveField.ts) and [buoyancy calculation](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/ocean/BoatBuoyancy.ts) without reading the renderer.
+This is a sampled pose model. It does not solve the hull's displaced volume, water pressure, or fluid forces. Four samples give the lifeboat a useful response to the visible sea at a small CPU cost. You can inspect the [wave sampler](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/ocean/WaveField.ts) and [buoyancy calculation](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/ocean/BoatBuoyancy.ts) without reading the renderer.
 
 Matching motion leaves another problem: ocean triangles still pass through the vessel. The water shader needs to cut out the interior as the hull translates and rotates.
 
 I describe each exclusion region in vessel-local coordinates. Each frame supplies the inverse world transform and hull bounds. The fragment shader transforms the displaced water position into that coordinate system, tests it against a tapered hull profile, and discards fragments inside the region. The mask follows the vessel's full transform, including its parent rig and scale. Waves remain visible outside the hull.
 
-The [exclusion data](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/ocean/WaterExclusion.ts) includes upper and lower bounds so the cutout can change with height. A rectangular hole would expose gaps around the narrower parts of the boat.
+The [exclusion data](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/ocean/WaterExclusion.ts) includes upper and lower bounds so the cutout can change with height. A rectangular hole would expose gaps around the narrower parts of the boat.
 
 ## Paying for reflections without changing the simulation
 
@@ -75,7 +75,7 @@ Depth helps reject refracted samples that belong to foreground objects. Without 
 
 Rendering into extra targets also changes shared renderer state. `OceanCapture` restores the target, viewport, scissor settings, and shadow-update state in a `finally` block. Otherwise a capture failure could leave the main frame drawing with the wrong settings.
 
-Planar reflection has a visible approximation: the reflected camera uses the sea's mean plane. Distorting the sampled reflection with the wave normal does not create a separate reflected view for each wave slope. That compromise keeps the capture manageable. The [capture code](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/ocean/OceanCapture.ts) and [optical shader](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/ocean/oceanOptics.ts) make the cost and approximation explicit.
+Planar reflection has a visible approximation: the reflected camera uses the sea's mean plane. Distorting the sampled reflection with the wave normal does not create a separate reflected view for each wave slope. That compromise keeps the capture manageable. The [capture code](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/ocean/OceanCapture.ts) and [optical shader](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/ocean/oceanOptics.ts) make the cost and approximation explicit.
 
 ## Walking on a ship that moves beneath loose objects
 
@@ -89,7 +89,7 @@ Player contact crosses the coordinate boundary twice. The controller transforms 
 
 Inactive updates need their own handling. The ship can move during an introduction while physics gameplay is inactive. The inactive path carries the obstacles with the ship, clears their velocities, and resets the step clock. That prevents accumulated motion from producing an impulse spike at the handoff.
 
-The [physics tests](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/tests/ScavengePhysics.test.ts) exercise contact pushing, tilt, containment under the game's wave field, and the inactive-to-active transition. These checks cover relationships that a screenshot cannot establish.
+The [physics tests](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/tests/ScavengePhysics.test.ts) exercise contact pushing, tilt, containment under the game's wave field, and the inactive-to-active transition. These checks cover relationships that a screenshot cannot establish.
 
 ## Resolving an event while its animation is still running
 
@@ -103,7 +103,7 @@ An asynchronous continuation also checks whether it still belongs to the current
 
 Fishing uses an attempt identity and a settlement guard. The flow accepts the result once, updates the session, and starts the result presentation. After awaiting the animation, it checks the attempt and lifecycle again before showing the result UI.
 
-These guards handle ordinary interactions such as leaving, restarting, or changing visibility while presentation work is pending. The relevant code sits in [event flow](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/survival/SurvivalEventFlow.ts), [fishing flow](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/survival/SurvivalFishingFlow.ts), and the [bundle manager](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/survival/EventBundleManager.ts).
+These guards handle ordinary interactions such as leaving, restarting, or changing visibility while presentation work is pending. The relevant code sits in [event flow](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/survival/SurvivalEventFlow.ts), [fishing flow](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/survival/SurvivalFishingFlow.ts), and the [bundle manager](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/survival/EventBundleManager.ts).
 
 ## Preparing a scene beyond downloading its models
 
@@ -115,7 +115,7 @@ I keep a loading cover over scene preparation. `prepareScene` walks scene materi
 
 That policy trades session memory and initial preparation time for reuse. The menu starts with its own assets. Entering gameplay prepares a broader set, including survival content. Returning to an event can reuse prepared models, while direct survival entry can skip ship furniture and physics.
 
-Cancellation needs to cover preparation as well as downloading. The director serializes phase preparation, checks its generation before activation, and delays renderer disposal until pending preparation finishes. The [resource owner](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/app/PhaseResources.ts) and [preparation helper](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/rendering/prepareScene.ts) implement those lifetimes.
+Cancellation needs to cover preparation as well as downloading. The director serializes phase preparation, checks its generation before activation, and delays renderer disposal until pending preparation finishes. The [resource owner](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/app/PhaseResources.ts) and [preparation helper](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/rendering/prepareScene.ts) implement those lifetimes.
 
 ## Testing geometry and survival runs
 
@@ -123,12 +123,12 @@ Some visual errors are geometric constraints. A fish should fit inside the net t
 
 `NetCatchPlacement` measures the basket mesh and builds a convex hull. For each hull face, it computes the furthest catch vertex along that face's normal. Those distances constrain the allowed vertical offset. It places the catch at a valid offset or rejects a model that cannot fit. The basket hull is cached, and placement runs when loading a catch.
 
-The [containment test](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/tests/NetCatchContainment.test.ts) loads production models, samples several haul poses, and checks that the catch keeps its scale and stays within the basket bounds. At the final pose it also checks triangle intersections with the net mesh. Using the actual GLB geometry catches errors that a mock bounding box could miss.
+The [containment test](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/tests/NetCatchContainment.test.ts) loads production models, samples several haul poses, and checks that the catch keeps its scale and stays within the basket bounds. At the final pose it also checks triangle intersections with the net mesh. Using the actual GLB geometry catches errors that a mock bounding box could miss.
 
 For survival balance, I run the same `SurvivalSession` with scripted decisions. The game uses a seeded Mulberry32 generator. The simulation gives its decision policy a separate random stream, so simulated fishing reactions do not consume the game's random draws. A stalled day raises an error with the current state and pending event.
 
 One saved report covers 1,000 sampled loadouts and 10,000 seed runs, each pairing signal-enabled and signal-disabled sessions: 20,000 sessions in total. The signal-enabled cohort had a mean rescue day of 35.063 and an 84.8% rescue rate. The disabled cohort had a mean of 40.129 and an 85.5% rescue rate. In that experiment, pursuing signals shortened the wait without increasing the rescue rate.
 
-Those figures describe the simulation policy and the code used for that report. They do not measure human play or guarantee the same balance after rule changes. The [simulation implementation](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/src/survival/balanceSimulation.ts) and [saved report](https://github.com/corashina/dont-sleep-with-the-fishes/blob/af3b1ce6d77c7f0a3ce35752709c3da0b04eeb58/docs/scenario-simulation.md) make that distinction inspectable.
+Those figures describe the simulation policy and the code used for that report. They do not measure human play or guarantee the same balance after rule changes. The [simulation implementation](https://github.com/corashina/dont-sleep-with-the-fishes/blob/694d5941d554b9ffec4feb46fa73b8a1a97c2ea4/src/survival/balanceSimulation.ts) and [saved report](https://github.com/corashina/dont-sleep-with-the-fishes/blob/04aac67c6b3dac1271d4eaf4cf4eec61659e0ab2/docs/scenario-simulation.md) make that distinction inspectable.
 
 I use these checks alongside browser playtests. A simulation can expose a stalled event; a geometry test can expose an intersecting catch. Playing the scene is still necessary to judge whether you can read a threat, find an interaction, or understand the result before the next animation begins.

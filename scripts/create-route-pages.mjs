@@ -55,6 +55,7 @@ const localizedPath = (englishPath, locale) =>
  *     articlesMeta: (locale: Locale) => PageMeta,
  *   },
  *   person: Record<string, unknown>,
+ *   siteRedirects?: Readonly<Record<string, string>>,
  * }} options
  */
 export async function createRoutePages({
@@ -65,6 +66,7 @@ export async function createRoutePages({
   messagesFor,
   pageMeta,
   person,
+  siteRedirects = {},
 }) {
   const shell = await readFile(join(distDirectory, "index.html"), "utf8");
   const posts = await readPublishedPosts(postsDirectory);
@@ -121,8 +123,34 @@ export async function createRoutePages({
   await writeFile(join(distDirectory, "404.html"), notFound.serialize());
   notFound.window.close();
 
+  // Old URLs keep working: each forwards to its replacement in the same language.
+  for (const [oldPath, newPath] of Object.entries(siteRedirects)) {
+    for (const locale of locales) {
+      const target = `/${localizedPath(newPath, locale)}/`;
+      const directory = join(distDirectory, localizedPath(oldPath, locale));
+      await mkdir(directory, { recursive: true });
+      await writeFile(join(directory, "index.html"), renderRedirect(target, pageMeta.siteUrl));
+    }
+  }
+
   await writeFile(join(distDirectory, "sitemap.xml"), renderSitemap(pages, pageMeta.siteUrl));
   return pages.map((page) => page.path);
+}
+
+/** @param {string} target @param {string} siteUrl */
+function renderRedirect(target, siteUrl) {
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="${siteUrl}${target}">
+    <meta http-equiv="refresh" content="0; url=${target}">
+    <title>Moved</title>
+  </head>
+  <body><a href="${target}">${siteUrl}${target}</a></body>
+</html>
+`;
 }
 
 /**
@@ -253,7 +281,7 @@ function renderSitemap(pages, siteUrl) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const load = (/** @type {string} */ path) =>
     import(pathToFileURL(fileURLToPath(new URL(path, import.meta.url))).href);
-  const { projects, localizeProject } = await load("../src/data/projects.ts");
+  const { projects, localizeProject, siteRedirects } = await load("../src/data/projects.ts");
   const pageMeta = await load("../src/data/pageMeta.ts");
   const { messagesFor } = await load("../src/i18n/messages.ts");
   const { person } = await load("../src/data/person.ts");
@@ -265,5 +293,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     projects,
     pageMeta,
     person,
+    siteRedirects,
   });
 }

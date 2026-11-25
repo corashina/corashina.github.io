@@ -10,8 +10,6 @@ I built a custom n8n community node that calls a JD Edwards Orchestrator method 
 
 The source captures a useful integration pattern. A workflow item supplies business parameters. The node turns them into an authenticated HTTP request and returns the response as n8n execution data. It also captures several prototype shortcuts that I would address before deployment.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## Describing the node to n8n
 
 An n8n node begins with a declarative description. The project defines a display name, icon, input and output ports, required credentials, and fields that appear in the workflow editor.

@@ -168,12 +168,12 @@ CV_DATA = CvData(
         role="Full-Stack Developer",
         phone="+48 791 748 226",
         email="corashina@gmail.com",
-        website_text="corashina.github.io",
-        website_url="https://corashina.github.io",
+        website_text="tomasz-zielinski.com",
+        website_url="https://www.tomasz-zielinski.com/",
         github_text="github.com/corashina",
         github_url="https://github.com/corashina",
-        linkedin_text="linkedin.com/in/tomasz-zielinski-a97999161",
-        linkedin_url="https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+        linkedin_text="linkedin.com/in/corashina",
+        linkedin_url="https://www.linkedin.com/in/corashina/",
     ),
     profile=(
         "Based in Poznań, with six years of commercial experience. I began in React and "
@@ -277,7 +277,7 @@ CV_DATA = CvData(
         ),
     ),
     earlier_experience=(
-        "Freelance Web Development | Poznan, Poland | 2018–2020",
+        "Freelance Web Development | Poznań, Poland | 2018–2020",
         "Built responsive single-page application components and improved page speed "
         "and SEO.",
     ),

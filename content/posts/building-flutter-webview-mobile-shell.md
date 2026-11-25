@@ -10,8 +10,6 @@ I built a Flutter application that placed an existing business platform inside a
 
 This approach produced a narrow client with an unusual boundary. Native code, Dart, a WebView, and the hosted JavaScript application all took part in one login. A token could be valid in Dart while the web application still considered the user signed out. A download could begin in the page while Flutter had to decide where the resulting bytes belonged.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 Much of the integration depends on URL interception and JavaScript injection, and the main WebView screen grew to hold many responsibilities.
 
 ## The shell and its boundaries

@@ -18,33 +18,31 @@ export type Project = {
   media: ProjectMedia;
   sourceUrl: string;
   sourceLabel: string;
+  /** Playable build, when there is one. */
+  demoUrl?: string;
 };
 
 const projectData = [
-  ["webgl-minecraft", "WebGL-Minecraft", "Primitive minecraft clone made with three.js", ["javascript", "three.js", "webgl"], "2018", "/portfolio/webgl-minecraft.mp4", "https://github.com/corashina/webGL-Minecraft"],
-  ["endless-city", "Endless-City", "Infinite WebGL scene heavily inspired by littleworkshop.fr", ["javascript", "three.js", "webgl", "gltf"], "2018", "/portfolio/endless-city.mp4", "https://github.com/corashina/endless-City"],
-  ["flappy-pixie", "Flappy-Pixie", "Flappy Bird clone made in one week for an interview challenge", ["javascript", "three.js", "webgl"], "2018", "/portfolio/flappy-pixie.mp4", "https://github.com/corashina/flappy-Pixie"],
-  ["civio", "Civio", "Hexagonal map generation using simplex noise", ["javascript", "three.js", "webgl"], "2018", "/portfolio/civio.mp4", "https://github.com/corashina/civio"],
-  ["particle-simulation", "Particle Simulation", "Particle generator made with GLSL", ["typescript", "three.js", "webgl", "glsl"], "2019", "/portfolio/particle-simulation.mp4", "https://github.com/corashina/particle-Simulation"],
-  ["fitmed", "Fitmed", "Prototype system for dieteticians", ["javascript", "react", "redux", "node", "express", "mongodb"], "2018", "/portfolio/fitmed.webp", "https://github.com/corashina/fitmed"],
-  ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "typescript", "javascript", "i18next", "oracle jd edwards"], "2021–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/", "Product overview →"],
-  ["icr", "Doc AI", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["react", "typescript", "pdf", "document ai"], "2024–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
+  ["webgl-minecraft", "WebGL-Minecraft", "Primitive Minecraft clone made with three.js", ["javascript", "three.js", "webgl"], "2018", "/portfolio/webgl-minecraft.mp4", "https://github.com/corashina/webgl-minecraft"],
+  ["endless-city", "Endless-City", "Infinite WebGL scene heavily inspired by littleworkshop.fr", ["javascript", "three.js", "webgl", "gltf"], "2018", "/portfolio/endless-city.mp4", "https://github.com/corashina/endless-city"],
+  ["flappy-pixie", "Flappy-Pixie", "Flappy Bird clone made in one week for an interview challenge", ["javascript", "three.js", "webgl"], "2018", "/portfolio/flappy-pixie.mp4", "https://github.com/corashina/flappy-pixie"],
+  ["fitmed", "Fitmed", "Prototype system for dietitians", ["javascript", "react", "redux", "node", "express", "mongodb"], "2018", "/portfolio/fitmed.webp", "https://github.com/corashina/fitmed"],
+  ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "javascript", "java", "kotlin", "android", "oracle jd edwards"], "2020–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/", "Product overview →"],
+  ["icr", "Doc AI", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["c#", ".net", "azure functions", "azure sql", "gemini", "react", "typescript"], "2025–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["workflow", "Workflow", "Approval and operational workflow modules for business-process handling.", ["react", "typescript", "rest api"], "2024–2026", "/portfolio/workflow.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["holiday", "Holiday", "Employee leave administration workflows.", ["react", "typescript"], "2024–2026", "/portfolio/holiday.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
-  ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "pdf", "xml"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
-  ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "rest api", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
+  ["einvoicing", "eInvoicing", "E-invoicing interfaces for integration rules, document and log views, and PDF/XML workflows.", ["react", "typescript", "xslt", "xml", "ksef"], "2024–2026", "/portfolio/eInvoicing.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
+  ["xelapps", "XELapps", "Client and application setup modules for the Xelto platform.", ["react", "typescript", "react native", "expo", "flutter", "jwt"], "2024–2026", "/portfolio/xelapps.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
   ["dont-sleep-with-the-fishes", "Don't Sleep With The Fishes", "Desktop-browser survival game about scavenging a sinking ship and managing a lifeboat while waiting for rescue.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/dont-sleep-with-the-fishes.mp4", "https://github.com/corashina/dont-sleep-with-the-fishes"],
   ["cosmic-sugar", "Cosmic Sugar", "Interactive Three.js particle simulation with sculptable push and pull forces.", ["typescript", "three.js", "webgl", "glsl"], "2026", "/portfolio/cosmic-sugar.mp4", "https://github.com/corashina/cosmic-sugar"],
   ["mibsi-cluster-bridge", "MIBSI Cluster Bridge", "Experimental tooling for Android Auto and CarPlay integration with Audi’s Virtual Cockpit, covering navigation bridging, installation packaging, and verification.", ["java", "python", "qnx", "android auto", "carplay"], "2026", "/portfolio/mibsi-cluster-bridge.mp4", "https://github.com/corashina/mibsi-cluster-bridge"],
-  ["the-long-slop", "The Long Drive", "Browser recreation of The Long Drive in Rust, Bevy and Rapier, compiled to WebAssembly.", ["rust", "bevy", "rapier", "webassembly"], "2026", "/portfolio/the-long-slop.mp4", "https://github.com/corashina/the-long-drive"],
+  ["the-long-drive", "The Long Drive", "Browser recreation of The Long Drive in Rust, Bevy and Rapier, compiled to WebAssembly.", ["rust", "bevy", "rapier", "webassembly"], "2026", "/portfolio/the-long-drive.mp4", "https://github.com/corashina/the-long-drive"],
 ] as const;
 
 const projectMediaAlt: Record<string, string> = {
   "webgl-minecraft": "WebGL Minecraft scene",
   "endless-city": "Infinite procedural WebGL city scene",
   "flappy-pixie": "Flappy Pixie game",
-  civio: "Procedural hexagonal map",
-  "particle-simulation": "GLSL particle simulation",
   fitmed: "Fitmed interface",
   xelcode: "Xelcode scanner workflow interface",
   icr: "Doc AI document analysis interface",
@@ -54,7 +52,7 @@ const projectMediaAlt: Record<string, string> = {
   xelapps: "XELapps configuration interface",
   "cosmic-sugar": "Cosmic Sugar particle simulation",
   "dont-sleep-with-the-fishes": "Don't Sleep With The Fishes survival game",
-  "the-long-slop": "Lada 2101 with its headlights on, parked on a desert road at night",
+  "the-long-drive": "Lada 2101 with its headlights on, parked on a desert road at night",
   "mibsi-cluster-bridge": "Illustrative studio render of a smartphone and digital instrument cluster displaying navigation",
 };
 
@@ -62,19 +60,33 @@ const projectStartDates: Record<string, { startedAt: string; startedLabel: strin
   "webgl-minecraft": { startedAt: "2018-04", startedLabel: "2018" },
   "endless-city": { startedAt: "2018-09", startedLabel: "2018" },
   "flappy-pixie": { startedAt: "2018-10", startedLabel: "2018" },
-  civio: { startedAt: "2018-12", startedLabel: "2018" },
-  "particle-simulation": { startedAt: "2019-02", startedLabel: "2019" },
   fitmed: { startedAt: "2018-09", startedLabel: "2018" },
-  xelcode: { startedAt: "2021", startedLabel: "2021" },
-  icr: { startedAt: "2025", startedLabel: "2025" },
-  workflow: { startedAt: "2024", startedLabel: "2024" },
-  holiday: { startedAt: "2024", startedLabel: "2024" },
-  einvoicing: { startedAt: "2024", startedLabel: "2024" },
-  xelapps: { startedAt: "2026", startedLabel: "2026" },
+  xelcode: { startedAt: "2020", startedLabel: "2020–2026" },
+  icr: { startedAt: "2025", startedLabel: "2025–2026" },
+  workflow: { startedAt: "2024", startedLabel: "2024–2026" },
+  holiday: { startedAt: "2024", startedLabel: "2024–2026" },
+  einvoicing: { startedAt: "2024", startedLabel: "2024–2026" },
+  xelapps: { startedAt: "2024", startedLabel: "2024–2026" },
   "cosmic-sugar": { startedAt: "2026", startedLabel: "2026" },
   "dont-sleep-with-the-fishes": { startedAt: "2026", startedLabel: "2026" },
   "mibsi-cluster-bridge": { startedAt: "2026", startedLabel: "2026" },
-  "the-long-slop": { startedAt: "2026-10", startedLabel: "2026" },
+  "the-long-drive": { startedAt: "2026-10", startedLabel: "2026" },
+};
+
+const projectDemos: Record<string, string> = {
+  "dont-sleep-with-the-fishes": "https://dontsleepwiththefishes.pages.dev/",
+  "the-long-drive": "https://thelongdrive.pages.dev/",
+};
+
+/**
+ * Old English paths that forward elsewhere (Polish twins follow): renamed
+ * projects go to their new page, removed projects and articles to their list.
+ */
+export const siteRedirects: Readonly<Record<string, string>> = {
+  "works/the-long-slop": "works/the-long-drive",
+  "works/civio": "works",
+  "works/particle-simulation": "works",
+  "blog/animating-particles-from-birth-time-in-glsl": "blog",
 };
 
 const projectCategories: Record<string, ProjectCategory> = {
@@ -85,15 +97,13 @@ const projectCategories: Record<string, ProjectCategory> = {
   einvoicing: "commercial",
   xelcode: "commercial",
   fitmed: "freelance",
-  "mibsi-cluster-bridge": "freelance",
-  "particle-simulation": "experiments",
-  civio: "experiments",
+  "mibsi-cluster-bridge": "experiments",
   "flappy-pixie": "experiments",
   "endless-city": "experiments",
   "webgl-minecraft": "experiments",
   "cosmic-sugar": "experiments",
   "dont-sleep-with-the-fishes": "experiments",
-  "the-long-slop": "experiments",
+  "the-long-drive": "experiments",
 };
 
 export const projects: readonly Project[] = projectData.map(
@@ -118,6 +128,7 @@ export const projects: readonly Project[] = projectData.map(
     sourceUrl,
     sourceLabel,
     category: projectCategories[slug],
+    demoUrl: projectDemos[slug],
     ...projectStartDates[slug],
   }),
 ).sort((first, second) => second.startedAt.localeCompare(first.startedAt));
@@ -137,14 +148,6 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
   "flappy-pixie": {
     description: "Klon Flappy Bird zrobiony w ciągu tygodnia jako zadanie rekrutacyjne",
     alt: "Gra Flappy Pixie",
-  },
-  civio: {
-    description: "Generowanie heksagonalnej mapy z użyciem szumu simplex",
-    alt: "Proceduralna mapa heksagonalna",
-  },
-  "particle-simulation": {
-    description: "Generator cząstek w GLSL",
-    alt: "Symulacja cząstek w GLSL",
   },
   fitmed: {
     description: "Prototyp systemu dla dietetyków",
@@ -186,7 +189,7 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
     description: "Eksperymentalne narzędzia do integracji Android Auto i CarPlay z Audi Virtual Cockpit: przekazywanie nawigacji, pakiet instalacyjny i weryfikacja.",
     alt: "Poglądowy render studyjny smartfona i cyfrowych zegarów z nawigacją",
   },
-  "the-long-slop": {
+  "the-long-drive": {
     description: "Przeglądarkowa wersja The Long Drive w Rust, Bevy i Rapier, skompilowana do WebAssembly.",
     alt: "Łada 2101 z zapalonymi światłami, zaparkowana nocą na pustynnej drodze",
   },

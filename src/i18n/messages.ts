@@ -22,13 +22,15 @@ const en = {
   home: {
     role: "full-stack developer",
     intro: [
-      "I build platforms for business workflows, operational systems, mobile applications, integrations, and document processing. I work across TypeScript, C#, Dart, and XSLT, connecting user-facing products with APIs, data flows, cloud services, and delivery pipelines.",
-      "My experience covers logistics, manufacturing, workflow automation, e-invoicing, and document AI. I take products from application architecture through integration and release. I also build WebGL side projects with Three.js.",
+      "Based in Poznań, with six years of commercial experience. I began in React and Android, and now work across the stack in React/TypeScript, React Native, C#/.NET and SQL Server.",
+      "Most of my work is document-heavy business software, including LLM extraction and e-invoicing. AI coding tools such as Claude Code are part of my everyday development.",
     ],
     toolkit: "Toolkit",
-    languages: "Languages",
-    platforms: "Platforms",
-    systems: "Systems",
+    frontend: "Frontend",
+    mobile: "Mobile",
+    backend: "Backend",
+    cloud: "Cloud",
+    testing: "Testing",
     delivery: "Delivery",
   },
   works: {
@@ -38,6 +40,7 @@ const en = {
     experiments: "experiments",
     productLink: "Product overview →",
     githubLink: "github →",
+    playLink: "play →",
   },
   contact: {
     title: "Contact",
@@ -73,7 +76,7 @@ const en = {
     name: "Tomasz Zielinski",
     homeTitle: "Tomasz Zielinski · Full-stack developer (React, TypeScript, .NET)",
     homeDescription:
-      "Full-stack developer with six years at Xelto building React, TypeScript and .NET products: warehouse scanning, approval workflows, Polish e-invoicing (KSeF) and document AI.",
+      "Full-stack developer, six years at Xelto: React, TypeScript and .NET products for warehouse scanning, approval workflows, KSeF e-invoicing and document AI.",
     worksTitle: "Work",
     worksDescription:
       "Commercial products, freelance work and side projects by Tomasz Zielinski, full-stack developer.",
@@ -111,13 +114,15 @@ const pl: Messages = {
   home: {
     role: "programista full-stack",
     intro: [
-      "Tworzę platformy do obsługi procesów biznesowych, systemy wspierające operacje firm, aplikacje mobilne, integracje i narzędzia do przetwarzania dokumentów. Piszę w TypeScripcie, C#, Darcie i XSLT, łącząc aplikacje dla użytkowników z API, przepływami danych, usługami chmurowymi i pipeline'ami CI/CD.",
-      "Mam doświadczenie w logistyce, produkcji, automatyzacji procesów, e-fakturowaniu i AI do analizy dokumentów. Prowadzę produkty od architektury aplikacji, przez integracje, aż po wdrożenie. Po godzinach tworzę projekty WebGL w Three.js.",
+      "Mieszkam w Poznaniu, mam sześć lat doświadczenia komercyjnego. Zaczynałem od Reacta i Androida, dziś pracuję w całym stacku: React/TypeScript, React Native, C#/.NET i SQL Server.",
+      "Głównie tworzę oprogramowanie biznesowe do obsługi dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Narzędzia AI do programowania, takie jak Claude Code, są częścią mojej codziennej pracy.",
     ],
     toolkit: "Narzędzia",
-    languages: "Języki",
-    platforms: "Platformy",
-    systems: "Systemy",
+    frontend: "Frontend",
+    mobile: "Mobile",
+    backend: "Backend",
+    cloud: "Chmura",
+    testing: "Testy",
     delivery: "Wdrażanie",
   },
   works: {
@@ -127,6 +132,7 @@ const pl: Messages = {
     experiments: "eksperymenty",
     productLink: "Opis produktu →",
     githubLink: "github →",
+    playLink: "zagraj →",
   },
   contact: {
     title: "Kontakt",
@@ -160,7 +166,7 @@ const pl: Messages = {
     name: "Tomasz Zieliński",
     homeTitle: "Tomasz Zieliński · Programista full-stack (React, TypeScript, .NET)",
     homeDescription:
-      "Programista full-stack z sześcioletnim doświadczeniem w Xelto. Tworzę produkty w React, TypeScript i .NET: skanowanie magazynowe, obieg akceptacji, e-fakturowanie w KSeF i AI do analizy dokumentów.",
+      "Programista full-stack, sześć lat w Xelto: React, TypeScript i .NET. Skanowanie magazynowe, obieg akceptacji, e-faktury w KSeF i AI do analizy dokumentów.",
     worksTitle: "Projekty",
     worksDescription:
       "Produkty komercyjne, zlecenia freelance i projekty własne Tomasza Zielińskiego, programisty full-stack.",

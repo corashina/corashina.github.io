@@ -12,8 +12,6 @@ Both jobs depended on the same metadata. A field added to an early step could be
 
 The frontend used React, TypeScript, React Query, React Router, Axios, and Mantine. A parent application supplied navigation and theme configuration.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## Two modes over one workflow model
 
 I placed API operations in hooks grouped by domain. The definition editor owned its local draft because one edit could affect fields, conditions, approvers, and step order before the server accepted a new version. Operational views used React Query because lists, details, attachments, and activities had independent fetch lifetimes.

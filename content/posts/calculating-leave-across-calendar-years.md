@@ -1,7 +1,7 @@
 ---
 title: "Counting leave days across year boundaries"
 description: "Cross-year leave calculations, public-holiday data, allowance validation, and refreshing balances after approvals in React."
-date: "2023-06-13"
+date: "2024-06-13"
 tags: [React, TypeScript, Date and time]
 draft: false
 ---
@@ -11,8 +11,6 @@ A leave request looks small on screen: two dates, a category, a leave type, a co
 I worked on [Holiday](/works/holiday), a React and TypeScript leave-management application for employee requests, manager approvals, HR administration, and a shared calendar. React Query managed server state, while a parent application supplied session context and navigation.
 
 The date calculation became the centre of the request form. I wanted the user to see the same working-day count that the form used for balance validation, including a request that crossed New Year's Day.
-
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
 
 ## A concrete cross-year request
 

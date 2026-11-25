@@ -289,12 +289,9 @@ describe("AppShell", () => {
     );
     expect(within(links).getByRole("link", { name: /linkedin/i })).toHaveAttribute(
       "href",
-      "https://www.linkedin.com/in/tomasz-zielinski-a97999161/",
+      "https://www.linkedin.com/in/corashina/",
     );
-    expect(within(links).getByRole("link", { name: /x\.com\/corashina/i })).toHaveAttribute(
-      "href",
-      "https://x.com/corashina",
-    );
+    expect(within(links).queryByRole("link", { name: /x\.com/i })).not.toBeInTheDocument();
     const flair = screen.getByRole("link", { name: "Profile for corashina on Stack Exchange" });
     expect(flair).toHaveAttribute("href", "https://stackexchange.com/users/9864859");
     expect(within(flair).getByRole("img")).toHaveAttribute(

@@ -10,8 +10,6 @@ I worked on the frontend of an [e-invoicing operations product](/works/einvoicin
 
 The difficult work sat in the seams between those features. A bulk action can succeed for three documents and fail on the fourth. A filter needs a human label in the browser and an exact operator in the API query. A CSV import can outlive the modal that started it. An action offered by the backend can still be inappropriate for a user's role or the production environment.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## Building around document workflows
 
 The application organizes the main work around documents, logs, a dashboard, and administration. React Query handles remote state. Redux stores interface state such as filters, selected documents, open drawers, and action dialogs. A shared API client carries requests to the e-invoicing service.

@@ -22,6 +22,7 @@ export function BlogPage(): JSX.Element {
       [orderedPosts[assistantIndex], orderedPosts[particlesIndex]];
   }
   return <section className={styles.blog} aria-label={blog.label}>
+    <h1 className={styles.visuallyHidden}>{blog.label}</h1>
     {posts.length === 0 ? <p>{blog.empty}</p> :
       <ol className={styles.posts}>{orderedPosts.map(post => <li key={post.slug} className={styles.post}>
         <time dateTime={post.date} className={styles.date}>{formatPostDate(post.date, locale)}</time>

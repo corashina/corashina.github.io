@@ -1,5 +1,5 @@
 ---
-title: "Reverse engineering MIBSI Cluster Bridge: Inside the Virtual Cockpit integration"
+title: "MIBSI Cluster Bridge: inside the Virtual Cockpit integration"
 description: "Bringing phone navigation into Audi’s Virtual Cockpit: the native hooks, video pipeline, navigation bridge, and display coordination behind the integration."
 date: "2026-09-22"
 tags: [Reverse engineering, QNX, Automotive]

@@ -1,7 +1,7 @@
 ---
 title: "Turning invoice XML into readable PDFs"
 description: "Versioned invoice XML, conditional XSLT layouts, localization, and HTML-to-PDF checks with a .NET desktop tool."
-date: "2023-08-21"
+date: "2025-08-21"
 tags: [XSLT, .NET, E-invoicing]
 draft: false
 ---
@@ -9,8 +9,6 @@ draft: false
 I worked on a rendering project that turns structured invoice XML into readable HTML and PDF. The input follows Polish KSeF invoice schemas. The output has to serve two readers: a recipient who wants the business document and an operator who may need schema and system details.
 
 This work belongs in a separate case study from the [e-invoicing operations console](/blog/building-einvoicing-operations-console/). The console manages document workflows through a React UI. The rendering project focuses on deterministic XML transformation, layout, localization, and PDF behavior.
-
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
 
 ## Two views from the same invoice
 

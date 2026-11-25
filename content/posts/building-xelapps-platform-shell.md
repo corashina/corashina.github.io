@@ -12,8 +12,6 @@ That context affected much more than the page title. Selecting a different clien
 
 The web implementation used React and TypeScript, with Redux for interface state, React Query for server data, and Axios for API access. Separate setup and administration applications managed the relationships that the platform shell consumed at login.
 
-*Retrospective: the date is an editorial placement, not a verified project completion date.*
-
 ## Modelling the context before building the screens
 
 The distinction between a client, an application, and a site shaped the forms and API hooks. A site record included both a client ID and an application ID. An application had its own identity and URL; assigning it to a client created a relationship rather than another application definition.
