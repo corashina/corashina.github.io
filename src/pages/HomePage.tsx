@@ -1,6 +1,5 @@
 import type { JSX } from "react";
-import { Link } from "react-router-dom";
-import { useLocalizedPath, useMessages } from "../i18n/useLocale";
+import { useMessages } from "../i18n/useLocale";
 import type { Messages } from "../i18n/messages";
 import styles from "../styles/home.module.scss";
 
@@ -20,8 +19,7 @@ const toolkitGroups = [
 ] as const satisfies readonly ToolkitGroup[];
 
 export function HomePage(): JSX.Element {
-  const { home, meta, contact } = useMessages();
-  const localize = useLocalizedPath();
+  const { home, meta } = useMessages();
   return (
     <div className={styles.home}>
       <section className={styles.introduction} aria-labelledby="home-title">
@@ -30,10 +28,6 @@ export function HomePage(): JSX.Element {
         {home.intro.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
-        <p className={styles.homeLinks}>
-          <a href={contact.cvHref}>{home.cvLink}</a>
-          <Link to={localize("/contact")}>{home.contactLink}</Link>
-        </p>
       </section>
 
       <aside className={styles.toolkit} aria-labelledby="toolkit-title">
