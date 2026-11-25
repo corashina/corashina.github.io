@@ -55,7 +55,7 @@ const localizedPath = (englishPath, locale) =>
  *     articlesMeta: (locale: Locale) => PageMeta,
  *   },
  *   person: Record<string, unknown>,
- *   projectRedirects?: Readonly<Record<string, string>>,
+ *   siteRedirects?: Readonly<Record<string, string>>,
  * }} options
  */
 export async function createRoutePages({
@@ -66,7 +66,7 @@ export async function createRoutePages({
   messagesFor,
   pageMeta,
   person,
-  projectRedirects = {},
+  siteRedirects = {},
 }) {
   const shell = await readFile(join(distDirectory, "index.html"), "utf8");
   const posts = await readPublishedPosts(postsDirectory);
@@ -123,11 +123,11 @@ export async function createRoutePages({
   await writeFile(join(distDirectory, "404.html"), notFound.serialize());
   notFound.window.close();
 
-  // Renamed project slugs keep working: the old URL forwards to the new one.
-  for (const [oldSlug, newSlug] of Object.entries(projectRedirects)) {
+  // Old URLs keep working: each forwards to its replacement in the same language.
+  for (const [oldPath, newPath] of Object.entries(siteRedirects)) {
     for (const locale of locales) {
-      const target = `/${localizedPath(`works/${newSlug}`, locale)}/`;
-      const directory = join(distDirectory, localizedPath(`works/${oldSlug}`, locale));
+      const target = `/${localizedPath(newPath, locale)}/`;
+      const directory = join(distDirectory, localizedPath(oldPath, locale));
       await mkdir(directory, { recursive: true });
       await writeFile(join(directory, "index.html"), renderRedirect(target, pageMeta.siteUrl));
     }
@@ -281,7 +281,7 @@ function renderSitemap(pages, siteUrl) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const load = (/** @type {string} */ path) =>
     import(pathToFileURL(fileURLToPath(new URL(path, import.meta.url))).href);
-  const { projects, localizeProject, projectRedirects } = await load("../src/data/projects.ts");
+  const { projects, localizeProject, siteRedirects } = await load("../src/data/projects.ts");
   const pageMeta = await load("../src/data/pageMeta.ts");
   const { messagesFor } = await load("../src/i18n/messages.ts");
   const { person } = await load("../src/data/person.ts");
@@ -293,6 +293,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     projects,
     pageMeta,
     person,
-    projectRedirects,
+    siteRedirects,
   });
 }

@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 import { expect, it } from "vitest";
 import * as pageMeta from "../src/data/pageMeta";
 import { person } from "../src/data/person";
-import { localizeProject, projectRedirects, projects } from "../src/data/projects";
+import { localizeProject, projects, siteRedirects } from "../src/data/projects";
 import { messagesFor } from "../src/i18n/messages";
 import { createRoutePages } from "./create-route-pages.mjs";
 
@@ -25,7 +25,7 @@ async function build() {
   await writeFile(join(postsDirectory, "example.md"), markdown);
   await writeFile(join(postsDirectory, "draft.md"), markdown.replace("\n---\nBody", "\ndraft: true\n---\nBody"));
   const paths = await createRoutePages({
-    distDirectory, postsDirectory, projects, localizeProject, messagesFor, pageMeta, person, projectRedirects,
+    distDirectory, postsDirectory, projects, localizeProject, messagesFor, pageMeta, person, siteRedirects,
   });
   const read = async (path: string) =>
     new JSDOM(await readFile(join(distDirectory, path), "utf8")).window.document;
@@ -193,7 +193,7 @@ it("points Polish article pages at the English article, which is the only copy",
   }
 });
 
-it("forwards renamed project URLs in both languages and keeps them out of the sitemap", async () => {
+it("forwards renamed and removed URLs in both languages and keeps them out of the sitemap", async () => {
   const { root, distDirectory, paths, read } = await build();
   try {
     const english = await read("works/the-long-slop/index.html");
@@ -204,6 +204,8 @@ it("forwards renamed project URLs in both languages and keeps them out of the si
     const polish = await read("pl/works/the-long-slop/index.html");
     expect(meta(polish, 'meta[http-equiv="refresh"]')).toBe("0; url=/pl/works/the-long-drive/");
     expect(paths).not.toContain("works/the-long-slop");
+    const removed = await read("pl/works/civio/index.html");
+    expect(meta(removed, 'meta[http-equiv="refresh"]')).toBe("0; url=/pl/works/");
     expect(await readFile(join(distDirectory, "sitemap.xml"), "utf8")).not.toContain("the-long-slop");
   } finally {
     await rm(root, { recursive: true, force: true });

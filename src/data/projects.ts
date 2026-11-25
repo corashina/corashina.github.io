@@ -26,8 +26,6 @@ const projectData = [
   ["webgl-minecraft", "WebGL-Minecraft", "Primitive Minecraft clone made with three.js", ["javascript", "three.js", "webgl"], "2018", "/portfolio/webgl-minecraft.mp4", "https://github.com/corashina/webgl-minecraft"],
   ["endless-city", "Endless-City", "Infinite WebGL scene heavily inspired by littleworkshop.fr", ["javascript", "three.js", "webgl", "gltf"], "2018", "/portfolio/endless-city.mp4", "https://github.com/corashina/endless-city"],
   ["flappy-pixie", "Flappy-Pixie", "Flappy Bird clone made in one week for an interview challenge", ["javascript", "three.js", "webgl"], "2018", "/portfolio/flappy-pixie.mp4", "https://github.com/corashina/flappy-pixie"],
-  ["civio", "Civio", "Hexagonal map generation using simplex noise", ["javascript", "three.js", "webgl"], "2018", "/portfolio/civio.mp4", "https://github.com/corashina/civio"],
-  ["particle-simulation", "Particle Simulation", "Particle generator made with GLSL", ["typescript", "three.js", "webgl", "glsl"], "2019", "/portfolio/particle-simulation.mp4", "https://github.com/corashina/particle-simulation"],
   ["fitmed", "Fitmed", "Prototype system for dietitians", ["javascript", "react", "redux", "node", "express", "mongodb"], "2018", "/portfolio/fitmed.webp", "https://github.com/corashina/fitmed"],
   ["xelcode", "Xelcode", "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.", ["react", "javascript", "java", "kotlin", "android", "oracle jd edwards"], "2020–2026", "/portfolio/xelcode.mp4", "https://xelcode.com/product/", "Product overview →"],
   ["icr", "Doc AI", "Document-AI interfaces for PDF handling, prompt configuration, analysis, and structured results.", ["c#", ".net", "azure functions", "azure sql", "gemini", "react", "typescript"], "2025–2026", "/portfolio/doc_ai.mp4", "https://xelto.ai/en/live-demo", "Product overview →"],
@@ -45,8 +43,6 @@ const projectMediaAlt: Record<string, string> = {
   "webgl-minecraft": "WebGL Minecraft scene",
   "endless-city": "Infinite procedural WebGL city scene",
   "flappy-pixie": "Flappy Pixie game",
-  civio: "Procedural hexagonal map",
-  "particle-simulation": "GLSL particle simulation",
   fitmed: "Fitmed interface",
   xelcode: "Xelcode scanner workflow interface",
   icr: "Doc AI document analysis interface",
@@ -64,8 +60,6 @@ const projectStartDates: Record<string, { startedAt: string; startedLabel: strin
   "webgl-minecraft": { startedAt: "2018-04", startedLabel: "2018" },
   "endless-city": { startedAt: "2018-09", startedLabel: "2018" },
   "flappy-pixie": { startedAt: "2018-10", startedLabel: "2018" },
-  civio: { startedAt: "2018-12", startedLabel: "2018" },
-  "particle-simulation": { startedAt: "2019-02", startedLabel: "2019" },
   fitmed: { startedAt: "2018-09", startedLabel: "2018" },
   xelcode: { startedAt: "2020", startedLabel: "2020–2026" },
   icr: { startedAt: "2025", startedLabel: "2025–2026" },
@@ -84,9 +78,15 @@ const projectDemos: Record<string, string> = {
   "the-long-drive": "https://thelongdrive.pages.dev/",
 };
 
-/** Old project slugs that still forward to their current page. */
-export const projectRedirects: Readonly<Record<string, string>> = {
-  "the-long-slop": "the-long-drive",
+/**
+ * Old English paths that forward elsewhere (Polish twins follow): renamed
+ * projects go to their new page, removed projects and articles to their list.
+ */
+export const siteRedirects: Readonly<Record<string, string>> = {
+  "works/the-long-slop": "works/the-long-drive",
+  "works/civio": "works",
+  "works/particle-simulation": "works",
+  "blog/animating-particles-from-birth-time-in-glsl": "blog",
 };
 
 const projectCategories: Record<string, ProjectCategory> = {
@@ -98,8 +98,6 @@ const projectCategories: Record<string, ProjectCategory> = {
   xelcode: "commercial",
   fitmed: "freelance",
   "mibsi-cluster-bridge": "experiments",
-  "particle-simulation": "experiments",
-  civio: "experiments",
   "flappy-pixie": "experiments",
   "endless-city": "experiments",
   "webgl-minecraft": "experiments",
@@ -150,14 +148,6 @@ const polishProjectText: Record<ProjectSlug, { description: string; alt: string 
   "flappy-pixie": {
     description: "Klon Flappy Bird zrobiony w ciągu tygodnia jako zadanie rekrutacyjne",
     alt: "Gra Flappy Pixie",
-  },
-  civio: {
-    description: "Generowanie heksagonalnej mapy z użyciem szumu simplex",
-    alt: "Proceduralna mapa heksagonalna",
-  },
-  "particle-simulation": {
-    description: "Generator cząstek w GLSL",
-    alt: "Symulacja cząstek w GLSL",
   },
   fitmed: {
     description: "Prototyp systemu dla dietetyków",
