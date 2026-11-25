@@ -4,7 +4,6 @@ import { findPost, loadPostBody } from "../blog/catalog";
 import { revealArticleFragment } from "../blog/articleFragments";
 import { formatPostDate, useBlogMetadata } from "../blog/useBlogMetadata";
 import type { PostBody } from "../blog/types";
-import { siteName } from "../data/pageMeta";
 import { useLocale, useLocalizedPath, useMessages } from "../i18n/useLocale";
 import { NotFoundPage } from "./NotFoundPage";
 import styles from "../styles/blog.module.scss";
@@ -25,7 +24,7 @@ export function BlogPostPage(): JSX.Element {
   const articleLang = locale === "en" ? undefined : "en";
   const body = state.slug === slug ? state.body : undefined;
   const failed = state.slug === slug && state.failed;
-  useBlogMetadata(localize("/blog/" + slug), (post ? post.title : meta.articleNotFoundTitle) + " | " + siteName,
+  useBlogMetadata(localize("/blog/" + slug), (post ? post.title : meta.articleNotFoundTitle) + " | " + meta.name,
     post?.description ?? blog.notFoundDescription);
 
   useEffect(() => {

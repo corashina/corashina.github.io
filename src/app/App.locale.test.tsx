@@ -17,7 +17,7 @@ const renderAt = (path: string) =>
 
 describe("Polish routes", () => {
   it.each([
-    ["/pl", "Tomasz Zielinski"],
+    ["/pl", "Tomasz Zieliński"],
     ["/pl/works", "Projekty"],
     ["/pl/contact", "Kontakt"],
     ["/pl/missing", "404"],
@@ -30,7 +30,7 @@ describe("Polish routes", () => {
 
   it("shows the Polish 404 text under /pl", async () => {
     renderAt("/pl/missing");
-    expect(await screen.findByText("Przepraszam, ta strona nie istnieje.")).toBeInTheDocument();
+    expect(await screen.findByText("Ta strona nie istnieje.")).toBeInTheDocument();
   });
 
   it("keeps navigation links under /pl", async () => {
@@ -61,14 +61,22 @@ describe("Polish routes", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Opis produktu →" })).toBeInTheDocument();
-    expect(document.title).toBe("Xelcode | Tomasz Zielinski");
+    expect(document.title).toBe("Xelcode | Tomasz Zieliński");
   });
 
   it("sets the Polish page title and description", async () => {
     renderAt("/pl/contact");
     await screen.findByRole("heading", { level: 1, name: "Kontakt" });
-    expect(document.title).toBe("Kontakt | Tomasz Zielinski");
+    expect(document.title).toBe("Kontakt | Tomasz Zieliński");
     expect(screen.getByRole("button", { name: "Włącz jasny motyw" })).toBeInTheDocument();
+  });
+
+  it.each([
+    ["/contact", "/tomasz_zielinski.pdf"],
+    ["/pl/contact", "/tomasz_zielinski_pl.pdf"],
+  ])("links %s to the CV in its own language", async (path, href) => {
+    renderAt(path);
+    expect(await screen.findByRole("link", { name: "cv" })).toHaveAttribute("href", href);
   });
 });
 
@@ -92,7 +100,7 @@ describe("language switch", () => {
 
   it("switches the home page to /pl and back to /", async () => {
     renderAt("/pl");
-    await screen.findByRole("heading", { level: 1, name: "Tomasz Zielinski" });
+    await screen.findByRole("heading", { level: 1, name: "Tomasz Zieliński" });
     expect(screen.getByRole("heading", { name: "programista full-stack" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "English version" })).toHaveAttribute("href", "/");
   });

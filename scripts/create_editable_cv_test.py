@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
 from pathlib import Path
 from xml.etree import ElementTree
 from zipfile import ZipFile
@@ -20,6 +21,7 @@ from full_stack_cv_content import (
     CV_DATA,
     FORBIDDEN_PUBLIC_TERMS,
     GDPR_CONSENT,
+    POLISH_CV_DATA,
     WIELKOPOLSKA_CV_DATA,
 )
 
@@ -566,3 +568,61 @@ class WielkopolskaVariantTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class PolishVariantTest(unittest.TestCase):
+    """The Polish CV is the Wielkopolska CV in Polish, served from /pl/contact."""
+
+    def test_keeps_contact_details_and_layout_data(self) -> None:
+        self.assertEqual(POLISH_CV_DATA.identity.name, "Tomasz Zieliński")
+        self.assertEqual(
+            replace(POLISH_CV_DATA.identity, name=CV_DATA.identity.name), CV_DATA.identity
+        )
+        self.assertEqual(
+            [technologies for _, technologies in POLISH_CV_DATA.technology_groups],
+            [technologies for _, technologies in CV_DATA.technology_groups],
+        )
+        self.assertEqual(
+            [(product.period, product.tools) for product in POLISH_CV_DATA.commercial_projects],
+            [(product.period, product.tools) for product in CV_DATA.commercial_projects],
+        )
+        self.assertEqual(len(POLISH_CV_DATA.additional_lines), 1)
+
+    def test_text_is_polish_and_has_no_english_labels_left(self) -> None:
+        visible = POLISH_CV_DATA.visible_text()
+        for fragment in ("Mieszkam w Poznaniu", "Wyrażam zgodę", "RODO", "Politechnika Poznańska"):
+            self.assertIn(fragment, visible)
+        for english in ("Worked on", "Hiring subsidy", "Based in", "I consent"):
+            self.assertNotIn(english, visible)
+
+    def test_text_follows_unslop_punctuation_rules(self) -> None:
+        visible = POLISH_CV_DATA.visible_text()
+        self.assertNotIn("\u2014", visible)
+        self.assertNotIn(";", visible)
+        for curly in ("\u2018", "\u2019", "\u201c", "\u201d", "\u201e"):
+            self.assertNotIn(curly, visible)
+
+    def test_docx_uses_polish_headings(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "cv.docx"
+            build_cv(output, POLISH_CV_DATA)
+            document = Document(output)
+        text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+        for heading in ("O mnie", "Doświadczenie zawodowe", "Wykształcenie", "Informacje dodatkowe"):
+            self.assertIn(heading.upper(), text.upper())
+        self.assertIn("Języki:  angielski (C1)", text)
+        self.assertEqual(document.core_properties.author, "Tomasz Zieliński")
+
+    def test_pdf_stays_one_page_with_bottom_margin(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output = Path(temporary_directory) / "cv.pdf"
+            build_pdf(output, POLISH_CV_DATA)
+            self.assertEqual(len(PdfReader(output).pages), 1)
+            with pdfplumber.open(output) as pdf:
+                page = pdf.pages[0]
+                words = page.extract_words(extra_attrs=["size"])
+                text = page.extract_text()
+        content = [word for word in words if word["size"] >= 7]
+        self.assertGreaterEqual(page.height - max(word["bottom"] for word in content), 36)
+        self.assertIn("DOŚWIADCZENIE ZAWODOWE", text)
+        self.assertIn("Zieliński", text)

@@ -26,7 +26,7 @@ export function ContactPage(): JSX.Element {
             </a>
           </li>
           <li>
-            <a href="/tomasz_zielinski.pdf" onClick={() => trackContactClick("cv")}>
+            <a href={contact.cvHref} onClick={() => trackContactClick("cv")}>
               <FaFile aria-hidden="true" />
               {contact.cv}
             </a>
