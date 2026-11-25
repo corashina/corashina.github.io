@@ -209,6 +209,14 @@ CV_DATA = CvData(
                 period="2024–2026",
                 products=(
                     Project(
+                        "XELapps",
+                        "2024–2026",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Worked on user and application setup and JWT sign-in for the web shell "
+                        "that hosts our React business apps, and on SSO sign-in and EAS store "
+                        "releases for the Expo app that covers six of our products.",
+                    ),
+                    Project(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, Azure Functions, Azure SQL, React, TypeScript",
@@ -233,14 +241,6 @@ CV_DATA = CvData(
                         "invoices, purchase orders and holiday requests (steps, conditions, "
                         "substitutes, versions). Approvers act from the web, mobile swipe cards or "
                         "email.",
-                    ),
-                    Project(
-                        "XELapps",
-                        "2024–2026",
-                        "React, TypeScript, React Native/Expo, Flutter",
-                        "Worked on user and application setup and JWT sign-in for the web shell "
-                        "that hosts our React business apps, and on SSO sign-in and EAS store "
-                        "releases for the Expo app that covers six of our products.",
                     ),
                     Project(
                         "VendorPortal",
@@ -364,6 +364,15 @@ POLISH_CV_DATA = replace(
                 period="2024–2026",
                 products=(
                     Project(
+                        "XELapps",
+                        "2024–2026",
+                        "React, TypeScript, React Native/Expo, Flutter",
+                        "Pracowałem nad konfiguracją użytkowników i aplikacji oraz logowaniem JWT "
+                        "w webowej powłoce dla naszych aplikacji biznesowych w React. W aplikacji "
+                        "Expo, która obsługuje sześć naszych produktów, robiłem logowanie SSO "
+                        "i publikację w sklepach przez EAS.",
+                    ),
+                    Project(
                         "Document AI / ICR",
                         "2025–2026",
                         "C#, .NET, Azure Functions, Azure SQL, React, TypeScript",
@@ -389,15 +398,6 @@ POLISH_CV_DATA = replace(
                         "faktur, zamówień zakupu i wniosków urlopowych (kroki, warunki, zastępstwa, "
                         "wersje). Akceptujący decydują w przeglądarce, w aplikacji mobilnej "
                         "(przesuwane karty) lub e-mailem.",
-                    ),
-                    Project(
-                        "XELapps",
-                        "2024–2026",
-                        "React, TypeScript, React Native/Expo, Flutter",
-                        "Pracowałem nad konfiguracją użytkowników i aplikacji oraz logowaniem JWT "
-                        "w webowej powłoce dla naszych aplikacji biznesowych w React. W aplikacji "
-                        "Expo, która obsługuje sześć naszych produktów, robiłem logowanie SSO "
-                        "i publikację w sklepach przez EAS.",
                     ),
                     Project(
                         "VendorPortal",
