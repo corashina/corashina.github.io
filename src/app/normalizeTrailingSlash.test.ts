@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { normalizeTrailingSlash } from "./normalizeTrailingSlash";
 
 const run = (url: string) => {
-  const parsed = new URL(url, "https://www.tomasz-zielinski.com");
+  const parsed = new URL(url, "https://corashina.github.io");
   const history = { state: { idx: 0 }, replaceState: vi.fn() } as unknown as History;
   normalizeTrailingSlash(parsed as unknown as Location, history);
   return history.replaceState as ReturnType<typeof vi.fn>;

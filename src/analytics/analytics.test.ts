@@ -8,7 +8,7 @@ beforeEach(async () => {
   vi.resetModules();
   vi.stubEnv("PROD", true);
   vi.stubEnv("VITE_CF_BEACON_TOKEN", token);
-  vi.stubGlobal("window", { location: { hostname: "www.tomasz-zielinski.com" } });
+  vi.stubGlobal("window", { location: { hostname: "corashina.github.io" } });
   analytics = await import("./analytics");
 });
 
