@@ -214,7 +214,7 @@ CV_DATA = CvData(
                         "React, TypeScript, React Native/Expo, Flutter",
                         "Worked on user and application setup and JWT sign-in for the web shell "
                         "that hosts our React business apps, and on SSO sign-in and EAS store "
-                        "releases for the Expo app that covers six of our products.",
+                        "releases for the Expo app that covers our products.",
                     ),
                     Project(
                         "Document AI / ICR",
@@ -368,7 +368,7 @@ POLISH_CV_DATA = replace(
                         "React, TypeScript, React Native/Expo, Flutter",
                         "Pracowałem nad konfiguracją użytkowników i aplikacji oraz logowaniem JWT "
                         "w webowej powłoce dla naszych aplikacji biznesowych w React. W aplikacji "
-                        "Expo, która obsługuje sześć naszych produktów, robiłem logowanie SSO "
+                        "Expo, która obsługuje nasze produkty, robiłem logowanie SSO "
                         "i publikację w sklepach przez EAS.",
                     ),
                     Project(
