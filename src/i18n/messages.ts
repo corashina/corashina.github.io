@@ -22,8 +22,8 @@ const en = {
   home: {
     role: "full-stack developer",
     intro: [
-      "Based in Poznań, with six years of commercial experience. I began in React and Android, and now work across the stack in React/TypeScript, React Native, C#/.NET and SQL Server.",
-      "Most of my work is document-heavy business software, including LLM extraction and e-invoicing. AI coding tools such as Claude Code are part of my everyday development.",
+      "Developer in Poznań, Computer Science graduate from the University of Southampton, six years into building software for businesses, both on-premises and in the cloud. I work on everything from React to .NET services. I also have hands-on experience in logistics, building warehouse scanner apps integrated with the company's ERP system.",
+      "At home it's browser games and 3D graphics. AI takes up a lot of my attention, as a feature in the software I ship and as a tool I code with every day. Away from the desk you'll usually find me at the gym or on the tennis court.",
     ],
   },
   works: {
@@ -107,8 +107,8 @@ const pl: Messages = {
   home: {
     role: "programista full-stack",
     intro: [
-      "Mieszkam w Poznaniu, mam sześć lat doświadczenia komercyjnego. Zaczynałem od Reacta i Androida, dziś pracuję w całym stacku: React/TypeScript, React Native, C#/.NET i SQL Server.",
-      "Głównie tworzę oprogramowanie biznesowe do obsługi dokumentów, w tym ekstrakcję danych przez LLM i e-fakturowanie. Narzędzia AI do programowania, takie jak Claude Code, są częścią mojej codziennej pracy.",
+      "Programista z Poznania, absolwent informatyki na University of Southampton, od sześciu lat tworzę oprogramowanie dla firm, zarówno on-premise, jak i w chmurze. Pracuję na każdym poziomie, od Reacta po serwisy w .NET. Mam też praktyczne doświadczenie w logistyce: budowałem aplikacje na skanery magazynowe zintegrowane z systemem ERP firmy.",
+      "W domu robię gry przeglądarkowe i grafikę 3D. Dużo uwagi poświęcam AI, zarówno jako funkcji w oprogramowaniu, które dostarczam, jak i narzędziu, z którym codziennie programuję. Z dala od biurka najczęściej można mnie spotkać na siłowni albo na korcie tenisowym.",
     ],
   },
   works: {
