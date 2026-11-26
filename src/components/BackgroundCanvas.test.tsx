@@ -1,7 +1,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { BackgroundController } from "../three/backgroundScene";
-import { BackgroundCanvas } from "./BackgroundCanvas";
+import { BackgroundCanvas, boostPointerSpeed } from "./BackgroundCanvas";
 
 const sceneMocks = vi.hoisted(() => ({
   createBackgroundScene: vi.fn(),
@@ -45,6 +45,7 @@ function createController(): BackgroundController {
     resize: vi.fn(),
     setPointer: vi.fn(),
     setTheme: vi.fn(),
+    setContentFocus: vi.fn(),
     renderStatic: vi.fn(),
     dispose: vi.fn(),
   };
@@ -105,6 +106,45 @@ describe("BackgroundCanvas", () => {
       vi.useRealTimers();
     }
     vi.unstubAllGlobals();
+  });
+
+  it("keeps the calm field by default", async () => {
+    render(<BackgroundCanvas theme="dark" />);
+    await flushBackgroundIdle();
+
+    expect(controller.setTheme).toHaveBeenLastCalledWith(
+      expect.objectContaining({ particle: "#729ece", signal: "#bbdcff" }),
+    );
+    expect(controller.setContentFocus).toHaveBeenLastCalledWith(0.5, 1);
+    expect(screen.getByTestId("background-canvas").style.getPropertyValue("--canvas-opacity")).toBe(
+      "0.30",
+    );
+  });
+
+  it("brightens the field and moves the dimmed area left when lively", async () => {
+    const { rerender } = render(<BackgroundCanvas lively theme="dark" />);
+    await flushBackgroundIdle();
+    const canvas = screen.getByTestId("background-canvas");
+
+    expect(controller.setTheme).toHaveBeenLastCalledWith(
+      expect.objectContaining({ particle: "#86b2e2", signal: "#d4ecff" }),
+    );
+    expect(controller.setContentFocus).toHaveBeenLastCalledWith(0.3, 0.85);
+    expect(canvas.style.getPropertyValue("--canvas-opacity")).toBe("0.72");
+
+    rerender(<BackgroundCanvas lively={false} theme="white" />);
+
+    expect(controller.setTheme).toHaveBeenLastCalledWith(
+      expect.objectContaining({ particle: "#7893be" }),
+    );
+    expect(controller.setContentFocus).toHaveBeenLastCalledWith(0.5, 1);
+    expect(canvas.style.getPropertyValue("--canvas-opacity")).toBe("0.18");
+  });
+
+  it("boosts pointer speed within the 0–1 range", () => {
+    expect(boostPointerSpeed(0)).toBeCloseTo(0.12);
+    expect(boostPointerSpeed(0.2)).toBeCloseTo(0.48);
+    expect(boostPointerSpeed(1)).toBe(1);
   });
 
   it("does not import or create the scene before idle", () => {

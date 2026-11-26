@@ -20,12 +20,41 @@ const sceneThemes: Record<Theme, SceneTheme> = {
   },
 };
 
+/** Home gets a brighter, denser field that reacts more to the pointer. */
+const livelySceneThemes: Record<Theme, SceneTheme> = {
+  dark: { ...sceneThemes.dark, particle: "#86b2e2", signal: "#d4ecff", connection: "#5576aa" },
+  white: { ...sceneThemes.white, particle: "#6585b8", connection: "#8faad0" },
+};
+
 const canvasOpacities: Record<Theme, string> = {
   dark: "0.30",
   white: "0.18",
 };
 
+const livelyCanvasOpacities: Record<Theme, string> = {
+  dark: "0.72",
+  white: "0.40",
+};
+
+// Home text sits in the left part of the screen, so only that area is dimmed.
+const LIVELY_CONTENT_FOCUS = { centerX: 0.3, scale: 0.85 };
+const DEFAULT_CONTENT_FOCUS = { centerX: 0.5, scale: 1 };
+
+const pickSceneTheme = (theme: Theme, lively: boolean): SceneTheme =>
+  (lively ? livelySceneThemes : sceneThemes)[theme];
+
+const applyLiveliness = (controller: BackgroundController, theme: Theme, lively: boolean): void => {
+  controller.setTheme(pickSceneTheme(theme, lively));
+  const focus = lively ? LIVELY_CONTENT_FOCUS : DEFAULT_CONTENT_FOCUS;
+  controller.setContentFocus(focus.centerX, focus.scale);
+};
+
+/** Livelier pointer response: faster moves count for more, and any move stirs the field a little. */
+export const boostPointerSpeed = (speed: number): number => Math.min(1, speed * 1.8 + 0.12);
+
 type BackgroundCanvasProps = {
+  /** Brighter, more responsive field (used on Home). */
+  lively?: boolean;
   ready?: boolean;
   theme: Theme;
 };
@@ -40,12 +69,14 @@ const scheduleInitialization = (callback: () => void): (() => void) => {
   return () => browserWindow.clearTimeout(handle);
 };
 
-export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps): JSX.Element {
+export function BackgroundCanvas({ lively = false, ready = true, theme }: BackgroundCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<BackgroundController | null>(null);
   const themeRef = useRef(theme);
+  const livelyRef = useRef(lively);
   const [failed, setFailed] = useState(false);
   themeRef.current = theme;
+  livelyRef.current = lively;
 
   useEffect(() => {
     if (!ready) return;
@@ -136,7 +167,7 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
         }
 
         controllerRef.current = controller;
-        controller.setTheme(sceneThemes[themeRef.current]);
+        applyLiveliness(controller, themeRef.current, livelyRef.current);
 
         onPointerMove = (event: PointerEvent): void => {
           if (closed) return;
@@ -148,7 +179,7 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
           const rect = canvas.getBoundingClientRect();
           if (rect.width === 0 || rect.height === 0) return;
           const pointer = normalizePointer(event.clientX, event.clientY, rect);
-          const speed = previousPointer
+          const measuredSpeed = previousPointer
             ? normalizePointerSpeed(
                 event.clientX - previousPointer.x,
                 event.clientY - previousPointer.y,
@@ -156,6 +187,7 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
                 rect,
               )
             : 0;
+          const speed = livelyRef.current ? boostPointerSpeed(measuredSpeed) : measuredSpeed;
           previousPointer = {
             x: event.clientX,
             y: event.clientY,
@@ -219,8 +251,8 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
   useEffect(() => {
     const controller = controllerRef.current;
     if (!controller) return;
-    controller.setTheme(sceneThemes[theme]);
-  }, [theme]);
+    applyLiveliness(controller, theme, lively);
+  }, [lively, theme]);
 
   return (
     <canvas
@@ -231,7 +263,7 @@ export function BackgroundCanvas({ ready = true, theme }: BackgroundCanvasProps)
       ref={canvasRef}
       style={{
         "--canvas-background": sceneThemes[theme].background,
-        "--canvas-opacity": canvasOpacities[theme],
+        "--canvas-opacity": (lively ? livelyCanvasOpacities : canvasOpacities)[theme],
       } as CSSProperties}
     />
   );

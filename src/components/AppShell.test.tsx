@@ -51,6 +51,7 @@ describe("AppShell", () => {
       resize: vi.fn(),
       setPointer: vi.fn(),
       setTheme: vi.fn(),
+      setContentFocus: vi.fn(),
       renderStatic: vi.fn(),
       dispose: vi.fn(),
     });
