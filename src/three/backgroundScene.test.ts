@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createBackgroundScene } from "./backgroundScene";
+import { createParticleField } from "./particleField";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -51,6 +52,29 @@ function renderedField(renderer: ReturnType<typeof createSceneSetup>["renderer"]
 }
 
 describe("background scene controller", () => {
+  it("keeps the text mask on resize and moves it when the content focus changes", () => {
+    const setup = createSceneSetup();
+    let setContentMask: ReturnType<typeof vi.fn> | undefined;
+    const controller = createBackgroundScene(setup.canvas, {
+      ...setup.dependencies,
+      createField: (tier) => {
+        const field = createParticleField(tier);
+        setContentMask = vi.spyOn(field, "setContentMask") as unknown as ReturnType<typeof vi.fn>;
+        return field;
+      },
+    });
+
+    controller.resize(1500, 1000, 1);
+    expect(setContentMask).toHaveBeenLastCalledWith(0.5, 0.5, 0.2, 0.42);
+
+    controller.setContentFocus(0.3, 0.5);
+    expect(setContentMask).toHaveBeenLastCalledWith(0.3, 0.5, 0.1, 0.21);
+
+    controller.resize(3000, 2000, 1);
+    expect(setContentMask).toHaveBeenLastCalledWith(0.3, 0.5, 0.05, 0.105);
+    controller.dispose();
+  });
+
   it("preflights shader compilation and disposes once when it fails", () => {
     const setup = createSceneSetup();
     setup.renderer.compile.mockImplementation(() => {

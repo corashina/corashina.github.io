@@ -206,7 +206,7 @@ export function AppShell(): JSX.Element {
 
   return (
     <div className={styles.layout}>
-      <BackgroundCanvas ready={initialRouteReady} theme={theme} />
+      <BackgroundCanvas lively={pagePath === "/"} ready={initialRouteReady} theme={theme} />
       <Navigation
         onToggleTheme={() => setTheme((current) => (current === "dark" ? "white" : "dark"))}
         theme={theme}

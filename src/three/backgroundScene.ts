@@ -20,6 +20,8 @@ export type BackgroundController = {
   resize(width: number, height: number, pixelRatio: number): void;
   setPointer(x: number, y: number, speed: number): void;
   setTheme(theme: SceneTheme): void;
+  /** Where the text sits (0–1 across the screen) and how wide its dimmed area is. */
+  setContentFocus(centerX: number, scale: number): void;
   renderStatic(): void;
   dispose(): void;
 };
@@ -138,6 +140,18 @@ export function createBackgroundScene(
   let qualityTier: QualityTier = "high";
   let qualityInitialized = false;
   let warmupFrames = 0;
+  let viewportWidth = 1;
+  let viewportHeight = 1;
+  let contentCenterX = 0.5;
+  let contentScale = 1;
+  const applyContentMask = (): void => {
+    field?.setContentMask(
+      contentCenterX,
+      0.5,
+      Math.min(0.28, 300 / viewportWidth) * contentScale,
+      Math.min(0.42, 420 / viewportHeight) * contentScale,
+    );
+  };
   let sampleFrames = 0;
   let slowFrames = 0;
   let performanceLocked = false;
@@ -295,6 +309,11 @@ export function createBackgroundScene(
       cancelFrame(frameHandle);
       frameHandle = null;
     },
+    setContentFocus(centerX: number, scale: number): void {
+      contentCenterX = centerX;
+      contentScale = scale;
+      applyContentMask();
+    },
     resize(width: number, height: number, pixelRatio: number): void {
       const safeWidth = Math.max(width, 1);
       const safeHeight = Math.max(height, 1);
@@ -303,12 +322,9 @@ export function createBackgroundScene(
       renderer.setSize(safeWidth, safeHeight, false);
       camera.aspect = safeWidth / safeHeight;
       camera.updateProjectionMatrix();
-      field.setContentMask(
-        0.5,
-        0.5,
-        Math.min(0.28, 300 / safeWidth),
-        Math.min(0.42, 420 / safeHeight),
-      );
+      viewportWidth = safeWidth;
+      viewportHeight = safeHeight;
+      applyContentMask();
 
       const selectedTier = selectQualityTier(
         safeWidth,
