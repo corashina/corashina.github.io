@@ -238,8 +238,7 @@ CV_DATA = CvData(
                         "2024–2026",
                         "React, TypeScript",
                         "Helped build the designer clients use to set up approval chains for "
-                        "invoices, purchase orders and holiday requests (steps, conditions, "
-                        "substitutes, versions). Approvers act from the web, mobile swipe cards or "
+                        "invoices, purchase orders and holiday requests. Approvers act from the web, mobile swipe cards or "
                         "email.",
                     ),
                     Project(
@@ -395,8 +394,7 @@ POLISH_CV_DATA = replace(
                         "2024–2026",
                         "React, TypeScript",
                         "Współtworzyłem kreator, w którym klienci ustawiają ścieżki akceptacji "
-                        "faktur, zamówień zakupu i wniosków urlopowych (kroki, warunki, zastępstwa, "
-                        "wersje). Akceptujący decydują w przeglądarce, w aplikacji mobilnej "
+                        "faktur, zamówień zakupu i wniosków urlopowych. Akceptujący decydują w przeglądarce, w aplikacji mobilnej "
                         "(przesuwane karty) lub e-mailem.",
                     ),
                     Project(
