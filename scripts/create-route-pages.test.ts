@@ -64,10 +64,10 @@ it("gives each route its own title, description, canonical URL and share tags", 
       "Scanner-driven warehouse and manufacturing workflows integrated with Oracle JD Edwards E1.",
     );
     expect(project.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
-      "https://www.tomasz-zielinski.com/works/xelcode/",
+      "https://corashina.github.io/works/xelcode/",
     );
-    expect(meta(project, 'meta[property="og:url"]')).toBe("https://www.tomasz-zielinski.com/works/xelcode/");
-    expect(meta(project, 'meta[property="og:image"]')).toBe("https://www.tomasz-zielinski.com/og-card.png");
+    expect(meta(project, 'meta[property="og:url"]')).toBe("https://corashina.github.io/works/xelcode/");
+    expect(meta(project, 'meta[property="og:image"]')).toBe("https://corashina.github.io/og-card.png");
     expect(meta(project, 'meta[name="twitter:card"]')).toBe("summary_large_image");
     expect(project.querySelector("script")?.getAttribute("src")).toBe("/assets/app.js");
     expect(project.querySelectorAll('meta[name="description"]')).toHaveLength(1);
@@ -89,7 +89,7 @@ it("adds Person structured data to the home page only and keeps the 404 fallback
     const home = await read("index.html");
     expect(home.title).toBe(pageMeta.homeMeta("en").title);
     expect(home.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
-      "https://www.tomasz-zielinski.com/",
+      "https://corashina.github.io/",
     );
     const data = JSON.parse(home.querySelector('script[type="application/ld+json"]')?.textContent ?? "{}");
     expect(data).toMatchObject({ "@type": "Person", name: "Tomasz Zielinski", jobTitle: "Full-stack developer" });
@@ -113,16 +113,16 @@ it("writes a sitemap with every route", async () => {
     expect(locations).toEqual(
       paths
         .filter((path) => !path.startsWith("pl/blog/"))
-        .map((path) => `https://www.tomasz-zielinski.com/${path ? `${path}/` : ""}`),
+        .map((path) => `https://corashina.github.io/${path ? `${path}/` : ""}`),
     );
     expect(sitemap).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
     expect(sitemap).toContain(
-      "<loc>https://www.tomasz-zielinski.com/pl/works/</loc>" +
-        '<xhtml:link rel="alternate" hreflang="en" href="https://www.tomasz-zielinski.com/works/"/>' +
-        '<xhtml:link rel="alternate" hreflang="pl" href="https://www.tomasz-zielinski.com/pl/works/"/>',
+      "<loc>https://corashina.github.io/pl/works/</loc>" +
+        '<xhtml:link rel="alternate" hreflang="en" href="https://corashina.github.io/works/"/>' +
+        '<xhtml:link rel="alternate" hreflang="pl" href="https://corashina.github.io/pl/works/"/>',
     );
     expect(sitemap).toContain(
-      "<loc>https://www.tomasz-zielinski.com/blog/example/</loc><lastmod>2026-09-22</lastmod>",
+      "<loc>https://corashina.github.io/blog/example/</loc><lastmod>2026-09-22</lastmod>",
     );
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -142,9 +142,9 @@ it("writes Polish twins with their own language, text and alternates", async () 
         ]),
       );
     const expected = {
-      en: "https://www.tomasz-zielinski.com/works/xelcode/",
-      pl: "https://www.tomasz-zielinski.com/pl/works/xelcode/",
-      "x-default": "https://www.tomasz-zielinski.com/works/xelcode/",
+      en: "https://corashina.github.io/works/xelcode/",
+      pl: "https://corashina.github.io/pl/works/xelcode/",
+      "x-default": "https://corashina.github.io/works/xelcode/",
     };
 
     expect(english.documentElement.lang).toBe("en");
@@ -184,7 +184,7 @@ it("points Polish article pages at the English article, which is the only copy",
     const polish = await read("pl/blog/example/index.html");
     expect(polish.documentElement.lang).toBe("pl");
     expect(polish.querySelector('link[rel="canonical"]')?.getAttribute("href")).toBe(
-      "https://www.tomasz-zielinski.com/blog/example/",
+      "https://corashina.github.io/blog/example/",
     );
     expect(polish.querySelector('link[rel="alternate"][hreflang]')).toBeNull();
     expect(polish.querySelector('meta[property="og:locale:alternate"]')).toBeNull();
@@ -199,7 +199,7 @@ it("forwards renamed and removed URLs in both languages and keeps them out of th
     const english = await read("works/the-long-slop/index.html");
     expect(meta(english, 'meta[http-equiv="refresh"]')).toBe("0; url=/works/the-long-drive/");
     expect(english.querySelector('link[rel="canonical"]')?.getAttribute("href"))
-      .toBe("https://www.tomasz-zielinski.com/works/the-long-drive/");
+      .toBe("https://corashina.github.io/works/the-long-drive/");
     expect(meta(english, 'meta[name="robots"]')).toBe("noindex");
     const polish = await read("pl/works/the-long-slop/index.html");
     expect(meta(polish, 'meta[http-equiv="refresh"]')).toBe("0; url=/pl/works/the-long-drive/");

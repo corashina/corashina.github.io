@@ -3,8 +3,6 @@
 // no custom events.
 const beaconToken = import.meta.env.VITE_CF_BEACON_TOKEN as string | undefined;
 const productionHosts = new Set([
-  "www.tomasz-zielinski.com",
-  "tomasz-zielinski.com",
   "corashina.github.io",
 ]);
 

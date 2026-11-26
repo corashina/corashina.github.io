@@ -6,7 +6,7 @@ import { localeFromPath, stripLocale, type Locale } from "../i18n/locales.ts";
 import { messagesFor } from "../i18n/messages.ts";
 import type { Project } from "./projects";
 
-export const siteUrl = "https://www.tomasz-zielinski.com";
+export const siteUrl = "https://corashina.github.io";
 export const siteName = "Tomasz Zielinski";
 export const shareImage = {
   path: "/og-card.png",

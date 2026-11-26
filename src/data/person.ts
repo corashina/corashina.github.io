@@ -6,7 +6,7 @@ export const person = {
   "@type": "Person",
   name: "Tomasz Zielinski",
   jobTitle: "Full-stack developer",
-  url: "https://www.tomasz-zielinski.com/",
+  url: "https://corashina.github.io/",
   email: "mailto:corashina@gmail.com",
   sameAs: [
     "https://github.com/corashina",
