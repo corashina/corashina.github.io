@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { MorphHero } from "../components/MorphHero";
 import { useMessages } from "../i18n/useLocale";
 import styles from "../styles/home.module.scss";
 
@@ -13,6 +14,7 @@ export function HomePage(): JSX.Element {
           <p key={paragraph}>{paragraph}</p>
         ))}
       </section>
+      <MorphHero />
     </div>
   );
 }
