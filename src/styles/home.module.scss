@@ -1,8 +1,33 @@
 @use "themes" as *;
 
 .home {
+  align-items: center;
   display: grid;
   gap: 2rem;
+}
+
+@media (min-width: $media-md) {
+  .home {
+    gap: 2.5rem;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+  }
+}
+
+.hero {
+  aspect-ratio: 1 / 1.1;
+  justify-self: center;
+  max-width: 100%;
+  min-width: 0;
+  position: relative;
+  width: min(100%, 400px);
+}
+
+.heroCanvas {
+  display: block;
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
 }
 
 .introduction {
